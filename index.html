@@ -71,6 +71,7 @@ header.app .stand{font-size:12px; color:var(--muted)}
   border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer}
 .filters button.on{color:var(--ink); font-weight:700; border-color:var(--ink2)}
 .filters button.on::before{content:"✓ "; font-weight:700}
+.card .painfilter{margin-top:2px; margin-bottom:8px}
 .chart{margin-top:4px; position:relative}
 .chart svg{display:block; width:100%; height:auto}
 .tt{position:fixed; z-index:30; background:var(--surface); color:var(--ink); border:1px solid var(--border);
@@ -225,7 +226,9 @@ footer button{background:none;border:none;color:var(--muted);font-size:11px;text
     </div></div>
   <div class="card"><h2>Tages-Strain</h2><div class="chart" id="c-strain"></div></div>
   <div class="card"><h2>Schlaf (Stunden)</h2><div class="chart" id="c-schlaf"></div></div>
-  <div class="card"><h2>Schmerz je Training (0–10)</h2><div class="chart" id="c-schmerz"></div>
+  <div class="card"><h2>Schmerz je Training (0–10)</h2>
+    <div class="filters painfilter" id="painfilter"></div>
+    <div class="chart" id="c-schmerz"></div>
     <div class="legendline" id="schmerz-leer"></div></div>
 
   <div class="card"><h2>Trainings</h2><div id="liste"></div></div>
@@ -364,6 +367,7 @@ function recLabel(v){ return v==null? "–" : (v>=67?"Erholt" : v>=34?"Moderat" 
 /* ---------- Zeitraum ---------- */
 const RANGES=[["7T",7],["30T",30],["90T",90],["Alles",99999]];
 let range = sGet("tt.range") || "30T";
+let painPart = sGet("tt.painpart") || "alle";
 function whoopDays(){
   const all = Object.keys(DATA.whoop).sort();
   const n = RANGES.find(r=>r[0]===range)[1];
@@ -471,27 +475,47 @@ function barChart(mountId, days, get, color, ymax, unit, dec){
   attachHover(f,days,i=>{ const v=get(days[i]); if(v==null) return null;
     return `<div class="d">${fmtL(days[i])}</div><b>${v.toFixed(dec)}${unit}</b>`; });
 }
-/* Lollipop (Schmerz je Training) */
-function painChart(mountId, days, legendId="schmerz-leer"){
+/* Lollipop (Schmerz je Training) — optional nach Körperteil gefiltert */
+function painParts(){
+  const set=new Set();
+  for(const t of DATA.trainings){ if(t.schmerzen) for(const s of t.schmerzen) if(s.ort) set.add(s.ort); }
+  return [...set].sort((a,b)=>a.localeCompare(b,"de"));
+}
+function painVal(t, part){
+  if(part==="alle"||!part) return t.schmerz_max;
+  if(t.schmerzen&&t.schmerzen.length){ const m=t.schmerzen.find(s=>s.ort===part); if(m) return m.staerke; }
+  if(t.schmerz_max===0) return 0;   // schmerzfrei überall → auch dieser Teil 0
+  return null;                       // dieser Körperteil an dem Tag nicht erfasst
+}
+function painChart(mountId, days, legendId="schmerz-leer", part="alle"){
   const f=frame(mountId,10);
   const lastD=days[days.length-1];
   const n=days.length, tr=DATA.trainings.filter(t=>t.datum>=days[0]&&t.datum<=lastD);
   const byDay={}; tr.forEach(t=>{ byDay[t.datum]=t; });
+  let plotted=0;
   days.forEach((d,i)=>{
-    const t=byDay[d]; if(!t||t.schmerz_max==null) return;
-    const x=f.X(n===1?0.5:i/(n-1)), v=Math.max(t.schmerz_max,0.25), y=f.Y(v);
+    const t=byDay[d]; if(!t) return;
+    const pv=painVal(t,part); if(pv==null) return;
+    plotted++;
+    const x=f.X(n===1?0.5:i/(n-1)), v=Math.max(pv,0.25), y=f.Y(v);
     f.svg.appendChild(el("line",{x1:x,x2:x,y1:f.T+f.ih,y2:y,stroke:css("--schmerz"),"stroke-width":2}));
-    f.svg.appendChild(el("circle",{cx:x,cy:y,r:5,fill:t.schmerz_max===0?css("--surface"):css("--schmerz"),
+    f.svg.appendChild(el("circle",{cx:x,cy:y,r:5,fill:pv===0?css("--surface"):css("--schmerz"),
       stroke:css("--schmerz"),"stroke-width":2}));
     const lbl=el("text",{x:x,y:y-9,"text-anchor":"middle","font-size":10,"font-weight":700,fill:css("--ink")});
-    lbl.textContent=t.schmerz_max; f.svg.appendChild(lbl);
+    lbl.textContent=pv; f.svg.appendChild(lbl);
   });
   xticks(f,days);
   attachHover(f,days,i=>{ const t=byDay[days[i]]; if(!t) return null;
-    const sl=(t.schmerzen&&t.schmerzen.length)? t.schmerzen.map(s=>`${esc(s.ort)}: <b>${s.staerke}/10</b>`).join("<br>") : "<b>schmerzfrei</b>";
+    let sl;
+    if(part==="alle"){ sl=(t.schmerzen&&t.schmerzen.length)
+        ? t.schmerzen.map(s=>`${esc(s.ort)}: <b>${s.staerke}/10</b>`).join("<br>") : "<b>schmerzfrei</b>"; }
+    else { const pv=painVal(t,part);
+      sl = pv==null? `<span class="d">nicht erfasst</span>` : (pv===0? "<b>schmerzfrei</b>" : `${esc(part)}: <b>${pv}/10</b>`); }
     return `<div class="d">${fmtL(t.datum)} · ${esc(t.typ)}</div>${sl}`; });
   const leer=legendId?document.getElementById(legendId):null;
-  if(leer) leer.textContent = tr.length ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : "Keine Trainings im Zeitraum.";
+  if(leer) leer.textContent = plotted
+    ? (part==="alle" ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : `Verlauf: ${part} · 0 = schmerzfrei`)
+    : "Keine Daten im Zeitraum.";
 }
 
 /* ---------- Recovery-Ring (Hero) ---------- */
@@ -712,7 +736,7 @@ function buildReport(o){
   if(o.sections.recovery) h+=cs("Recovery %","rep-c-recovery");
   if(o.sections.strain)   h+=cs("Tages-Strain","rep-c-strain");
   if(o.sections.schlaf)   h+=cs("Schlaf (Stunden)","rep-c-schlaf");
-  if(o.sections.schmerz)  h+=cs("Schmerz je Training (0–10)","rep-c-schmerz");
+  if(o.sections.schmerz)  h+=cs("Schmerz je Training (0–10)"+(painPart!=="alle"?" · "+esc(painPart):""),"rep-c-schmerz");
   if(o.sections.trainings){
     const trs=DATA.trainings.filter(t=>t.datum>=o.from&&t.datum<=o.to).sort((a,b)=>a.datum<b.datum?1:-1);
     h+=`<div class="rep-section"><div class="rep-h2">Trainings (${trs.length})</div>`;
@@ -727,7 +751,7 @@ function buildReport(o){
   if(o.sections.recovery && days.length) recoveryChart("rep-c-recovery", days, d=>w[d]?.recovery??null);
   if(o.sections.strain   && days.length) barChart("rep-c-strain", days, d=>w[d]?.strain??null, css("--strain"),21,"",1);
   if(o.sections.schlaf   && days.length) barChart("rep-c-schlaf", days, d=>w[d]?.schlaf_h??null, css("--schlaf"),12,"h",1);
-  if(o.sections.schmerz  && days.length) painChart("rep-c-schmerz", days, null);
+  if(o.sections.schmerz  && days.length) painChart("rep-c-schmerz", days, null, painPart);
   if(o.sections.wochen) reportWochen("rep-wochen", o.from, o.to);
 }
 function restorePrint(){
@@ -760,6 +784,21 @@ document.getElementById("exp-go").addEventListener("click", doExport);
 document.getElementById("exp-range").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) setExpRange(b.dataset.r); });
 document.getElementById("export").addEventListener("click", e=>{ if(e.target.id==="export") e.target.classList.remove("open"); });
 
+/* ---------- Körperteil-Filter (Schmerz) ---------- */
+function painFilters(){
+  const host=document.getElementById("painfilter"); if(!host) return;
+  const parts=painParts();
+  if(painPart!=="alle" && !parts.includes(painPart)){ painPart="alle"; sSet("tt.painpart","alle"); }
+  host.innerHTML="";
+  const mk=(val,lbl)=>{ const b=document.createElement("button");
+    b.textContent=lbl; if(val===painPart) b.className="on";
+    b.addEventListener("click",()=>{ painPart=val; sSet("tt.painpart",val); render(); });
+    host.appendChild(b); };
+  mk("alle","Alle");
+  for(const p of parts) mk(p,p);
+  host.style.display = parts.length ? "flex" : "none";
+}
+
 /* ---------- Filter + Render ---------- */
 function filters(){
   const host=document.getElementById("filters");
@@ -779,7 +818,8 @@ function render(){
   recoveryChart("c-recovery", days, d=>w[d]?.recovery??null);
   barChart("c-strain",  days, d=>w[d]?.strain??null,  css("--strain"), 21, "", 1);
   barChart("c-schlaf",  days, d=>w[d]?.schlaf_h??null, css("--schlaf"), 12, "h", 1);
-  painChart("c-schmerz", days);
+  painFilters();
+  painChart("c-schmerz", days, "schmerz-leer", painPart);
   liste(); wochen();
 }
 </script>
