@@ -467,8 +467,8 @@ function liste(){
   const tr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1); // neueste zuerst
   if(!tr.length){ host.innerHTML=`<div class="ebody">Noch keine Trainings erfasst.</div>`; return; }
 
-  // "Aktuell" = innerhalb 30 Tagen ab dem neuesten Training; Rest ins Archiv
-  const cut=new Date(D(tr[0].datum)); cut.setDate(cut.getDate()-30);
+  // "Aktuell" = innerhalb 14 Tagen ab dem neuesten Training; Rest ins Archiv
+  const cut=new Date(D(tr[0].datum)); cut.setDate(cut.getDate()-14);
   const recent=tr.filter(t=>D(t.datum)>=cut);
   const older =tr.filter(t=>D(t.datum)<cut);
 
