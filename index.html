@@ -18,22 +18,26 @@
   color-scheme: light dark;
   --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
-  --recovery:#2a78d6; --strain:#eb6834; --schlaf:#1baf7a; --schmerz:#e34948;
+  --recovery:#2a78d6; --strain:#0093e7; --schlaf:#1baf7a; --schmerz:#e34948;
   --good:#006300; --crit:#d03b3b; --chipbg:rgba(11,11,11,.05);
+  /* WHOOP Recovery-Zonen */
+  --rec-green:#12b400; --rec-yellow:#e0a400; --rec-red:#e11f2a; --track:rgba(11,11,11,.08);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-    --recovery:#3987e5; --strain:#d95926; --schlaf:#199e70; --schmerz:#e66767;
+    --recovery:#3987e5; --strain:#0093e7; --schlaf:#199e70; --schmerz:#e66767;
     --good:#0ca30c; --crit:#d03b3b; --chipbg:rgba(255,255,255,.07);
+    --rec-green:#16ec06; --rec-yellow:#ffde00; --rec-red:#ff2d3f; --track:rgba(255,255,255,.10);
   }
 }
 :root[data-theme="dark"]{
   --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
   --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-  --recovery:#3987e5; --strain:#d95926; --schlaf:#199e70; --schmerz:#e66767;
+  --recovery:#3987e5; --strain:#0093e7; --schlaf:#199e70; --schmerz:#e66767;
   --good:#0ca30c; --crit:#d03b3b; --chipbg:rgba(255,255,255,.07);
+  --rec-green:#16ec06; --rec-yellow:#ffde00; --rec-red:#ff2d3f; --track:rgba(255,255,255,.10);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0; padding:0}
@@ -46,11 +50,19 @@ header.app h1{font-size:20px; margin:0; letter-spacing:.2px}
 header.app .stand{font-size:12px; color:var(--muted)}
 .card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:12px}
 .card h2{font-size:13px; font-weight:600; color:var(--ink2); margin:0 0 8px; letter-spacing:.3px; text-transform:uppercase}
-.kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+
+/* Recovery-Hero (WHOOP-Ring) */
+.hero{background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  padding:20px 12px 16px; margin-top:12px; text-align:center}
+.hero .ring{display:inline-block; line-height:0}
+.hero .zlabel{font-size:15px; font-weight:800; margin-top:6px; letter-spacing:.2px}
+.hero .zsub{font-size:12px; color:var(--muted); margin-top:2px}
+
+.kpis{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:12px}
 .tile{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px 12px}
 .tile .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; display:flex; align-items:center; gap:6px}
 .tile .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-.tile .val{font-size:26px; font-weight:700; margin-top:2px}
+.tile .val{font-size:24px; font-weight:700; margin-top:2px}
 .tile .sub{font-size:12px; color:var(--ink2); margin-top:1px}
 .delta-up{color:var(--good); font-weight:600}
 .delta-down{color:var(--crit); font-weight:600}
@@ -66,7 +78,23 @@ header.app .stand{font-size:12px; color:var(--muted)}
   opacity:0; transition:opacity .08s; max-width:230px}
 .tt .d{color:var(--muted); font-size:11px}
 .tt b{font-variant-numeric:tabular-nums}
-.legendline{display:flex; gap:6px; align-items:center; font-size:12px; color:var(--ink2); margin-top:6px}
+.legendline{display:flex; gap:6px; align-items:center; font-size:12px; color:var(--ink2); margin-top:6px; flex-wrap:wrap}
+.zlegend{display:flex; gap:12px; margin-top:8px; font-size:11px; color:var(--muted); flex-wrap:wrap}
+.zlegend span{display:inline-flex; align-items:center; gap:5px}
+.zlegend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* Trainings-Sektionen + Ordner */
+.section-lbl{font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin:14px 0 2px; font-weight:600}
+.section-lbl:first-child{margin-top:0}
+.folder{border:1px solid var(--border); border-radius:12px; margin-top:8px; overflow:hidden; background:var(--surface)}
+.folder>summary{list-style:none; cursor:pointer; padding:11px 12px; display:flex; justify-content:space-between; align-items:center}
+.folder>summary::-webkit-details-marker{display:none}
+.folder>summary .fname{font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px}
+.folder>summary .fname::before{content:"▸"; color:var(--muted); font-size:12px; transition:transform .15s}
+.folder[open]>summary .fname::before{transform:rotate(90deg)}
+.folder>summary .cnt{font-size:12px; color:var(--muted)}
+.folder .fbody{padding:0 12px 6px; border-top:1px solid var(--grid)}
+
 .entry{border-top:1px solid var(--grid); padding:10px 0}
 .entry:first-of-type{border-top:none}
 .entry summary{list-style:none; cursor:pointer; display:block}
@@ -125,11 +153,18 @@ footer button{background:none;border:none;color:var(--muted);font-size:11px;text
     <div class="stand">Stand: <span id="stand">2026-08-02</span></div>
   </header>
 
+  <div class="hero" id="hero"></div>
+
   <div class="kpis" id="kpis"></div>
 
   <div class="filters" id="filters"></div>
 
-  <div class="card"><h2>Recovery <span style="color:var(--recovery)">%</span></h2><div class="chart" id="c-recovery"></div></div>
+  <div class="card"><h2>Recovery <span style="color:var(--rec-green)">%</span></h2><div class="chart" id="c-recovery"></div>
+    <div class="zlegend">
+      <span><i style="background:var(--rec-green)"></i>Grün 67–100 %</span>
+      <span><i style="background:var(--rec-yellow)"></i>Gelb 34–66 %</span>
+      <span><i style="background:var(--rec-red)"></i>Rot 0–33 %</span>
+    </div></div>
   <div class="card"><h2>Tages-Strain</h2><div class="chart" id="c-strain"></div></div>
   <div class="card"><h2>Schlaf (Stunden)</h2><div class="chart" id="c-schlaf"></div></div>
   <div class="card"><h2>Schmerz je Training (0–10)</h2><div class="chart" id="c-schmerz"></div>
@@ -221,6 +256,11 @@ function mdList(txt){ if(!txt) return "";
   const items = txt.split("\n").filter(l=>l.trim().startsWith("- ")).map(l=>"<li>"+esc(l.trim().slice(2))+"</li>").join("");
   return items ? "<ul>"+items+"</ul>" : "<div>"+esc(txt)+"</div>"; }
 
+/* ---------- Recovery-Zonen (grün / gelb / rot) ---------- */
+function recVar(v){ return v==null? "--muted" : (v>=67?"--rec-green" : v>=34?"--rec-yellow" : "--rec-red"); }
+function recColor(v){ return css(recVar(v)); }
+function recLabel(v){ return v==null? "–" : (v>=67?"Erholt" : v>=34?"Moderat" : "Niedrig"); }
+
 /* ---------- Zeitraum ---------- */
 const RANGES=[["7T",7],["30T",30],["90T",90],["Alles",99999]];
 let range = sGet("tt.range") || "30T";
@@ -287,26 +327,30 @@ function attachHover(f, days, htmlFor){
   overlay.addEventListener("pointerdown",move);
   overlay.addEventListener("pointerleave",hideTT);
 }
-/* Linie (Recovery) */
-function lineChart(mountId, days, get, color, ymax, unit, zones){
-  const f=frame(mountId,ymax);
-  if(zones) for(const z of zones){
-    f.svg.appendChild(el("line",{x1:f.L,x2:f.W-f.R,y1:f.Y(z),y2:f.Y(z),stroke:css("--axis"),"stroke-width":1,"stroke-dasharray":"3 4"}));
+/* Recovery-Chart (Zonen-Bänder + zonengefärbte Punkte) */
+function recoveryChart(mountId, days, get){
+  const f=frame(mountId,100);
+  // farbige Zonen-Bänder im Hintergrund
+  const bands=[[67,100,"--rec-green"],[34,67,"--rec-yellow"],[0,34,"--rec-red"]];
+  for(const [lo,hi,c] of bands){
+    const y=f.Y(hi), h=f.Y(lo)-f.Y(hi);
+    f.svg.appendChild(el("rect",{x:f.L,y:y,width:f.iw,height:h,fill:css(c),opacity:.09}));
   }
+  for(const z of [34,67])
+    f.svg.appendChild(el("line",{x1:f.L,x2:f.W-f.R,y1:f.Y(z),y2:f.Y(z),stroke:css("--axis"),"stroke-width":1,"stroke-dasharray":"3 4"}));
   const n=days.length, pts=[];
-  days.forEach((d,i)=>{ const v=get(d); if(v!=null) pts.push([f.X(n===1?0.5:i/(n-1)), f.Y(v), i]); });
+  days.forEach((d,i)=>{ const v=get(d); if(v!=null) pts.push([f.X(n===1?0.5:i/(n-1)), f.Y(v), i, v]); });
   if(pts.length>1){
     const path="M"+pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L");
-    f.svg.appendChild(el("path",{d:path,fill:"none",stroke:color,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"}));
+    f.svg.appendChild(el("path",{d:path,fill:"none",stroke:css("--axis"),"stroke-width":1.5,"stroke-linejoin":"round","stroke-linecap":"round",opacity:.55}));
   }
-  for(const p of pts) f.svg.appendChild(el("circle",{cx:p[0],cy:p[1],r:pts.length>45?1.5:2.5,fill:color}));
-  // Direktlabel letzter Wert
+  for(const p of pts) f.svg.appendChild(el("circle",{cx:p[0],cy:p[1],r:pts.length>45?2:3,fill:recColor(p[3])}));
   if(pts.length){ const lp=pts[pts.length-1];
-    const t=el("text",{x:Math.min(lp[0],f.W-f.R-2),y:lp[1]-7,"text-anchor":"end","font-size":10,"font-weight":700,fill:css("--ink")});
-    t.textContent=get(days[lp[2]])+unit; f.svg.appendChild(t); }
+    const t=el("text",{x:Math.min(lp[0],f.W-f.R-2),y:lp[1]-8,"text-anchor":"end","font-size":11,"font-weight":800,fill:recColor(lp[3])});
+    t.textContent=lp[3]+"%"; f.svg.appendChild(t); }
   xticks(f,days);
   attachHover(f,days,i=>{ const v=get(days[i]); if(v==null) return null;
-    return `<div class="d">${fmtL(days[i])}</div><b>${v}${unit}</b>`; });
+    return `<div class="d">${fmtL(days[i])}</div><b style="color:${recColor(v)}">${v}%</b> · ${recLabel(v)}`; });
 }
 /* Säulen (Strain, Schlaf) */
 function barChart(mountId, days, get, color, ymax, unit, dec){
@@ -349,24 +393,47 @@ function painChart(mountId, days){
   leer.textContent = tr.length ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : "Keine Trainings im Zeitraum.";
 }
 
-/* ---------- KPIs ---------- */
+/* ---------- Recovery-Ring (Hero) ---------- */
+function hero(){
+  const w=DATA.whoop, all=Object.keys(w).sort(), last=all[all.length-1];
+  const lastWith=f=>{ for(let i=all.length-1;i>=0;i--){ if(w[all[i]]?.[f]!=null) return all[i]; } return null; };
+  const recDay=lastWith("recovery"), rec=recDay? w[recDay].recovery : null;
+  const prev7=all.slice(-8,-1).map(d=>w[d]?.recovery).filter(v=>v!=null);
+  const avg7=prev7.length? prev7.reduce((a,b)=>a+b,0)/prev7.length : null;
+  const delta=avg7!=null&&rec!=null? Math.round(rec-avg7) : null;
+
+  const R=64, C=2*Math.PI*R, pct=rec??0, off=C*(1-pct/100), col=recColor(rec);
+  const deltaHtml = delta==null? "" :
+    (delta>=0? `<span class="delta-up">▲ +${delta}</span>` : `<span class="delta-down">▼ ${delta}</span>`)+" vs. 7-Tage-Ø";
+  document.getElementById("hero").innerHTML = `
+    <div class="ring">
+      <svg viewBox="0 0 160 160" width="150" height="150" role="img" aria-label="Recovery ${rec??"–"} Prozent">
+        <circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--track)" stroke-width="14"/>
+        <circle cx="80" cy="80" r="${R}" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round"
+          stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 80 80)"/>
+        <text x="80" y="78" text-anchor="middle" font-size="42" font-weight="800" fill="var(--ink)">${rec??"–"}<tspan font-size="18">%</tspan></text>
+        <text x="80" y="100" text-anchor="middle" font-size="12" letter-spacing="1.5" fill="var(--muted)">RECOVERY</text>
+      </svg>
+    </div>
+    <div class="zlabel" style="color:${col}">${recLabel(rec)}</div>
+    <div class="zsub">${deltaHtml}</div>`;
+}
+
+/* ---------- KPI-Kacheln ---------- */
 function kpis(){
   const w=DATA.whoop, all=Object.keys(w).sort(), last=all[all.length-1];
   const lastWith=f=>{ for(let i=all.length-1;i>=0;i--){ if(w[all[i]]?.[f]!=null) return all[i]; } return null; };
   const g=(f)=>{ const d=lastWith(f); return d? w[d][f] : null; };
-  const rec=g("recovery"), hrv=g("hrv"), sch=g("schlaf_h");
+  const rec=g("recovery"), hrv=g("hrv"), sch=g("schlaf_h"), str=g("strain");
   const perf=lastWith("schlaf_h")? w[lastWith("schlaf_h")].schlaf_perf : null;
-  const prev7=all.slice(-8,-1).map(d=>w[d]?.recovery).filter(v=>v!=null);
-  const avg7=prev7.length? prev7.reduce((a,b)=>a+b,0)/prev7.length : null;
-  const delta=avg7!=null&&rec!=null? Math.round(rec-avg7) : null;
   const lastTr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1)[0];
   const days=lastTr? Math.round((D(last)-D(lastTr.datum))/86400000):null;
   const el=document.getElementById("kpis");
   el.innerHTML=`
-  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--recovery)"></span>Recovery</div>
-    <div class="val">${rec??"–"}<span style="font-size:15px">%</span></div>
-    <div class="sub">${delta==null?"":(delta>=0?`<span class="delta-up">▲ +${delta}</span>`:`<span class="delta-down">▼ ${delta}</span>`)+" vs. 7-Tage-Ø"}</div></div>
-  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--recovery)"></span>HRV</div>
+  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--strain)"></span>Strain</div>
+    <div class="val">${str!=null?str.toFixed(1):"–"}</div>
+    <div class="sub">Tagesbelastung 0–21</div></div>
+  <div class="tile"><div class="lbl"><span class="dot" style="background:${recColor(rec)}"></span>HRV</div>
     <div class="val">${hrv??"–"}</div><div class="sub">ms · Ruhepuls ${w[last]?.rhr??"–"} bpm</div></div>
   <div class="tile"><div class="lbl"><span class="dot" style="background:var(--schlaf)"></span>Schlaf</div>
     <div class="val">${sch??"–"}<span style="font-size:15px">h</span></div><div class="sub">Performance ${perf??"–"}%</div></div>
@@ -375,29 +442,53 @@ function kpis(){
     <div class="sub">${lastTr?esc(lastTr.typ):""}${days!=null?` · vor ${days} Tg.`:""}</div></div>`;
 }
 
-/* ---------- Trainingsliste ---------- */
+/* ---------- Trainingsliste (neueste + Monats-Ordner) ---------- */
+function entryHTML(t){
+  const w=t.whoop||{};
+  const pains=(t.schmerzen&&t.schmerzen.length)
+    ? t.schmerzen.map(s=>`<span class="chip pain">${esc(s.ort)} ${s.staerke}/10</span>`).join("")
+    : (t.schmerz_max===0? `<span class="chip pain0">✓ schmerzfrei</span>` : "");
+  return `<details class="entry"><summary>
+    <div class="erow"><span class="dt">${WOTAG[D(t.datum).getDay()]}, ${fmtT(t.datum)}</span><span class="typ">${esc(t.typ)}</span></div>
+    <div class="chips">${pains}
+      ${w.strain!=null?`<span class="chip">Strain ${w.strain}</span>`:""}
+      ${w.recovery!=null?`<span class="chip" style="color:${recColor(w.recovery)};font-weight:700">Rec ${w.recovery}%</span>`:""}
+      ${w.schlaf_h!=null?`<span class="chip">Schlaf ${w.schlaf_h}h</span>`:""}
+      ${t.gefuehl?`<span class="chip">${esc(t.gefuehl)}</span>`:""}</div></summary>
+    <div class="ebody">
+      ${t.inhalt?`<h4>Inhalt</h4>${mdList(t.inhalt)}`:""}
+      ${t.bemerkungen?`<h4>Bemerkungen</h4>${mdList(t.bemerkungen)}`:""}
+      ${t.learnings?`<h4>Learnings</h4>${mdList(t.learnings)}`:""}
+      ${t.ort?`<h4>Ort</h4><div>${esc(t.ort)}</div>`:""}
+    </div></details>`;
+}
 function liste(){
   const host=document.getElementById("liste");
-  const tr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1);
-  host.innerHTML = tr.map(t=>{
-    const w=t.whoop||{};
-    const pains=(t.schmerzen&&t.schmerzen.length)
-      ? t.schmerzen.map(s=>`<span class="chip pain">${esc(s.ort)} ${s.staerke}/10</span>`).join("")
-      : (t.schmerz_max===0? `<span class="chip pain0">✓ schmerzfrei</span>` : "");
-    return `<details class="entry"><summary>
-      <div class="erow"><span class="dt">${WOTAG[D(t.datum).getDay()]}, ${fmtT(t.datum)}</span><span class="typ">${esc(t.typ)}</span></div>
-      <div class="chips">${pains}
-        ${w.strain!=null?`<span class="chip">Strain ${w.strain}</span>`:""}
-        ${w.recovery!=null?`<span class="chip">Rec ${w.recovery}%</span>`:""}
-        ${w.schlaf_h!=null?`<span class="chip">Schlaf ${w.schlaf_h}h</span>`:""}
-        ${t.gefuehl?`<span class="chip">${esc(t.gefuehl)}</span>`:""}</div></summary>
-      <div class="ebody">
-        ${t.inhalt?`<h4>Inhalt</h4>${mdList(t.inhalt)}`:""}
-        ${t.bemerkungen?`<h4>Bemerkungen</h4>${mdList(t.bemerkungen)}`:""}
-        ${t.learnings?`<h4>Learnings</h4>${mdList(t.learnings)}`:""}
-        ${t.ort?`<h4>Ort</h4><div>${esc(t.ort)}</div>`:""}
-      </div></details>`;
-  }).join("") || `<div class="ebody">Noch keine Trainings erfasst.</div>`;
+  const tr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1); // neueste zuerst
+  if(!tr.length){ host.innerHTML=`<div class="ebody">Noch keine Trainings erfasst.</div>`; return; }
+
+  // "Aktuell" = innerhalb 30 Tagen ab dem neuesten Training; Rest ins Archiv
+  const cut=new Date(D(tr[0].datum)); cut.setDate(cut.getDate()-30);
+  const recent=tr.filter(t=>D(t.datum)>=cut);
+  const older =tr.filter(t=>D(t.datum)<cut);
+
+  let html=`<div class="section-lbl">Aktuell</div>`+recent.map(entryHTML).join("");
+
+  if(older.length){
+    const groups={};
+    for(const t of older){ const k=t.datum.slice(0,7); (groups[k]=groups[k]||[]).push(t); }
+    const keys=Object.keys(groups).sort().reverse();
+    html+=`<div class="section-lbl">Archiv</div>`;
+    for(const k of keys){
+      const arr=groups[k];
+      const label=D(arr[0].datum).toLocaleDateString("de-CH",{month:"long",year:"numeric"});
+      html+=`<details class="folder"><summary>
+          <span class="fname">${esc(label)}</span>
+          <span class="cnt">${arr.length} Training${arr.length>1?"s":""}</span>
+        </summary><div class="fbody">${arr.map(entryHTML).join("")}</div></details>`;
+    }
+  }
+  host.innerHTML=html;
 }
 
 /* ---------- Wochenübersicht ---------- */
@@ -411,10 +502,13 @@ function wochen(){
   for(const t of DATA.trainings){ const k=isoWeek(t.datum); const id=`KW${String(k.kw).padStart(2,"0")}`;
     if(wk[id]){ wk[id].n++; if(t.schmerz_max!=null) wk[id].pain=Math.max(wk[id].pain??0,t.schmerz_max); } }
   const avg=a=>{ const v=a.filter(x=>x!=null); return v.length? (v.reduce((x,y)=>x+y,0)/v.length):null; };
-  const rows=Object.entries(wk).sort((a,b)=>a[0]<b[0]?1:-1).map(([id,v])=>
-    `<tr><td>${id}</td><td>${v.n}</td><td>${avg(v.rec)!=null?Math.round(avg(v.rec))+"%":"–"}</td>
+  const rows=Object.entries(wk).sort((a,b)=>a[0]<b[0]?1:-1).map(([id,v])=>{
+    const r=avg(v.rec);
+    const recCell = r!=null? `<span style="color:${recColor(Math.round(r))};font-weight:700">${Math.round(r)}%</span>` : "–";
+    return `<tr><td>${id}</td><td>${v.n}</td><td>${recCell}</td>
      <td>${avg(v.sch)!=null?avg(v.sch).toFixed(1)+"h":"–"}</td><td>${avg(v.str)!=null?avg(v.str).toFixed(1):"–"}</td>
-     <td>${v.pain!=null?v.pain+"/10":"–"}</td></tr>`).join("");
+     <td>${v.pain!=null?v.pain+"/10":"–"}</td></tr>`;
+  }).join("");
   document.getElementById("wochen").innerHTML =
     `<tr><th>Woche</th><th>Tr.</th><th>Ø Rec</th><th>Ø Schlaf</th><th>Ø Strain</th><th>Schmerz</th></tr>`+rows;
 }
@@ -433,9 +527,9 @@ function filters(){
 function render(){
   if(!DATA) return;
   document.getElementById("stand").textContent = DATA.stand;
-  kpis(); filters();
+  hero(); kpis(); filters();
   const days=whoopDays(), w=DATA.whoop;
-  lineChart("c-recovery", days, d=>w[d]?.recovery??null, css("--recovery"), 100, "%", [33,66]);
+  recoveryChart("c-recovery", days, d=>w[d]?.recovery??null);
   barChart("c-strain",  days, d=>w[d]?.strain??null,  css("--strain"), 21, "", 1);
   barChart("c-schlaf",  days, d=>w[d]?.schlaf_h??null, css("--schlaf"), 12, "h", 1);
   painChart("c-schmerz", days);
