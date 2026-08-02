@@ -132,6 +132,63 @@ footer button{background:none;border:none;color:var(--muted);font-size:11px;text
 #gate .err{color:var(--crit); font-size:13px; min-height:18px; margin-top:8px}
 #app{display:none}
 @media (min-width:561px){ .kpis{grid-template-columns:repeat(4,1fr)} }
+
+/* Export-Toolbar */
+.toolbar{display:flex; justify-content:flex-end; margin-top:10px}
+.expbtn{display:inline-flex; align-items:center; gap:7px; padding:9px 14px; border-radius:12px;
+  border:1px solid var(--border); background:var(--surface); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer}
+.expbtn:active{transform:scale(.98)}
+
+/* Modal (Export-Dialog) */
+.modal{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:60; display:none; align-items:flex-end; justify-content:center}
+.modal.open{display:flex}
+.modal .sheet{background:var(--surface); width:min(520px,100%); max-height:88vh; overflow:auto;
+  border-radius:16px 16px 0 0; padding:16px 16px 22px; border:1px solid var(--border)}
+@media (min-width:561px){ .modal{align-items:center} .modal .sheet{border-radius:16px} }
+.sheet h3{margin:0 0 2px; font-size:17px}
+.sheet .hint{font-size:12px; color:var(--muted); margin:0 0 6px}
+.grp{margin-top:14px}
+.grp .glbl{font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-bottom:7px; font-weight:600}
+.rng{display:flex; gap:8px; flex-wrap:wrap}
+.rng button{border:1px solid var(--border); background:var(--surface); color:var(--ink2);
+  border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer}
+.rng button.on{color:var(--ink); font-weight:700; border-color:var(--ink2)}
+.dates{display:flex; gap:8px; margin-top:9px}
+.dates label{flex:1; font-size:11px; color:var(--muted)}
+.dates input{width:100%; margin-top:3px; padding:9px 10px; border-radius:10px; border:1px solid var(--axis);
+  background:var(--surface); color:var(--ink); font-size:14px}
+.opt{display:flex; align-items:center; gap:10px; padding:7px 2px; font-size:14px; cursor:pointer}
+.opt input{width:18px; height:18px; accent-color:var(--recovery)}
+.opt.sub{margin-left:26px; font-size:13px; color:var(--ink2)}
+.actions{display:flex; gap:10px; margin-top:20px}
+.actions button{flex:1; padding:12px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer}
+.actions .ghost{background:var(--surface); color:var(--ink2); border:1px solid var(--border)}
+.actions .primary{background:var(--recovery); color:#fff; border:none}
+
+/* Report (nur im Druck sichtbar) */
+#report{display:none}
+.rep-head h1{font-size:20px; margin:0}
+.rep-meta{font-size:12px; color:var(--muted); margin-top:2px}
+.rep-section{margin-top:16px}
+.rep-h2{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--ink2); margin:0 0 7px}
+.rep-kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.rep-kpi{border:1px solid var(--border); border-radius:10px; padding:8px 10px}
+.rep-kpi-l{font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted)}
+.rep-kpi-v{font-size:20px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums}
+.rep-tr{padding:8px 0; border-top:1px solid var(--grid)}
+.rep-tr:first-of-type{border-top:none}
+.rep-tr-meta{font-size:12px; color:var(--ink2); margin-top:3px}
+.rep-empty{font-size:13px; color:var(--muted)}
+
+@media print{
+  @page{ margin:14mm; }
+  html,body{ background:#fff !important; }
+  #gate,.tt,.modal{ display:none !important; }
+  .wrap{ max-width:none !important; padding:0 !important; }
+  header.app,#hero,#kpis,.filters,.toolbar,footer,.card{ display:none !important; }
+  #report{ display:block !important; }
+  .rep-section,.rep-tr,.rep-kpi{ break-inside:avoid; }
+}
 </style>
 </head>
 <body>
@@ -158,6 +215,7 @@ footer button{background:none;border:none;color:var(--muted);font-size:11px;text
   <div class="kpis" id="kpis"></div>
 
   <div class="filters" id="filters"></div>
+  <div class="toolbar"><button id="exportbtn" class="expbtn">⬇︎ Als PDF exportieren</button></div>
 
   <div class="card"><h2>Recovery <span style="color:var(--rec-green)">%</span></h2><div class="chart" id="c-recovery"></div>
     <div class="zlegend">
@@ -178,6 +236,48 @@ footer button{background:none;border:none;color:var(--muted);font-size:11px;text
     🔒 lokal entschlüsselt · aktualisiert sich automatisch<br>
     <button id="lock">Sperren</button> · <button id="themebtn">Design: automatisch</button>
   </footer>
+
+  <div id="report"></div>
+</div>
+
+<!-- Export-Dialog -->
+<div class="modal" id="export">
+  <div class="sheet">
+    <h3>Als PDF exportieren</h3>
+    <p class="hint">Zeitraum und Inhalte wählen, dann im Druckdialog „Als PDF sichern".</p>
+
+    <div class="grp">
+      <div class="glbl">Zeitraum</div>
+      <div class="rng" id="exp-range">
+        <button data-r="7T">7 Tage</button>
+        <button data-r="30T">30 Tage</button>
+        <button data-r="90T">90 Tage</button>
+        <button data-r="Alles">Alles</button>
+        <button data-r="custom">Eigener</button>
+      </div>
+      <div class="dates" id="exp-dates" style="display:none">
+        <label>Von<input type="date" id="exp-from"></label>
+        <label>Bis<input type="date" id="exp-to"></label>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="glbl">Inhalte</div>
+      <label class="opt"><input type="checkbox" id="exp-summary" checked>Übersicht &amp; Kennzahlen</label>
+      <label class="opt"><input type="checkbox" id="exp-recovery" checked>Recovery-Verlauf</label>
+      <label class="opt"><input type="checkbox" id="exp-strain" checked>Strain</label>
+      <label class="opt"><input type="checkbox" id="exp-schlaf" checked>Schlaf</label>
+      <label class="opt"><input type="checkbox" id="exp-schmerz" checked>Schmerz je Training</label>
+      <label class="opt"><input type="checkbox" id="exp-trainings" checked>Trainings</label>
+      <label class="opt sub"><input type="checkbox" id="exp-trainings-detail" checked>… mit Notizen &amp; Details</label>
+      <label class="opt"><input type="checkbox" id="exp-wochen" checked>Wochenübersicht</label>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="exp-cancel">Abbrechen</button>
+      <button class="primary" id="exp-go">PDF erstellen</button>
+    </div>
+  </div>
 </div>
 
 <div class="tt" id="tt"></div>
@@ -372,9 +472,10 @@ function barChart(mountId, days, get, color, ymax, unit, dec){
     return `<div class="d">${fmtL(days[i])}</div><b>${v.toFixed(dec)}${unit}</b>`; });
 }
 /* Lollipop (Schmerz je Training) */
-function painChart(mountId, days){
+function painChart(mountId, days, legendId="schmerz-leer"){
   const f=frame(mountId,10);
-  const n=days.length, tr=DATA.trainings.filter(t=>t.datum>=days[0]);
+  const lastD=days[days.length-1];
+  const n=days.length, tr=DATA.trainings.filter(t=>t.datum>=days[0]&&t.datum<=lastD);
   const byDay={}; tr.forEach(t=>{ byDay[t.datum]=t; });
   days.forEach((d,i)=>{
     const t=byDay[d]; if(!t||t.schmerz_max==null) return;
@@ -389,8 +490,8 @@ function painChart(mountId, days){
   attachHover(f,days,i=>{ const t=byDay[days[i]]; if(!t) return null;
     const sl=(t.schmerzen&&t.schmerzen.length)? t.schmerzen.map(s=>`${esc(s.ort)}: <b>${s.staerke}/10</b>`).join("<br>") : "<b>schmerzfrei</b>";
     return `<div class="d">${fmtL(t.datum)} · ${esc(t.typ)}</div>${sl}`; });
-  const leer=document.getElementById("schmerz-leer");
-  leer.textContent = tr.length ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : "Keine Trainings im Zeitraum.";
+  const leer=legendId?document.getElementById(legendId):null;
+  if(leer) leer.textContent = tr.length ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : "Keine Trainings im Zeitraum.";
 }
 
 /* ---------- Recovery-Ring (Hero) ---------- */
@@ -512,6 +613,152 @@ function wochen(){
   document.getElementById("wochen").innerHTML =
     `<tr><th>Woche</th><th>Tr.</th><th>Ø Rec</th><th>Ø Schlaf</th><th>Ø Strain</th><th>Schmerz</th></tr>`+rows;
 }
+
+/* ---------- PDF-Export ---------- */
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtDMY(s){ const d=D(s); return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear(); }
+function daysInRange(from,to){ return Object.keys(DATA.whoop).sort().filter(d=>d>=from&&d<=to); }
+const chk=id=>document.getElementById(id).checked;
+
+function setExpRange(r){
+  document.querySelectorAll("#exp-range button").forEach(b=>b.classList.toggle("on", b.dataset.r===r));
+  document.getElementById("exp-dates").style.display = (r==="custom") ? "flex" : "none";
+}
+function currentExpRange(){
+  const btn=document.querySelector("#exp-range button.on");
+  const r=btn?btn.dataset.r:"30T";
+  const all=Object.keys(DATA.whoop).sort(), first=all[0], last=all[all.length-1];
+  if(r==="custom"){ return {from:document.getElementById("exp-from").value||first,
+                            to:document.getElementById("exp-to").value||last}; }
+  if(r==="Alles") return {from:first, to:last};
+  const n=RANGES.find(x=>x[0]===r)[1];
+  const min=new Date(D(last)); min.setDate(min.getDate()-n+1);
+  let from=iso(min); if(from<first) from=first;
+  return {from, to:last};
+}
+function openExport(){
+  if(!DATA) return;
+  const all=Object.keys(DATA.whoop).sort(), first=all[0], last=all[all.length-1];
+  const f=document.getElementById("exp-from"), t=document.getElementById("exp-to");
+  f.min=first; f.max=last; t.min=first; t.max=last;
+  const {from,to}=(()=>{ // Startwerte aus aktuellem Zeitraumfilter
+    const n=RANGES.find(x=>x[0]===range)[1]; const min=new Date(D(last)); min.setDate(min.getDate()-n+1);
+    let fr=iso(min); if(fr<first) fr=first; return {from:fr,to:last};
+  })();
+  f.value=from; t.value=to;
+  setExpRange(range);
+  document.getElementById("export").classList.add("open");
+}
+function repKpi(lbl,val,color){
+  return `<div class="rep-kpi"><div class="rep-kpi-l">${lbl}</div>
+    <div class="rep-kpi-v"${color?` style="color:${color}"`:""}>${val}</div></div>`;
+}
+function repTraining(t, detail){
+  const w=t.whoop||{};
+  const pains=(t.schmerzen&&t.schmerzen.length)
+    ? t.schmerzen.map(s=>`${esc(s.ort)} ${s.staerke}/10`).join(", ")
+    : (t.schmerz_max===0?"schmerzfrei":"");
+  const meta=[pains, w.strain!=null?`Strain ${w.strain}`:"", w.recovery!=null?`Rec ${w.recovery}%`:"",
+    w.schlaf_h!=null?`Schlaf ${w.schlaf_h}h`:"", t.gefuehl?esc(t.gefuehl):""].filter(Boolean).join(" · ");
+  const body=detail?`<div class="ebody">
+      ${t.inhalt?`<h4>Inhalt</h4>${mdList(t.inhalt)}`:""}
+      ${t.bemerkungen?`<h4>Bemerkungen</h4>${mdList(t.bemerkungen)}`:""}
+      ${t.learnings?`<h4>Learnings</h4>${mdList(t.learnings)}`:""}
+      ${t.ort?`<h4>Ort</h4><div>${esc(t.ort)}</div>`:""}</div>`:"";
+  return `<div class="rep-tr">
+    <div class="erow"><span class="dt">${WOTAG[D(t.datum).getDay()]}, ${fmtT(t.datum)}</span><span class="typ">${esc(t.typ)}</span></div>
+    ${meta?`<div class="rep-tr-meta">${meta}</div>`:""}${body}</div>`;
+}
+function reportWochen(tableId, from, to){
+  const w=DATA.whoop, wk={};
+  for(const d of Object.keys(w).sort()){ if(d<from||d>to) continue;
+    const k=isoWeek(d); const id=`KW${String(k.kw).padStart(2,"0")}`;
+    (wk[id]=wk[id]||{rec:[],sch:[],str:[],n:0,pain:null}).rec.push(w[d].recovery);
+    wk[id].sch.push(w[d].schlaf_h); wk[id].str.push(w[d].strain);
+  }
+  for(const t of DATA.trainings){ if(t.datum<from||t.datum>to) continue;
+    const k=isoWeek(t.datum); const id=`KW${String(k.kw).padStart(2,"0")}`;
+    if(wk[id]){ wk[id].n++; if(t.schmerz_max!=null) wk[id].pain=Math.max(wk[id].pain??0,t.schmerz_max); } }
+  const avg=a=>{ const v=a.filter(x=>x!=null); return v.length?(v.reduce((x,y)=>x+y,0)/v.length):null; };
+  const rows=Object.entries(wk).sort((a,b)=>a[0]<b[0]?1:-1).map(([id,v])=>{
+    const r=avg(v.rec);
+    const rc=r!=null?`<span style="color:${recColor(Math.round(r))};font-weight:700">${Math.round(r)}%</span>`:"–";
+    return `<tr><td>${id}</td><td>${v.n}</td><td>${rc}</td>
+     <td>${avg(v.sch)!=null?avg(v.sch).toFixed(1)+"h":"–"}</td><td>${avg(v.str)!=null?avg(v.str).toFixed(1):"–"}</td>
+     <td>${v.pain!=null?v.pain+"/10":"–"}</td></tr>`;
+  }).join("");
+  document.getElementById(tableId).innerHTML =
+    `<tr><th>Woche</th><th>Tr.</th><th>Ø Rec</th><th>Ø Schlaf</th><th>Ø Strain</th><th>Schmerz</th></tr>`+rows;
+}
+function buildReport(o){
+  const rep=document.getElementById("report"), w=DATA.whoop;
+  const days=daysInRange(o.from,o.to);
+  let h=`<div class="rep-head"><h1>Trainingstagebuch</h1>
+    <div class="rep-meta">Zeitraum ${fmtDMY(o.from)} – ${fmtDMY(o.to)} · erstellt ${fmtDMY(iso(new Date()))}</div></div>`;
+
+  if(o.sections.summary){
+    const avg=a=>{ const v=a.filter(x=>x!=null); return v.length?(v.reduce((x,y)=>x+y,0)/v.length):null; };
+    const recs=days.map(d=>w[d]?.recovery), strs=days.map(d=>w[d]?.strain), schs=days.map(d=>w[d]?.schlaf_h);
+    const trs=DATA.trainings.filter(t=>t.datum>=o.from&&t.datum<=o.to);
+    const ar=avg(recs);
+    h+=`<div class="rep-section"><div class="rep-h2">Übersicht</div><div class="rep-kpis">
+      ${repKpi("Ø Recovery", ar!=null?Math.round(ar)+"%":"–", ar!=null?recColor(Math.round(ar)):null)}
+      ${repKpi("Ø Strain", avg(strs)!=null?avg(strs).toFixed(1):"–")}
+      ${repKpi("Ø Schlaf", avg(schs)!=null?avg(schs).toFixed(1)+"h":"–")}
+      ${repKpi("Trainings", trs.length)}
+    </div></div>`;
+  }
+  const cs=(title,id)=>`<div class="rep-section"><div class="rep-h2">${title}</div><div class="chart" id="${id}"></div></div>`;
+  if(o.sections.recovery) h+=cs("Recovery %","rep-c-recovery");
+  if(o.sections.strain)   h+=cs("Tages-Strain","rep-c-strain");
+  if(o.sections.schlaf)   h+=cs("Schlaf (Stunden)","rep-c-schlaf");
+  if(o.sections.schmerz)  h+=cs("Schmerz je Training (0–10)","rep-c-schmerz");
+  if(o.sections.trainings){
+    const trs=DATA.trainings.filter(t=>t.datum>=o.from&&t.datum<=o.to).sort((a,b)=>a.datum<b.datum?1:-1);
+    h+=`<div class="rep-section"><div class="rep-h2">Trainings (${trs.length})</div>`;
+    h+= trs.length? trs.map(t=>repTraining(t,o.sections.trainingsDetail)).join("")
+                  : `<div class="rep-empty">Keine Trainings im Zeitraum.</div>`;
+    h+=`</div>`;
+  }
+  if(o.sections.wochen) h+=`<div class="rep-section"><div class="rep-h2">Wochenübersicht</div>
+    <table class="wk" id="rep-wochen"></table></div>`;
+  rep.innerHTML=h;
+
+  if(o.sections.recovery && days.length) recoveryChart("rep-c-recovery", days, d=>w[d]?.recovery??null);
+  if(o.sections.strain   && days.length) barChart("rep-c-strain", days, d=>w[d]?.strain??null, css("--strain"),21,"",1);
+  if(o.sections.schlaf   && days.length) barChart("rep-c-schlaf", days, d=>w[d]?.schlaf_h??null, css("--schlaf"),12,"h",1);
+  if(o.sections.schmerz  && days.length) painChart("rep-c-schmerz", days, null);
+  if(o.sections.wochen) reportWochen("rep-wochen", o.from, o.to);
+}
+function restorePrint(){
+  window.removeEventListener("afterprint",restorePrint);
+  window.removeEventListener("focus",restorePrint);
+  if(window.__prevTheme) document.documentElement.setAttribute("data-theme",window.__prevTheme);
+  else document.documentElement.removeAttribute("data-theme");
+  document.getElementById("report").innerHTML="";
+  render();
+}
+function doExport(){
+  const {from,to}=currentExpRange();
+  if(from>to){ alert("Zeitraum ungültig: „Von“ liegt nach „Bis“."); return; }
+  const sections={ summary:chk("exp-summary"), recovery:chk("exp-recovery"), strain:chk("exp-strain"),
+    schlaf:chk("exp-schlaf"), schmerz:chk("exp-schmerz"), trainings:chk("exp-trainings"),
+    trainingsDetail:chk("exp-trainings-detail"), wochen:chk("exp-wochen") };
+  if(!Object.values(sections).some(Boolean)){ alert("Bitte mindestens einen Inhalt auswählen."); return; }
+  // Für den Ausdruck helles Design erzwingen (auf Papier lesbar)
+  window.__prevTheme=document.documentElement.getAttribute("data-theme");
+  document.documentElement.setAttribute("data-theme","light");
+  buildReport({from,to,sections});
+  document.getElementById("export").classList.remove("open");
+  window.addEventListener("afterprint",restorePrint);
+  window.addEventListener("focus",restorePrint,{once:true});
+  setTimeout(()=>window.print(), 80);
+}
+document.getElementById("exportbtn").addEventListener("click", openExport);
+document.getElementById("exp-cancel").addEventListener("click", ()=>document.getElementById("export").classList.remove("open"));
+document.getElementById("exp-go").addEventListener("click", doExport);
+document.getElementById("exp-range").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) setExpRange(b.dataset.r); });
+document.getElementById("export").addEventListener("click", e=>{ if(e.target.id==="export") e.target.classList.remove("open"); });
 
 /* ---------- Filter + Render ---------- */
 function filters(){
