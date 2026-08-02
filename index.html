@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Training</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0d0d">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  color-scheme: light dark;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --recovery:#2a78d6; --strain:#eb6834; --schlaf:#1baf7a; --schmerz:#e34948;
+  --good:#006300; --crit:#d03b3b; --chipbg:rgba(11,11,11,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --recovery:#3987e5; --strain:#d95926; --schlaf:#199e70; --schmerz:#e66767;
+    --good:#0ca30c; --crit:#d03b3b; --chipbg:rgba(255,255,255,.07);
+  }
+}
+:root[data-theme="dark"]{
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --recovery:#3987e5; --strain:#d95926; --schlaf:#199e70; --schmerz:#e66767;
+  --good:#0ca30c; --crit:#d03b3b; --chipbg:rgba(255,255,255,.07);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0}
+body{background:var(--page); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+.wrap{max-width:560px; margin:0 auto; padding:12px 14px 48px}
+header.app{display:flex; align-items:baseline; justify-content:space-between; padding:10px 2px 4px}
+header.app h1{font-size:20px; margin:0; letter-spacing:.2px}
+header.app .stand{font-size:12px; color:var(--muted)}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:12px}
+.card h2{font-size:13px; font-weight:600; color:var(--ink2); margin:0 0 8px; letter-spacing:.3px; text-transform:uppercase}
+.kpis{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+.tile{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:10px 12px}
+.tile .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; display:flex; align-items:center; gap:6px}
+.tile .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tile .val{font-size:26px; font-weight:700; margin-top:2px}
+.tile .sub{font-size:12px; color:var(--ink2); margin-top:1px}
+.delta-up{color:var(--good); font-weight:600}
+.delta-down{color:var(--crit); font-weight:600}
+.filters{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+.filters button{border:1px solid var(--border); background:var(--surface); color:var(--ink2);
+  border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer}
+.filters button.on{color:var(--ink); font-weight:700; border-color:var(--ink2)}
+.filters button.on::before{content:"✓ "; font-weight:700}
+.chart{margin-top:4px; position:relative}
+.chart svg{display:block; width:100%; height:auto}
+.tt{position:fixed; z-index:30; background:var(--surface); color:var(--ink); border:1px solid var(--border);
+  box-shadow:0 4px 16px rgba(0,0,0,.18); border-radius:10px; padding:8px 10px; font-size:12px; pointer-events:none;
+  opacity:0; transition:opacity .08s; max-width:230px}
+.tt .d{color:var(--muted); font-size:11px}
+.tt b{font-variant-numeric:tabular-nums}
+.legendline{display:flex; gap:6px; align-items:center; font-size:12px; color:var(--ink2); margin-top:6px}
+.entry{border-top:1px solid var(--grid); padding:10px 0}
+.entry:first-of-type{border-top:none}
+.entry summary{list-style:none; cursor:pointer; display:block}
+.entry summary::-webkit-details-marker{display:none}
+.erow{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.erow .dt{font-weight:700; font-size:14px}
+.erow .typ{font-size:12px; color:var(--ink2); text-align:right}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.chip{font-size:11px; padding:3px 8px; border-radius:999px; background:var(--chipbg); color:var(--ink2); white-space:nowrap}
+.chip.pain{color:#fff; background:var(--crit)}
+.chip.pain0{background:var(--chipbg); color:var(--good); font-weight:600}
+.ebody{font-size:13px; color:var(--ink2); margin-top:8px; line-height:1.45}
+.ebody h4{font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin:10px 0 3px}
+.ebody ul{margin:2px 0 0 18px; padding:0}
+.ebody blockquote{margin:4px 0 0; padding:6px 10px; border-left:3px solid var(--grid); color:var(--muted); font-size:12px}
+table.wk{width:100%; border-collapse:collapse; font-size:12px}
+table.wk th{color:var(--muted); font-weight:600; text-align:right; padding:4px 4px; border-bottom:1px solid var(--grid)}
+table.wk th:first-child,table.wk td:first-child{text-align:left}
+table.wk td{padding:5px 4px; text-align:right; border-bottom:1px solid var(--grid); font-variant-numeric:tabular-nums}
+footer{margin-top:22px; text-align:center; font-size:11px; color:var(--muted)}
+footer button{background:none;border:none;color:var(--muted);font-size:11px;text-decoration:underline;cursor:pointer}
+/* Passwort-Schleuse */
+#gate{position:fixed; inset:0; background:var(--page); z-index:50; display:flex; align-items:center; justify-content:center}
+#gate .box{width:min(320px,86vw); text-align:center}
+#gate .logo{width:64px;height:64px;border-radius:16px;background:#1a1a19;color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:800;margin:0 auto 14px; border:1px solid var(--border)}
+#gate .logo span{color:#3987e5}
+#gate h1{font-size:18px;margin:0 0 4px}
+#gate p{font-size:13px;color:var(--muted);margin:0 0 14px}
+#gate input{width:100%; font-size:17px; padding:12px 14px; border-radius:12px; border:1px solid var(--axis);
+  background:var(--surface); color:var(--ink); text-align:center; outline:none}
+#gate input:focus{border-color:var(--recovery)}
+#gate button{width:100%; margin-top:10px; font-size:16px; font-weight:700; padding:12px; border-radius:12px;
+  border:none; background:var(--recovery); color:#fff; cursor:pointer}
+#gate .err{color:var(--crit); font-size:13px; min-height:18px; margin-top:8px}
+#app{display:none}
+@media (min-width:561px){ .kpis{grid-template-columns:repeat(4,1fr)} }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <div class="logo">T<span>|</span></div>
+    <h1>Trainingstagebuch</h1>
+    <p>Daten sind verschlüsselt. Passwort eingeben:</p>
+    <input id="pw" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Passwort">
+    <button id="unlock">Öffnen</button>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app">
+  <header class="app">
+    <h1>Trainingstagebuch</h1>
+    <div class="stand">Stand: <span id="stand">2026-08-02</span></div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="card"><h2>Recovery <span style="color:var(--recovery)">%</span></h2><div class="chart" id="c-recovery"></div></div>
+  <div class="card"><h2>Tages-Strain</h2><div class="chart" id="c-strain"></div></div>
+  <div class="card"><h2>Schlaf (Stunden)</h2><div class="chart" id="c-schlaf"></div></div>
+  <div class="card"><h2>Schmerz je Training (0–10)</h2><div class="chart" id="c-schmerz"></div>
+    <div class="legendline" id="schmerz-leer"></div></div>
+
+  <div class="card"><h2>Trainings</h2><div id="liste"></div></div>
+
+  <div class="card"><h2>Wochenübersicht</h2><div style="overflow-x:auto"><table class="wk" id="wochen"></table></div></div>
+
+  <footer>
+    🔒 lokal entschlüsselt · aktualisiert sich automatisch<br>
+    <button id="lock">Sperren</button> · <button id="themebtn">Design: automatisch</button>
+  </footer>
+</div>
+
+<div class="tt" id="tt"></div>
+
+<script>
+"use strict";
+let PAYLOAD = null;
+let DATA = null;
+async function ensurePayload(){
+  if(!PAYLOAD){
+    try{ const r = await fetch("data.json", {cache:"no-store"});
+      if(!r.ok) throw 0; PAYLOAD = await r.json();
+    }catch(e){ throw new Error("fetchfail"); }
+  }
+  return PAYLOAD;
+}
+
+/* ---------- Speicher (fällt in Sandbox-Umgebungen sanft aus) ---------- */
+function sGet(k){ try{ return localStorage.getItem(k) }catch(e){ return null } }
+function sSet(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }
+function sDel(k){ try{ localStorage.removeItem(k) }catch(e){} }
+
+/* ---------- Krypto ---------- */
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKey(pw, salt){
+  const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt, iterations:PAYLOAD.iter, hash:"SHA-256"},
+    km, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+}
+async function tryUnlock(pw){
+  await ensurePayload();
+  const key = await deriveKey(pw, b64(PAYLOAD.salt));
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(PAYLOAD.iv)}, key, b64(PAYLOAD.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function unlock(pw, silent){
+  try{
+    DATA = await tryUnlock(pw);
+    sSet("tt.pw", pw);
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    render();
+  }catch(e){
+    sDel("tt.pw");
+    if(!silent){ document.getElementById("err").textContent =
+      (e && e.message === "fetchfail") ? "Daten konnten nicht geladen werden — bitte neu laden." : "Falsches Passwort."; }
+  }
+}
+document.getElementById("unlock").addEventListener("click", ()=>unlock(document.getElementById("pw").value));
+document.getElementById("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") unlock(e.target.value); });
+document.getElementById("lock").addEventListener("click", ()=>{ sDel("tt.pw"); location.reload(); });
+const saved = sGet("tt.pw");
+if(saved) unlock(saved, true);
+
+/* ---------- Theme ---------- */
+const themeSeq = ["auto","dark","light"], themeLbl = {auto:"automatisch", dark:"dunkel", light:"hell"};
+function applyTheme(t){ if(t==="auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themebtn").textContent = "Design: " + themeLbl[t]; }
+let theme = sGet("tt.theme") || "auto"; applyTheme(theme);
+document.getElementById("themebtn").addEventListener("click", ()=>{
+  theme = themeSeq[(themeSeq.indexOf(theme)+1)%3]; sSet("tt.theme", theme); applyTheme(theme); render(); });
+
+/* ---------- Helpers ---------- */
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const D = s => new Date(s+"T12:00:00");
+const fmtT = s => { const d=D(s); return d.getDate()+"."+(d.getMonth()+1)+"."; };
+const fmtL = s => D(s).toLocaleDateString("de-CH",{weekday:"short", day:"numeric", month:"long"});
+const WOTAG = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+function isoWeek(s){ const d=new Date(Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10)));
+  const day=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-day+3);
+  const first=new Date(Date.UTC(d.getUTCFullYear(),0,4)); const fd=(first.getUTCDay()+6)%7; first.setUTCDate(first.getUTCDate()-fd);
+  return {jahr:d.getUTCFullYear(), kw:Math.round((d-first)/604800000)+1}; }
+const esc = s => (s??"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;");
+function mdList(txt){ if(!txt) return "";
+  const items = txt.split("\n").filter(l=>l.trim().startsWith("- ")).map(l=>"<li>"+esc(l.trim().slice(2))+"</li>").join("");
+  return items ? "<ul>"+items+"</ul>" : "<div>"+esc(txt)+"</div>"; }
+
+/* ---------- Zeitraum ---------- */
+const RANGES=[["7T",7],["30T",30],["90T",90],["Alles",99999]];
+let range = sGet("tt.range") || "30T";
+function whoopDays(){
+  const all = Object.keys(DATA.whoop).sort();
+  const n = RANGES.find(r=>r[0]===range)[1];
+  const last = all[all.length-1];
+  const min = new Date(D(last)); min.setDate(min.getDate()-n+1);
+  return all.filter(d=>D(d)>=min);
+}
+function inRange(ds){ const w=whoopDays(); return ds>=w[0]; }
+
+/* ---------- Tooltip ---------- */
+const tt = document.getElementById("tt");
+function showTT(html, x, y){ tt.innerHTML=html; tt.style.opacity=1;
+  const r=tt.getBoundingClientRect();
+  let px=Math.min(Math.max(8,x-r.width/2), innerWidth-r.width-8);
+  let py=y-r.height-14; if(py<8) py=y+18;
+  tt.style.left=px+"px"; tt.style.top=py+"px"; }
+function hideTT(){ tt.style.opacity=0; }
+addEventListener("scroll", hideTT, {passive:true});
+
+/* ---------- SVG-Chart-Bausteine ---------- */
+const NS="http://www.w3.org/2000/svg";
+function el(n,a){ const e=document.createElementNS(NS,n); for(const k in a) e.setAttribute(k,a[k]); return e; }
+function frame(mountId, ymax, ymin=0){
+  const mount=document.getElementById(mountId); mount.innerHTML="";
+  const W=530, H=170, L=30, R=18, T=10, B=22;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`});
+  mount.appendChild(svg);
+  const iw=W-L-R, ih=H-T-B;
+  const X=i=>L+iw*i, Y=v=>T+ih*(1-(v-ymin)/(ymax-ymin));
+  // Gitter + Y-Ticks
+  const steps=4;
+  for(let i=0;i<=steps;i++){
+    const v=ymin+(ymax-ymin)*i/steps, y=Y(v);
+    svg.appendChild(el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:css("--grid"),"stroke-width":1}));
+    const t=el("text",{x:L-5,y:y+3.5,"text-anchor":"end","font-size":9,fill:css("--muted")});
+    t.textContent=Math.round(v); svg.appendChild(t);
+  }
+  svg.appendChild(el("line",{x1:L,x2:W-R,y1:T+ih,y2:T+ih,stroke:css("--axis"),"stroke-width":1}));
+  return {svg,W,H,L,R,T,B,iw,ih,X,Y,mount};
+}
+function xticks(f, days){
+  const n=days.length, want=Math.min(5,n);
+  for(let i=0;i<want;i++){
+    const idx=Math.round(i*(n-1)/(want-1||1));
+    const t=el("text",{x:f.X(n===1?0.5:idx/(n-1)),y:f.T+f.ih+14,"text-anchor":"middle","font-size":9,fill:css("--muted")});
+    t.textContent=fmtT(days[idx]); f.svg.appendChild(t);
+  }
+}
+function attachHover(f, days, htmlFor){
+  const n=days.length;
+  const overlay=el("rect",{x:f.L,y:f.T,width:f.iw,height:f.ih,fill:"transparent"});
+  f.svg.appendChild(overlay);
+  const move=ev=>{
+    const r=f.svg.getBoundingClientRect();
+    const relx=((ev.clientX??ev.touches?.[0]?.clientX)-r.left)*(f.W/r.width)-f.L;
+    let idx=Math.round(relx/f.iw*(n-1)); idx=Math.max(0,Math.min(n-1,idx));
+    const html=htmlFor(idx); if(!html){hideTT();return;}
+    showTT(html, (ev.clientX??ev.touches?.[0]?.clientX), (ev.clientY??ev.touches?.[0]?.clientY));
+  };
+  overlay.addEventListener("pointermove",move);
+  overlay.addEventListener("pointerdown",move);
+  overlay.addEventListener("pointerleave",hideTT);
+}
+/* Linie (Recovery) */
+function lineChart(mountId, days, get, color, ymax, unit, zones){
+  const f=frame(mountId,ymax);
+  if(zones) for(const z of zones){
+    f.svg.appendChild(el("line",{x1:f.L,x2:f.W-f.R,y1:f.Y(z),y2:f.Y(z),stroke:css("--axis"),"stroke-width":1,"stroke-dasharray":"3 4"}));
+  }
+  const n=days.length, pts=[];
+  days.forEach((d,i)=>{ const v=get(d); if(v!=null) pts.push([f.X(n===1?0.5:i/(n-1)), f.Y(v), i]); });
+  if(pts.length>1){
+    const path="M"+pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L");
+    f.svg.appendChild(el("path",{d:path,fill:"none",stroke:color,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"}));
+  }
+  for(const p of pts) f.svg.appendChild(el("circle",{cx:p[0],cy:p[1],r:pts.length>45?1.5:2.5,fill:color}));
+  // Direktlabel letzter Wert
+  if(pts.length){ const lp=pts[pts.length-1];
+    const t=el("text",{x:Math.min(lp[0],f.W-f.R-2),y:lp[1]-7,"text-anchor":"end","font-size":10,"font-weight":700,fill:css("--ink")});
+    t.textContent=get(days[lp[2]])+unit; f.svg.appendChild(t); }
+  xticks(f,days);
+  attachHover(f,days,i=>{ const v=get(days[i]); if(v==null) return null;
+    return `<div class="d">${fmtL(days[i])}</div><b>${v}${unit}</b>`; });
+}
+/* Säulen (Strain, Schlaf) */
+function barChart(mountId, days, get, color, ymax, unit, dec){
+  const f=frame(mountId,ymax);
+  const n=days.length, bw=Math.min(14, f.iw/n-2);
+  days.forEach((d,i)=>{ const v=get(d); if(v==null) return;
+    const x=f.X(n===1?0.5:i/(n-1))-bw/2, y=f.Y(v), h=f.T+f.ih-y;
+    if(h>0.5){
+      const r=Math.min(4,bw/2,h);
+      f.svg.appendChild(el("path",{d:`M${x},${f.T+f.ih} L${x},${y+r} Q${x},${y} ${x+r},${y} L${x+bw-r},${y} Q${x+bw},${y} ${x+bw},${y+r} L${x+bw},${f.T+f.ih} Z`,fill:color}));
+    }
+  });
+  const lastIdx=[...days.keys()].reverse().find(i=>get(days[i])!=null);
+  if(lastIdx!=null){ const v=get(days[lastIdx]);
+    const t=el("text",{x:Math.min(f.X(n===1?0.5:lastIdx/(n-1)), f.W-f.R-2), y:f.Y(v)-5,"text-anchor":"middle","font-size":10,"font-weight":700,fill:css("--ink")});
+    t.textContent=v.toFixed(dec)+unit; f.svg.appendChild(t); }
+  xticks(f,days);
+  attachHover(f,days,i=>{ const v=get(days[i]); if(v==null) return null;
+    return `<div class="d">${fmtL(days[i])}</div><b>${v.toFixed(dec)}${unit}</b>`; });
+}
+/* Lollipop (Schmerz je Training) */
+function painChart(mountId, days){
+  const f=frame(mountId,10);
+  const n=days.length, tr=DATA.trainings.filter(t=>t.datum>=days[0]);
+  const byDay={}; tr.forEach(t=>{ byDay[t.datum]=t; });
+  days.forEach((d,i)=>{
+    const t=byDay[d]; if(!t||t.schmerz_max==null) return;
+    const x=f.X(n===1?0.5:i/(n-1)), v=Math.max(t.schmerz_max,0.25), y=f.Y(v);
+    f.svg.appendChild(el("line",{x1:x,x2:x,y1:f.T+f.ih,y2:y,stroke:css("--schmerz"),"stroke-width":2}));
+    f.svg.appendChild(el("circle",{cx:x,cy:y,r:5,fill:t.schmerz_max===0?css("--surface"):css("--schmerz"),
+      stroke:css("--schmerz"),"stroke-width":2}));
+    const lbl=el("text",{x:x,y:y-9,"text-anchor":"middle","font-size":10,"font-weight":700,fill:css("--ink")});
+    lbl.textContent=t.schmerz_max; f.svg.appendChild(lbl);
+  });
+  xticks(f,days);
+  attachHover(f,days,i=>{ const t=byDay[days[i]]; if(!t) return null;
+    const sl=(t.schmerzen&&t.schmerzen.length)? t.schmerzen.map(s=>`${esc(s.ort)}: <b>${s.staerke}/10</b>`).join("<br>") : "<b>schmerzfrei</b>";
+    return `<div class="d">${fmtL(t.datum)} · ${esc(t.typ)}</div>${sl}`; });
+  const leer=document.getElementById("schmerz-leer");
+  leer.textContent = tr.length ? "⌀ Punkt = Training; 0 = explizit schmerzfrei" : "Keine Trainings im Zeitraum.";
+}
+
+/* ---------- KPIs ---------- */
+function kpis(){
+  const w=DATA.whoop, all=Object.keys(w).sort(), last=all[all.length-1];
+  const lastWith=f=>{ for(let i=all.length-1;i>=0;i--){ if(w[all[i]]?.[f]!=null) return all[i]; } return null; };
+  const g=(f)=>{ const d=lastWith(f); return d? w[d][f] : null; };
+  const rec=g("recovery"), hrv=g("hrv"), sch=g("schlaf_h");
+  const perf=lastWith("schlaf_h")? w[lastWith("schlaf_h")].schlaf_perf : null;
+  const prev7=all.slice(-8,-1).map(d=>w[d]?.recovery).filter(v=>v!=null);
+  const avg7=prev7.length? prev7.reduce((a,b)=>a+b,0)/prev7.length : null;
+  const delta=avg7!=null&&rec!=null? Math.round(rec-avg7) : null;
+  const lastTr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1)[0];
+  const days=lastTr? Math.round((D(last)-D(lastTr.datum))/86400000):null;
+  const el=document.getElementById("kpis");
+  el.innerHTML=`
+  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--recovery)"></span>Recovery</div>
+    <div class="val">${rec??"–"}<span style="font-size:15px">%</span></div>
+    <div class="sub">${delta==null?"":(delta>=0?`<span class="delta-up">▲ +${delta}</span>`:`<span class="delta-down">▼ ${delta}</span>`)+" vs. 7-Tage-Ø"}</div></div>
+  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--recovery)"></span>HRV</div>
+    <div class="val">${hrv??"–"}</div><div class="sub">ms · Ruhepuls ${w[last]?.rhr??"–"} bpm</div></div>
+  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--schlaf)"></span>Schlaf</div>
+    <div class="val">${sch??"–"}<span style="font-size:15px">h</span></div><div class="sub">Performance ${perf??"–"}%</div></div>
+  <div class="tile"><div class="lbl"><span class="dot" style="background:var(--strain)"></span>Letztes Training</div>
+    <div class="val" style="font-size:20px">${lastTr?fmtT(lastTr.datum):"–"}</div>
+    <div class="sub">${lastTr?esc(lastTr.typ):""}${days!=null?` · vor ${days} Tg.`:""}</div></div>`;
+}
+
+/* ---------- Trainingsliste ---------- */
+function liste(){
+  const host=document.getElementById("liste");
+  const tr=[...DATA.trainings].sort((a,b)=>a.datum<b.datum?1:-1);
+  host.innerHTML = tr.map(t=>{
+    const w=t.whoop||{};
+    const pains=(t.schmerzen&&t.schmerzen.length)
+      ? t.schmerzen.map(s=>`<span class="chip pain">${esc(s.ort)} ${s.staerke}/10</span>`).join("")
+      : (t.schmerz_max===0? `<span class="chip pain0">✓ schmerzfrei</span>` : "");
+    return `<details class="entry"><summary>
+      <div class="erow"><span class="dt">${WOTAG[D(t.datum).getDay()]}, ${fmtT(t.datum)}</span><span class="typ">${esc(t.typ)}</span></div>
+      <div class="chips">${pains}
+        ${w.strain!=null?`<span class="chip">Strain ${w.strain}</span>`:""}
+        ${w.recovery!=null?`<span class="chip">Rec ${w.recovery}%</span>`:""}
+        ${w.schlaf_h!=null?`<span class="chip">Schlaf ${w.schlaf_h}h</span>`:""}
+        ${t.gefuehl?`<span class="chip">${esc(t.gefuehl)}</span>`:""}</div></summary>
+      <div class="ebody">
+        ${t.inhalt?`<h4>Inhalt</h4>${mdList(t.inhalt)}`:""}
+        ${t.bemerkungen?`<h4>Bemerkungen</h4>${mdList(t.bemerkungen)}`:""}
+        ${t.learnings?`<h4>Learnings</h4>${mdList(t.learnings)}`:""}
+        ${t.ort?`<h4>Ort</h4><div>${esc(t.ort)}</div>`:""}
+      </div></details>`;
+  }).join("") || `<div class="ebody">Noch keine Trainings erfasst.</div>`;
+}
+
+/* ---------- Wochenübersicht ---------- */
+function wochen(){
+  const w=DATA.whoop, wk={};
+  for(const d of Object.keys(w).sort()){
+    const k=isoWeek(d); const id=`KW${String(k.kw).padStart(2,"0")}`;
+    (wk[id]=wk[id]||{rec:[],sch:[],str:[],n:0,pain:null}).rec.push(w[d].recovery);
+    wk[id].sch.push(w[d].schlaf_h); wk[id].str.push(w[d].strain);
+  }
+  for(const t of DATA.trainings){ const k=isoWeek(t.datum); const id=`KW${String(k.kw).padStart(2,"0")}`;
+    if(wk[id]){ wk[id].n++; if(t.schmerz_max!=null) wk[id].pain=Math.max(wk[id].pain??0,t.schmerz_max); } }
+  const avg=a=>{ const v=a.filter(x=>x!=null); return v.length? (v.reduce((x,y)=>x+y,0)/v.length):null; };
+  const rows=Object.entries(wk).sort((a,b)=>a[0]<b[0]?1:-1).map(([id,v])=>
+    `<tr><td>${id}</td><td>${v.n}</td><td>${avg(v.rec)!=null?Math.round(avg(v.rec))+"%":"–"}</td>
+     <td>${avg(v.sch)!=null?avg(v.sch).toFixed(1)+"h":"–"}</td><td>${avg(v.str)!=null?avg(v.str).toFixed(1):"–"}</td>
+     <td>${v.pain!=null?v.pain+"/10":"–"}</td></tr>`).join("");
+  document.getElementById("wochen").innerHTML =
+    `<tr><th>Woche</th><th>Tr.</th><th>Ø Rec</th><th>Ø Schlaf</th><th>Ø Strain</th><th>Schmerz</th></tr>`+rows;
+}
+
+/* ---------- Filter + Render ---------- */
+function filters(){
+  const host=document.getElementById("filters");
+  host.innerHTML="";
+  for(const [lbl] of RANGES){
+    const b=document.createElement("button");
+    b.textContent=lbl; if(lbl===range) b.className="on";
+    b.addEventListener("click",()=>{ range=lbl; sSet("tt.range",lbl); render(); });
+    host.appendChild(b);
+  }
+}
+function render(){
+  if(!DATA) return;
+  document.getElementById("stand").textContent = DATA.stand;
+  kpis(); filters();
+  const days=whoopDays(), w=DATA.whoop;
+  lineChart("c-recovery", days, d=>w[d]?.recovery??null, css("--recovery"), 100, "%", [33,66]);
+  barChart("c-strain",  days, d=>w[d]?.strain??null,  css("--strain"), 21, "", 1);
+  barChart("c-schlaf",  days, d=>w[d]?.schlaf_h??null, css("--schlaf"), 12, "h", 1);
+  painChart("c-schmerz", days);
+  liste(); wochen();
+}
+</script>
+</body>
+</html>
