@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LOGIQ Bedien-Trainer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: links das Gerät (Touchscreen + Bedienpult, massstabsgetreu skaliert), rechts Hauptmonitor + Erklär-/Übungspanel */
+:root{
+  --bg:#e9edf1; --surface:#ffffff; --surface2:#f3f6f9; --ink:#15202b; --muted:#5b6977; --line:#d2d9e1;
+  --accent:#1c66c9; --accent-ink:#ffffff; --ok:#1d8656; --warn:#a86a12; --hl:#ff9f1a;
+  --f-body:"IBM Plex Sans",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d131a; --surface:#151d27; --surface2:#1b2531; --ink:#e5ecf4; --muted:#93a1b2; --line:#283442;
+  --accent:#5c9dff; --accent-ink:#06121f; --ok:#3fbf86; --warn:#e0a54a; --hl:#ffb347; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d131a; --surface:#151d27; --surface2:#1b2531; --ink:#e5ecf4; --muted:#93a1b2; --line:#283442;
+  --accent:#5c9dff; --accent-ink:#06121f; --ok:#3fbf86; --warn:#e0a54a; --hl:#ffb347; color-scheme:dark}
+html,body{background:var(--bg);color:var(--ink)}
+[hidden]{display:none!important}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5}
+.app{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 28px;max-width:1700px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:12px}
+header.top h1{font-size:22px;margin:0;letter-spacing:.01em;text-wrap:balance}
+header.top p{margin:0;color:var(--muted);font-size:13.5px;max-width:80ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}}
+.devicecol{min-width:0}
+.stagewrap{position:relative;width:100%;overflow:hidden}
+.side{min-width:0;display:flex;flex-direction:column;gap:14px}
+@media (min-width:1001px){.side{position:sticky;top:10px}}
+.monitor{background:#05070a;border-radius:10px;padding:8px;box-shadow:0 2px 10px rgba(0,0,0,.25);position:relative}
+.monitor canvas{width:100%;height:auto;display:block;aspect-ratio:4/3;border-radius:4px;cursor:crosshair}
+.monitor .mlabel{position:absolute;right:14px;bottom:12px;font:11px var(--f-mono);color:#56606b;pointer-events:none}
+#annBox{position:absolute;left:50%;top:14%;transform:translateX(-50%);background:#0b1220ee;border:1px solid #3b7cff;border-radius:6px;padding:6px 8px;display:flex;gap:6px;align-items:center;color:#cfe0ff;font-size:13px}
+#annBox input{background:#000;border:1px solid #2c3e5c;color:#fff;font:14px var(--f-body);padding:4px 6px;border-radius:4px;width:240px;max-width:52vw}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ptabs{display:flex;border-bottom:1px solid var(--line);background:var(--surface2);overflow-x:auto}
+.ptabs button{flex:1 0 auto;border:0;background:none;padding:10px 14px;font:600 13.5px var(--f-body);color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.ptabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pbody{padding:16px 18px;max-height:min(62vh,640px);overflow:auto}
+.pbody h2{font-size:19px;margin:0 0 4px;text-wrap:balance}
+.pbody h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 0 4px}
+.pbody p{margin:0 0 8px;max-width:68ch}
+.chip{display:inline-block;font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);margin-right:6px}
+.chip.unsure{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.hintbox{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.muted{color:var(--muted)}
+.exlist{display:grid;gap:8px}
+.exlist button{text-align:left;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:8px;padding:10px 12px;font:15px var(--f-body);cursor:pointer;display:flex;justify-content:space-between;gap:10px}
+.exlist button:hover{border-color:var(--accent)}
+.exlist .done{color:var(--ok);font-weight:600;font-size:13px}
+.steps{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px}
+.steps li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start;font-size:14.5px;color:var(--muted)}
+.steps li .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font:700 11px var(--f-mono);margin-top:1px}
+.steps li.cur{color:var(--ink);font-weight:500}
+.steps li.cur .dot{border-color:var(--hl);color:var(--hl)}
+.steps li.ok .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:7px 12px;border-radius:7px;font:600 13.5px var(--f-body);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.idx h3:first-child{margin-top:0}
+.idx ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 10px}
+.idx li button{border:0;background:none;color:var(--accent);font:14px var(--f-body);cursor:pointer;padding:3px 0;text-align:left}
+.idx li button:hover{text-decoration:underline}
+.flow ol{padding-left:20px;margin:6px 0}
+.flow li{margin-bottom:6px}
+kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface2)}
+.foot{margin-top:14px;color:var(--muted);font-size:12.5px;max-width:110ch}
+
+/* ===== Gerät (feste Gerätefarben, unabhängig vom Theme) ===== */
+.stage{position:absolute;left:0;top:0;width:1040px;height:1000px;transform-origin:0 0;font-family:var(--f-body);user-select:none;-webkit-user-select:none}
+.housing{position:absolute;left:95px;top:0;width:850px;height:552px;background:linear-gradient(#f2f1ed,#e3e2dd);border-radius:22px;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.bezel{position:absolute;left:111px;top:10px;width:818px;height:528px;background:#111214;border-radius:12px}
+.brand{position:absolute;left:0;right:0;top:-1px;text-align:center;color:#c8c8c8;font:400 15px var(--f-body);letter-spacing:.12em}
+.console{position:absolute;left:18px;top:545px;width:1004px;height:445px;background:linear-gradient(#f1f0ec,#e1e0db);border-radius:26px 26px 120px 120px;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.console::after{content:"";position:absolute;left:350px;top:105px;width:300px;height:330px;border-radius:150px 150px 40px 40px;background:rgba(0,0,0,.035)}
+.cc{position:absolute;transform:translate(-50%,-50%);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cc:focus-visible{outline:3px solid #1c66c9;outline-offset:3px}
+.key{border:2px solid #b6b6b1;background:linear-gradient(#e7e7e4,#d4d4d0);color:#77777a;font:600 14px var(--f-body);border-radius:24px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1),0 2px 3px rgba(0,0,0,.18);display:grid;place-items:center;padding:0}
+.key:active{transform:translate(-50%,-48%);box-shadow:inset 0 2px 3px rgba(0,0,0,.2)}
+.key.blue{border-color:#4a72ff;color:#5a76e6;box-shadow:0 0 8px rgba(64,104,255,.55),inset 0 0 5px rgba(64,104,255,.35)}
+.key.blue.on{background:linear-gradient(#5d82ff,#2f5bf5);color:#fff;box-shadow:0 0 16px rgba(64,104,255,.9)}
+.key.round{border-radius:50%}
+.key.dark{background:radial-gradient(circle at 45% 35%,#3b3b3e,#141416 70%);border-color:#0b0b0c;color:#ddd}
+.key.dark.on{box-shadow:0 0 0 3px #4a72ff,0 0 14px rgba(64,104,255,.8)}
+.key svg{width:60%;height:60%}
+.knob{border-radius:50%;display:block}
+.knob.black{background:radial-gradient(circle at 42% 34%,#4a4a4e,#151517 62%,#0a0a0b);box-shadow:0 3px 5px rgba(0,0,0,.45),0 0 0 5px #d9d9d5,0 0 0 6px #bdbdb8}
+.knob.grey{background:radial-gradient(circle at 42% 34%,#f6f6f4,#c8c8c4 70%,#aeaeaa);box-shadow:0 3px 5px rgba(0,0,0,.35)}
+.knob::after{content:"";position:absolute;left:50%;top:7%;width:3px;height:22%;background:rgba(255,255,255,.55);border-radius:2px;transform-origin:50% 195%;transform:translateX(-50%) rotate(var(--rot,0deg))}
+.knob.grey::after{background:rgba(0,0,0,.35)}
+.knob.on{box-shadow:0 3px 5px rgba(0,0,0,.45),0 0 0 5px #4a72ff,0 0 16px 4px rgba(64,104,255,.7)}
+.ear{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;background:linear-gradient(#e2e2df,#cfcfcb);color:#9a9a9c;font:600 17px var(--f-body);display:grid;place-items:center;pointer-events:none;box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+.ear.on{color:#3f63f0;text-shadow:0 0 6px rgba(64,104,255,.8)}
+.plabel{position:absolute;transform:translate(-50%,-50%);color:#4a4a4d;font:600 13px var(--f-body);pointer-events:none;white-space:nowrap;text-align:center;line-height:1.15}
+.plabel.small{font-size:11.5px;font-weight:500}
+.tb{border-radius:50%;background:radial-gradient(circle at 45% 38%,#ffffff,#c9d4ff 45%,#8ea2f0 80%,#6f84d6);box-shadow:0 0 0 8px #d6d6d2,0 0 0 10px #b9b9b4,0 0 22px 6px rgba(120,140,255,.55);cursor:grab;touch-action:none}
+.tb:active{cursor:grabbing}
+.tbk{border:2px solid #c3c3be;background:linear-gradient(#ececea,#dadad6);border-radius:16px;box-shadow:0 0 6px rgba(120,140,255,.35),inset 0 -2px 0 rgba(0,0,0,.08);color:#6a6a6e;font:600 12px var(--f-body);display:grid;place-items:center;padding:0}
+.tbk:active{filter:brightness(.92)}
+.arrow{width:26px;height:26px;border:0;background:none;color:#3b3b3e;font-size:17px;display:grid;place-items:center;padding:0}
+.arrow:hover{color:#1c66c9}
+.hint{animation:pulse 1.2s ease-in-out infinite;z-index:5}
+@keyframes pulse{0%,100%{outline:4px solid rgba(255,159,26,.95);outline-offset:3px}50%{outline:4px solid rgba(255,159,26,.25);outline-offset:9px}}
+.flash{animation:flash .5s ease-in-out 4}
+@keyframes flash{50%{outline:4px solid #22d3ee;outline-offset:4px}}
+@media (prefers-reduced-motion:reduce){.hint{animation:none;outline:4px solid #ff9f1a;outline-offset:4px}.flash{animation:none;outline:4px solid #22d3ee}}
+
+/* Touchscreen */
+.ts{position:absolute;left:125px;top:24px;width:790px;height:500px;background:#0c1220;color:#d9e3f2;display:grid;grid-template-rows:56px 1fr 62px;overflow:hidden;font-size:14px}
+.ts button{font-family:var(--f-body);cursor:pointer}
+.ts-top{display:grid;grid-template-columns:repeat(4,1fr) 1.15fr;gap:8px;padding:8px 10px 6px}
+.tsb{background:#33435d;color:#dfe8f6;border:0;border-radius:3px;font:500 14px var(--f-body);padding:6px 8px;min-height:38px;line-height:1.15}
+.tsb:hover{background:#3d5070}
+.tsb.on{background:#1f7cf0;color:#fff}
+.tsb.dim{background:#1d2738;color:#7f8ea5}
+.tsb.wide{width:100%}
+.tsb:focus-visible,.navb:focus-visible,.probe:focus-visible{outline:2px solid #ffd27a;outline-offset:1px}
+.tgcbtn{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ts-mid{display:grid;grid-template-columns:72px 1fr 82px;min-height:0}
+.ts-nav{display:flex;flex-direction:column;gap:3px;padding:2px 0 2px 8px}
+.navb{flex:1;background:#141c2c;border:0;color:#cfdaea;font:600 11.5px var(--f-body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:3px;padding:2px;line-height:1.1;text-transform:uppercase}
+.navb svg{width:24px;height:24px}
+.navb.on{background:#26344d;color:#fff}
+.navb.on svg{color:#58a6ff}
+.ts-content{position:relative;padding:6px 10px;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:6px}
+.subtabs{display:flex;gap:4px}
+.subtabs button{background:none;border:0;color:#9fb0c8;font:600 13px var(--f-body);padding:4px 10px;border-radius:3px;line-height:1.15}
+.subtabs button.on{background:#26344d;color:#fff}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px;align-content:start}
+.pcell{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pl{font-size:12.5px;color:#b8c6da;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stepper{display:grid;grid-template-columns:30px 1fr 30px;background:#26344d;border-radius:3px;align-items:center;min-height:36px}
+.stepper button{background:none;border:0;color:#cfe0ff;font-size:13px;height:36px}
+.stepper button:hover{background:#33456a}
+.stepper span{text-align:center;font:600 14px var(--f-body)}
+.ts-probes{display:flex;flex-direction:column;gap:4px;padding:2px 8px 2px 4px}
+.probe{flex:1;background:#a9c9ee;border:0;border-radius:3px;color:#183257;font:600 11px var(--f-body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative}
+.probe.on{background:#cfe5ff;box-shadow:inset 3px 0 0 #1f7cf0}
+.probe svg{width:22px;height:26px}
+.probe small{font-size:10px;font-weight:600;color:#2a5aa0}
+.ts-knobs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #1e2a3d;background:#0a0f1b}
+.kl{display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:12px;color:#9fb0c8;border-right:1px solid #161f2f;line-height:1.2;text-align:center;padding:0 4px}
+.kl b{color:#e5edf9;font-weight:600;font-size:13px}
+.kl .act{color:#fff}
+.kl .alt{color:#6f7f97;font-size:11px}
+.kl .act.alt{color:#7fb8ff}
+.menu{position:absolute;right:6px;top:6px;width:250px;background:#1a2436;border:1px solid #3b5ea8;border-radius:4px;padding:8px;display:flex;flex-direction:column;gap:4px;z-index:3;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.menu .mt{font:600 12px var(--f-body);color:#9fb0c8;margin-bottom:2px}
+.form{display:grid;grid-template-columns:110px 1fr 110px 1fr;gap:6px 10px;align-items:center}
+.form label{font-size:12.5px;color:#b8c6da}
+.form input,.form select{background:#05080f;border:1px solid #33435d;color:#fff;font:14px var(--f-body);padding:5px 6px;border-radius:3px;min-width:0}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;min-height:68px;align-content:flex-start;max-height:120px;overflow:auto;background:#070b14;border-radius:3px;padding:6px}
+.thumbs img{width:84px;height:63px;object-fit:cover;border:2px solid #22324c;border-radius:2px;cursor:pointer}
+.thumbs img.sel{border-color:#ffd27a}
+.abtns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tgcpanel{position:absolute;inset:4px 6px;background:#101a2b;border:1px solid #3b5ea8;border-radius:4px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;z-index:4}
+.tgcrow{display:grid;grid-template-columns:60px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:#9fb0c8}
+.tgcrow input{width:100%}
+.kbd{position:absolute;left:6px;right:6px;bottom:4px;background:#101a2b;border:1px solid #3b5ea8;border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:4px;z-index:4}
+.kbd div{display:flex;gap:4px;justify-content:center}
+.kbd button{background:#33435d;border:0;color:#fff;font:600 13px var(--f-body);min-width:34px;height:32px;border-radius:3px}
+.confirm{background:#16213a;border:1px solid #3b5ea8;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:10px;max-width:440px}
+.ulist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>LOGIQ Bedien-Trainer</h1>
+    <p>Klick dich durch Touchscreen und Bedienpult. Jede Taste wird rechts erklärt, der Monitor reagiert wie ein vereinfachtes Ultraschallbild. Drehknöpfe: <b>klicken = drücken</b>, <b>Mausrad / Zwei-Finger-Scroll oder hoch/runter ziehen = drehen</b>.</p>
+  </header>
+  <div class="grid">
+    <section class="devicecol" aria-label="Gerät">
+      <div class="stagewrap" id="wrap"><div class="stage" id="stage"></div></div>
+    </section>
+    <section class="side">
+      <div class="monitor" id="monwrap">
+        <canvas id="mon" width="800" height="600" aria-label="Simulierter Hauptmonitor"></canvas>
+        <div id="annBox" hidden><span>Kommentar:</span><input id="annIn" autocomplete="off" placeholder="Text, dann Enter"></div>
+      </div>
+      <div class="panel">
+        <div class="ptabs" role="tablist">
+          <button role="tab" data-ptab="info" aria-selected="true" id="pt-info">Erklärung</button>
+          <button role="tab" data-ptab="ex" aria-selected="false" id="pt-ex">Übungen</button>
+          <button role="tab" data-ptab="idx" aria-selected="false" id="pt-idx">Alle Bedienelemente</button>
+          <button role="tab" data-ptab="flow" aria-selected="false" id="pt-flow">Untersuchungsablauf</button>
+        </div>
+        <div class="pbody" id="pbody"></div>
+      </div>
+    </section>
+  </div>
+  <p class="foot">Inoffizielles Lernmodell, kein Medizinprodukt und nicht von GE HealthCare. Aufgebaut nach Fotos eures Geräts (LOGIQ-Serie mit Touchscreen, Software auf Deutsch) und der allgemeinen LOGIQ-Bedienlogik. Belegungen mit dem Hinweis „unsicher“ können an eurem Gerät anders konfiguriert sein. Verbindlich ist das Handbuch am Gerät (Hilfe/F1, MyTrainer) bzw. die Einweisung. Das Bild ist eine Simulation, keine echte Anatomie. Tastenkürzel: <kbd>F</kbd> Freeze, <kbd>P</kbd> P1 speichern.</p>
+</div>
+
+<script>
+"use strict";
+// ================= Daten: Sonden =================
+const PROBES={
+ 'L3-12':{type:'linear',W:5,Wtot:15,dmax:10,TW:1200,TH:800,freqs:[6,8,10,12],
+   presets:{'BWA Allg.':4,'Schulter':3.5,'Knie':4,'Hand/Handgelenk':2.5,'Gefässe':3.5,'Schilddrüse':4,'Mamma':4}},
+ 'C1-6':{type:'convex',theta:1.22,R:4,dmax:30,TW:700,TH:900,freqs:[2,3,4,5.5],
+   presets:{'Abdomen Allg.':16,'Leber':16,'Niere':14,'Aorta':18,'Hüfte (BWA tief)':9}}
+};
+const VESSELS={
+ 'L3-12':[{x:0.6,d:1.55,rx:0.28,ry:0.28,type:'art',vmax:62,name:'Arterie'},{x:-0.9,d:1.7,rx:0.34,ry:0.2,type:'ven',vmax:-12,name:'Vene'}],
+ 'C1-6':[{x:2.8,d:10,rx:0.9,ry:0.9,type:'art',vmax:70,name:'grosses Gefäss'},{x:-1,d:11.2,rx:0.45,ry:0.45,type:'ven',vmax:-20},
+         {x:-4,d:5,rx:0.35,ry:0.35,type:'ven',vmax:-18,portal:true},{x:3.6,d:5.5,rx:0.3,ry:0.3,type:'ven',vmax:-16,portal:true}]
+};
+const BODY=['Schulter','Ellenbogen','Hand','Hüfte','Knie','Sprunggelenk','Abdomen'];
+
+// ================= Zustand =================
+const S={
+ probe:'L3-12',preset:'BWA Allg.',color:'none',spec:'none',
+ gainB:52,gainCF:50,gainPW:50,gainM:50,depth:4,zoom:1,steer:0,freeze:false,tFreeze:0,tNow:0,cine:0,cineMarks:[],
+ power:100,dr:63,freq:12,focusPos:1.6,focusNum:1,focusWidth:1,
+ sri:4,cxb:true,cxbLevel:'Niedrig',cxbType:'MW',chi:true,reject:1,edge:6,frameAvg:3,rotation:0,
+ colorize:'B-Color D',gray:'Grau Skala A',vconvex:false,invert:false,
+ tgc:[0,0,0,0,0,0,0,0],tgcOpen:false,
+ cfScale:70,cfWF:1,cfBase:0,cfInvert:false,pwScale:100,pwBase:-2,pwAngle:0,pwInvert:false,sweep:3,gate:0.15,
+ box:{u:0.5,d:1.4,hu:0.8,hd:0.6},tbMode:'pos',gateU:0.5,gateD:2,mU:0.5,
+ dual:null,lv:null,lvStart:0,measure:null,annots:[],editing:null,arrows:[],arrowEdit:null,
+ bodyPattern:false,bpIdx:0,
+ tab:'scan',scanSub:'B',patSub:'patient',kbd:false,page:null,presetMenu:null,confirmEnd:false,
+ patient:{last:'',first:'',id:'',dob:'',sex:''},registered:false,images:[],history:[],review:null,
+ knobAlt:[false,false,false,false,false],toast:null,userMsg:null
+};
+const IMGDEF=['gainB','gainCF','gainPW','gainM','zoom','steer','power','dr','focusNum','focusWidth','sri','cxb','cxbLevel','cxbType','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate'];
+const DEFAULTS={};IMGDEF.forEach(k=>DEFAULTS[k]=S[k]);
+
+// ================= Parameter =================
+const PARAMS={
+ power:{label:'Sendeleistung',min:10,max:100,step:5,fmt:v=>v+' %'},
+ dr:{label:'Dynamikbereich',min:30,max:96,step:3,fmt:v=>v+' dB'},
+ freq:{label:'Frequenz',list:()=>PROBES[S.probe].freqs,fmt:v=>v.toFixed(1)+' MHz'},
+ focusPos:{label:'Fokuspos.',min:0.3,max:()=>S.depth,step:()=>Math.max(0.1,S.depth/25),fmt:v=>v.toFixed(1)+' cm'},
+ focusNum:{label:'Fokusnum.',min:1,max:4,step:1,fmt:v=>String(v)},
+ focusWidth:{label:'Fokusweite',min:1,max:4,step:1,fmt:v=>String(v)},
+ sri:{label:'SRI HD',opts:[0,1,2,3,4,5],kind:'select'},
+ cxb:{label:'Cross Beam',kind:'toggle'},
+ chi:{label:'CHI',kind:'toggle'},
+ vconvex:{label:'Virtuell Konvex',kind:'toggle'},
+ cxbLevel:{label:'CrossXBeam #',opts:['Niedrig','Mittel','Hoch']},
+ cxbType:{label:'Typ CrossXBeam',opts:['MW','SW'],kind:'select'},
+ reject:{label:'Unterdrückung',min:0,max:10,step:1},
+ edge:{label:'Konturanhebung',min:0,max:8,step:1},
+ frameAvg:{label:'Frame Average',min:0,max:7,step:1},
+ rotation:{label:'Drehung',opts:[0,90,180,270],kind:'select'},
+ colorize:{label:'Colorieren',opts:['Aus','B-Color A','B-Color B','B-Color C','B-Color D'],kind:'select'},
+ gray:{label:'Grauskala',opts:['Grau Skala A','Grau Skala B','Grau Skala C','Grau Skala D','Grau Skala E','Grau Skala F'],kind:'select'},
+ cfScale:{label:'Skala',min:10,max:150,step:5,fmt:v=>v+' cm/s'},
+ cfWF:{label:'Wandfilter',min:0,max:6,step:1},
+ cfBase:{label:'Baseline',min:-4,max:4,step:1},
+ cfInvert:{label:'Invertieren',kind:'toggle'},
+ pwScale:{label:'Skala',min:20,max:250,step:10,fmt:v=>v+' cm/s'},
+ pwBase:{label:'Baseline',min:-5,max:5,step:1},
+ pwAngle:{label:'Winkelkorr.',min:-70,max:70,step:5,fmt:v=>v+'°'},
+ pwInvert:{label:'Invertieren',kind:'toggle'},
+ sweep:{label:'Sweep',min:1,max:5,step:1},
+ gate:{label:'Gate-Grösse',min:0.05,max:0.5,step:0.05,fmt:v=>v.toFixed(2)+' cm'}
+};
+const PAGES={
+ B:['cxb','sri','chi','cxbLevel','reject','colorize','cxbType','edge','gray','vconvex','frameAvg','rotation','focusWidth'],
+ CF:['cfScale','cfWF','cfBase','cfInvert'],
+ PDI:['cfScale','cfWF'],
+ PW:['pwScale','pwBase','pwAngle','pwInvert','sweep','gate'],
+ M:['sweep','dr'],
+ BFLOW:['frameAvg','dr']
+};
+const KNOBS={
+ B:[['power'],null,['dr'],['freq'],['focusPos','focusNum']],
+ CF:[['power'],['cfScale'],['cfWF'],['cfBase'],['focusPos','focusNum']],
+ PDI:[['power'],['cfScale'],['cfWF'],null,['focusPos','focusNum']],
+ PW:[['power'],['pwScale'],['pwBase'],['pwAngle'],['sweep','gate']],
+ M:[['power'],null,['dr'],['freq'],['sweep']],
+ BFLOW:[['power'],null,['dr'],['freq'],['focusPos','focusNum']]
+};
+
+// ================= Erklärungen =================
+// [Name, Gruppe, Funktion, Im Simulator, Tipp, unsicher]
+const INFO={
+ power:['Ein/Aus','System','Schaltet das System ein bzw. leitet das Herunterfahren ein. Kurz drücken öffnet den Dialog zum Herunterfahren. Lang gedrückt halten ist eine Notabschaltung und sollte vermieden werden.','Zeigt nur eine Meldung, der Trainer bleibt an.','Vor dem Ausschalten die Untersuchung beenden, damit die Bilder archiviert werden.'],
+ pdi:['PDI – Power-Doppler','Modus-Tasten','Power Doppler Imaging zeigt die Stärke des Blutflusses farbig (orange/gelb), aber ohne Richtung. Empfindlicher als der Farbdoppler, gut für langsamen oder geringen Fluss.','Drücken schaltet PDI an/aus. Box mit dem Trackball verschieben, Verstärkung mit dem X-Knopf drehen.','Im Bewegungsapparat Standard, um Hyperämie bei Entzündung (z. B. Synovitis, Tendinitis) zu sehen.'],
+ user1:['Unbeschriftete blaue Taste (oben)','Modus-Tasten','Beleuchtete Taste ohne Aufdruck. Sie wird je nach Lizenz und Konfiguration belegt, z. B. mit Elastographie, Kontrast oder einer Benutzerfunktion. Was sie tut, siehst du am echten Gerät daran, was nach dem Drücken auf Touchscreen und Monitor erscheint.','Zeigt nur einen Hinweis.','Die Belegung lässt sich unter Dienstpr. (Utility) einstellen; der genaue Pfad hängt von der Software-Version ab.',true],
+ user2:['Unbeschriftete blaue Taste (unten)','Modus-Tasten','Wie die Taste darüber: frei belegbar bzw. von einer Option abhängig.','Zeigt nur einen Hinweis.','Frag bei der Einweisung, was bei euch hinterlegt ist.',true],
+ bflow:['B-Flow','Modus-Tasten','Zeigt Blutfluss direkt im Graustufenbild: Blut erscheint als bewegte helle Punkte, ganz ohne Farbbox. Der Fluss überstrahlt die Gefässwand dabei nicht wie beim Farbdoppler.','Drücken schaltet B-Flow an/aus. Schau auf die Gefässe.','Gut, um Lumen und Wand genau zu beurteilen (z. B. Plaques).'],
+ logiqview:['LOGIQView – Panorama','Modus-Tasten','Erstellt ein Panoramabild mit erweitertem Sichtfeld. Dazu wird die Sonde langsam entlang der Struktur geschoben. Ideal für lange Muskeln und Sehnen oder grosse Befunde.','Drücken startet eine simulierte Aufnahme (4 s), danach erscheint ein breites Panorama. Mit B beenden. Nur mit der Linearsonde.','Langsam, gleichmässig und in einer Ebene schieben, reichlich Gel.'],
+ x:['X / CF – Farbdoppler','Modus-Tasten','Drücken schaltet den Farbdoppler (Color Flow) an/aus. Drehen ändert die Farbverstärkung. Das „X“ gilt in 3D/4D-Modi für die Drehung um die X-Achse.','Klick = drücken, Mausrad/Ziehen = drehen. Farbbox mit dem Trackball verschieben.','Farb-Gain hochdrehen, bis Farbrauschen im Gewebe auftaucht, dann leicht zurück.'],
+ y:['Y / PW – Pulsed-Wave-Doppler','Modus-Tasten','Drücken aktiviert den PW-Doppler: eine Messlinie mit Messfenster (Gate) erscheint, darunter die Spektralkurve mit den Geschwindigkeiten. Drehen ändert die Doppler-Verstärkung. „Y“ gilt für die 3D-Drehung um die Y-Achse.','Gate mit dem Trackball ins Gefäss schieben. Am echten Gerät startet das Spektrum je nach Einstellung erst nach erneutem Drücken bzw. Set.','Winkelkorrektur parallel zur Gefässachse ausrichten, möglichst ≤ 60°.'],
+ z:['Z / M – M-Mode','Modus-Tasten','Drücken aktiviert den M-Mode: Die Bewegung entlang einer Linie wird über die Zeit aufgezeichnet (z. B. Zwerchfell oder Herzklappen). Drehen ändert die M-Mode-Verstärkung. „Z“ gilt für die 3D-Drehung um die Z-Achse.','M-Linie mit dem Trackball seitlich verschieben.','Im Bewegungsapparat selten. Wichtig in der Notfall- und Lungen-Sonographie.'],
+ abc:['Abc – Kommentar','Bildbeschriftung','Beschriftet das Bild, z. B. „re. Schulter, SSP längs“. Der Touchscreen zeigt dazu Textbausteine des Presets an, über KBD kommt die Tastatur.','Drücken, Text tippen, Enter. Position mit dem Trackball.','Seite und Schnittebene immer beschriften, bevor du speicherst.'],
+ clear:['Clear – Löschen','Bildbeschriftung','Entfernt Messungen, Kommentare, Pfeile und Body Pattern vom Bild.','Löscht alle Markierungen im simulierten Bild.',''],
+ pointer:['Pfeil-Taste','Bildbeschriftung','Setzt einen Pfeil ins Bild, um eine Struktur zu markieren. Mit dem Trackball bewegen und mit Set fixieren.','Pfeil erscheint, Trackball bewegt ihn, Set fixiert. Ellipse drehen dreht den Pfeil.','',true],
+ tb:['Trackball','Trackball & Messen','Das zentrale Zeigegerät. Je nach Situation bewegt es Messpunkte, Farbbox, Doppler-Gate, M-Linie oder Kommentare. Im eingefrorenen Zustand blättert es durch den Cine-Speicher (die letzten Sekunden).','Auf der Kugel klicken und ziehen. Ist sie fokussiert, gehen auch die Pfeiltasten.','Was der Trackball gerade steuert, zeigt der Monitor unten links an.'],
+ tbTL:['Obere linke Trackball-Taste','Trackball & Messen','Unbeschriftet. Je nach Konfiguration z. B. eine Zurück- oder Cursor-Funktion.','Bricht im Simulator eine laufende Messung oder Eingabe ab.','',true],
+ measure:['Measure – Messen','Trackball & Messen','Startet eine Distanzmessung: ersten Messpunkt mit dem Trackball setzen, Set drücken, zweiten setzen, wieder Set. Auf dem Touchscreen erscheinen ausserdem die Messpakete des Presets.','Friert das Bild automatisch ein. Messpunkte gehen auch direkt mit der Maus auf dem Monitor (Klick = Set).','Nach der Distanz den Ellipse-Knopf drehen, dann bekommst du Fläche und Umfang.'],
+ tbSL:['Kleine Taste links am Trackball','Trackball & Messen','Wechselt die Trackball-Funktion, z. B. bei der Farbbox zwischen Position und Grösse.','Wechselt bei aktiver Farbbox zwischen Position und Grösse.','',true],
+ tbSR:['Kleine Taste rechts am Trackball','Trackball & Messen','Wie links: Trackball-Funktion wechseln bzw. Untermenü.','Wie links.','',true],
+ setL:['Set (links unten)','Trackball & Messen','Bestätigt: fixiert Messpunkte, übernimmt Positionen und wählt am Monitor aus.','Fixiert Messpunkte, Kommentare und Pfeile. Bei der Farbbox wechselt es zwischen Position und Grösse.','',true],
+ setR:['Set (rechts unten)','Trackball & Messen','Bestätigen, wie links. Auf vielen LOGIQ-Systemen sind beide unteren Tasten Set bzw. Set und eine Zusatzfunktion.','Wie links.','',true],
+ ellipse:['Ellipse / Body Pattern','Trackball & Messen','Drehen: Nach einer Distanzmessung wird daraus eine Ellipse mit Fläche und Umfang, Drehen ändert die Breite. Drücken: blendet das Body Pattern ein, ein Körperpiktogramm mit der Sondenposition.','Drücken = Body Pattern an/aus. Drehen ohne Messung = anderes Piktogramm.','Body Pattern hilft später beim Befunden, die Schnittebene zuzuordnen.'],
+ bknob:['B – B-Mode & Gain','Bildoptimierung','Drücken schaltet zurück in den reinen B-Mode (alle anderen Modi aus). Drehen ändert die Gesamtverstärkung (Gain): Das ganze Bild wird heller oder dunkler.','Klick = zurück zu B, drehen = Gain. Der aktuelle Wert steht links im Monitor („Gn“).','Reihenfolge: Tiefe, dann Fokus, dann Gain, dann TGC für die Feinabstimmung.'],
+ depthknob:['Depth / Steer / Zoom','Bildoptimierung','Hoch/runter ändert die Eindringtiefe (Depth). Links/rechts kippt bei Linearsonden Farbbox und Doppler-Linie (Steer). Drehen vergrössert das Bild (Zoom).','Pfeile anklicken für Tiefe und Steer. Mausrad über dem Knopf = Zoom, Klick auf den Knopf = Zoom zurücksetzen.','Die Zielstruktur sollte etwa die mittleren zwei Drittel des Bildes füllen.'],
+ usb:['USB','Speichern','Beleuchtete, konfigurierbare Speichertaste. Bei euch steht „USB“ drauf, sie exportiert also vermutlich Bild bzw. Cine direkt auf einen USB-Stick. Die genaue Belegung ist in der Konfiguration hinterlegt.','Zeigt „auf USB exportiert“.','Datenschutz: Patientendaten auf USB nur nach Klinikvorgabe.',true],
+ ao:['AO – Auto Optimize','Bildoptimierung','Automatische Bildoptimierung per Knopfdruck. Im B-Mode werden vor allem Helligkeit und Gain ausgeglichen, im Doppler je nach Version auch Skala und Baseline.','Setzt Gain und TGC zurück, im PW-Mode passt es die Skala an.','Guter Startpunkt, danach von Hand nachregeln.'],
+ markcine:['Mark Cine','Speichern','Markiert im Cine-Speicher Anfang und Ende einer Sequenz, um nur diesen Ausschnitt als Loop wiederzugeben oder zu speichern.','Bei eingefrorenem Bild wird eine Markierung auf der Cine-Leiste gesetzt.','',true],
+ freeze:['Freeze – Einfrieren','Speichern','Friert das Livebild ein bzw. setzt den Scan fort. Eingefroren kannst du mit dem Trackball durch den Cine-Speicher blättern, messen und speichern.','Taste klicken oder F drücken. Rechts unten im Monitor erscheint die Cine-Leiste.','Nicht unnötig lange live schallen (ALARA), Freeze reduziert die Schallexposition.'],
+ p1:['P1 – Speichern/Drucken','Speichern','Konfigurierbare Print-Taste. Meist speichert sie das Bild (oder Cine) in die Untersuchung oder schickt es an Drucker bzw. PACS. Gespeichertes erscheint in der Bildleiste am Monitor und unter PATIENT › Aktive Bilder.','Speichert ein Vorschaubild, unten rechts im Monitor sichtbar.','Am echten Gerät legt Dienstpr. fest, was P1 tut.'],
+ dualL:['L – Dual-Bild links','Bildoptimierung','Teilt den Monitor in zwei Bilder und aktiviert das linke. Das andere Bild bleibt eingefroren stehen.','L und R wechseln die aktive Seite, B beendet die Dual-Ansicht.','Ideal für den Seitenvergleich (links/rechts) oder längs/quer.'],
+ dualR:['R – Dual-Bild rechts','Bildoptimierung','Aktiviert das rechte Bild der Dual-Ansicht.','Wie L.',''],
+ k1:['Drehknopf 1 (unter dem Touchscreen)','Bildoptimierung','Die fünf grauen Knöpfe steuern die Felder unten am Touchscreen direkt darüber. Die Belegung wechselt je nach Modus. Im B-Mode ist Knopf 1 die Sendeleistung.','Drehen ändert den Wert. Bei zwei Feldern wechselt Drücken die Funktion.','Die Pfeile ↕ / ↻ neben den Feldern zeigen am Gerät, wie der Knopf benutzt wird.',true],
+ k2:['Drehknopf 2','Bildoptimierung','Im B-Mode bei euch unbelegt. Im Farb- bzw. PW-Doppler ist es die Skala (PRF).','Siehe Knopf 1.','',true],
+ k3:['Drehknopf 3','Bildoptimierung','Im B-Mode der Dynamikbereich, im Doppler je nach Seite Wandfilter bzw. Baseline.','Siehe Knopf 1.','',true],
+ k4:['Drehknopf 4','Bildoptimierung','Im B-Mode die Frequenz (bei euch 12.0 MHz bei L3-12), im PW die Winkelkorrektur.','Siehe Knopf 1.','',true],
+ k5:['Drehknopf 5','Bildoptimierung','Im B-Mode die Fokusposition (drehen) bzw. Fokusanzahl (drücken, dann drehen).','Drücken wechselt zwischen Fokuspos. und Fokusnum.','',true],
+ 'ts-meineseite':['Meine Seite','Touchscreen','Eine eigene Favoritenseite mit den Parametern, die du am häufigsten brauchst.','Zeigt eine Beispiel-Favoritenseite.',''],
+ 'ts-mytrainer':['MyTrainer','Touchscreen','Integrierte Lernvideos und Tutorials direkt am Gerät.','Zeigt die Themenliste. Am echten Gerät startet hier ein Video.','Die beste offizielle Hilfe direkt am Gerät.'],
+ 'ts-reset':['Rücksetzen','Touchscreen','Setzt die Bildparameter des aktuellen Modus auf die Werte des Presets zurück.','Setzt alle simulierten Bildparameter zurück.','Wenn das Bild „verstellt“ wirkt: Rücksetzen.'],
+ 'ts-invert':['Umkehren','Touchscreen','Spiegelt das Bild links/rechts. Die Orientierungsmarke im Bild wechselt die Seite.','Spiegelt das Bild, die Marke springt auf die andere Seite.','Konvention: Marke links im Bild = Markierung an der Sonde zeigt nach kranial bzw. rechts beim Patienten.'],
+ 'ts-tgc':['TGC – Tiefenausgleich','Touchscreen','Time Gain Compensation: Schieberegler regeln die Verstärkung getrennt nach Tiefe (oben = nah, unten = tief). So lässt sich das Bild über die ganze Tiefe gleichmässig hell machen.','Öffnet 8 Schieberegler, die rechte Kurve im Monitor zeigt den Verlauf.','Meist leicht ansteigend von oben nach unten. Grosse Sprünge vermeiden.'],
+ 'ts-collapse':['Touchscreen verkleinern','Touchscreen','Symbol oben rechts: blendet den Touchscreen ein bzw. aus oder minimiert die Ansicht.','Zeigt nur einen Hinweis.','',true],
+ 'tab-patient':['PATIENT','Touchscreen','Patientendaten eingeben, neue Untersuchung anlegen, gespeicherte Bilder (Aktive Bilder), frühere Untersuchungen (Bild-Hist.) und Datentransfer zu USB/PACS.','Reiter „Patient“: Daten eingeben und Registrieren. „Aktive Bilder“: deine gespeicherten Bilder.','Vor dem ersten Bild den Patienten anlegen, sonst landen die Bilder in einer Untersuchung ohne Namen.'],
+ 'tab-scan':['SCAN','Touchscreen','Die Bildparameter des aktuellen Modus (B, CF, PW …). Oben lässt sich zwischen den aktiven Modi wechseln.','Jedes Feld lässt sich antippen und ändert das Bild.',''],
+ 'tab-end':['UNTERS. BEEN. – Untersuchung beenden','Touchscreen','Schliesst die Untersuchung ab. Bilder werden archiviert bzw. an die Ziele gesendet, danach ist das System bereit für den nächsten Patienten.','Fragt nach und leert dann Patient und Bilder.','Immer beenden, bevor der nächste Patient kommt.'],
+ 'tab-kbd':['KBD – Tastatur','Touchscreen','Bildschirmtastatur zur Texteingabe (Patientendaten, Kommentare).','Blendet eine Tastatur ein, die in das zuletzt aktive Feld bzw. in den Kommentar tippt.',''],
+ 'tab-util':['DIENSTPR. – Dienstprogramme','Touchscreen','Systemeinstellungen (Utility): Presets, Tastenbelegung (P1, USB), Messpakete, Drucker, DICOM/PACS, Benutzer, Service.','Zeigt die Kategorien.','Änderungen hier betreffen alle Nutzer, also nur nach Absprache.'],
+ 'probe-L3-12':['Sonde L3-12 (linear)','Touchscreen','Linearsonde mit 3–12 MHz. Hohe Auflösung für oberflächliche Strukturen: Muskeln, Sehnen, Gelenke, Nerven, Gefässe, Schilddrüse. „BWA Allg.“ ist das Preset Bewegungsapparat allgemein.','Antippen öffnet die Presetauswahl.','Ein Preset lädt passende Tiefe, Frequenz, Messpakete und Bildparameter.'],
+ 'probe-C1-6':['Sonde C1-6 (konvex)','Touchscreen','Konvexsonde (curved) mit 1–6 MHz. Grosse Eindringtiefe, z. B. für Abdomen oder tiefe Gelenke wie die Hüfte.','Antippen öffnet die Presetauswahl. Das simulierte Bild zeigt eine Leber mit Gallenblase.',''],
+ 'probe-port':['Freier Sondenanschluss','Touchscreen','An diesem Port ist gerade keine Sonde angeschlossen.','',''],
+ 'pat-sub':['Patienten-Reiter','Touchscreen','Patient = Daten eingeben. Bild-Hist. = frühere Untersuchungen. Aktive Bilder = Bilder der laufenden Untersuchung. Datentransfer = Export/Import (USB, PACS).','',''],
+ 'img-btn':['Bildverwaltung (Aktive Bilder)','Touchscreen','Alle anwählen / Alle demarkieren: Bilder auswählen. Nachbetracht.: ausgewählte Bilder gross ansehen. Permanent Speichern: dauerhaft ablegen. Standardausdruck: auf den Standarddrucker. Senden an: an ein Ziel wie PACS oder USB. Markiertes Bild löschen. Temporären Speicher löschen: Zwischenspeicher leeren. Speichern unter Bilder: in einem anderen Format speichern. Bild Eigenschaften: Infos zum Bild.','Alle Tasten reagieren. Nachbetrachtung zeigt das Bild im Monitor.','Gelöscht ist gelöscht – vorsichtig mit „Temporären Speicher löschen“.'],
+ 'p-cxb':['Cross Beam (CrossXBeam)','B-Parameter','Compound Imaging: Mehrere Bilder aus verschiedenen Schallwinkeln werden kombiniert. Das gibt weniger Rauschen und Speckle und glattere Grenzflächen. Dafür sinkt die Bildrate, und Schallschatten (z. B. hinter Kalk) werden schwächer.','An/aus verändert die Körnung.','Bei Verkalkungen kurz ausschalten, dann wird der Schatten deutlicher.'],
+ 'p-cxbLevel':['CrossXBeam #','B-Parameter','Stärke bzw. Anzahl der Winkel beim Compounding (Niedrig/Mittel/Hoch).','Höher = glatter.',''],
+ 'p-cxbType':['Typ CrossXBeam','B-Parameter','Variante der Compound-Verarbeitung (bei euch „MW“). Die genaue Bedeutung hängt von der Software-Version ab.','Wirkt im Simulator nicht.','',true],
+ 'p-sri':['SRI HD','B-Parameter','Speckle Reduction Imaging: glättet das Bild und reduziert die Körnung (Speckle). Höhere Stufe = glatter, feinste Strukturen können aber verwischen.','0–5, bei euch 4.',''],
+ 'p-chi':['CHI – Coded Harmonic Imaging','B-Parameter','Nutzt die harmonischen Frequenzen des Echos. Das gibt weniger Artefakte und Schleier und besseren Kontrast, besonders bei schwierigen Schallbedingungen. Die Eindringtiefe ist etwas geringer.','Aus = mehr Grauschleier in dunklen Bereichen.',''],
+ 'p-reject':['Unterdrückung (Reject)','B-Parameter','Blendet die schwächsten Echos aus, dunkle Bereiche werden „sauberer“ schwarz.','Höher = mehr wird schwarz.',''],
+ 'p-colorize':['Colorieren','B-Parameter','Legt eine Farbtönung über das Graustufenbild (B-Color). Manche sehen Kontraste so leichter.','Wechselt die Tönung (Aus, A–D).',''],
+ 'p-edge':['Konturanhebung (Edge Enhance)','B-Parameter','Schärft Kanten und Grenzflächen.','Im Simulator nur angedeutet.',''],
+ 'p-gray':['Grauskala (Gray Map)','B-Parameter','Kennlinie, wie die Echostärke in Grauwerte umgesetzt wird (Kontrastverlauf).','Andere Skala = anderer Kontrast.',''],
+ 'p-frameAvg':['Frame Average','B-Parameter','Mittelt aufeinanderfolgende Bilder. Das Bild wird ruhiger, Bewegungen „ziehen“ aber nach.','0 = kein Mitteln.',''],
+ 'p-rotation':['Drehung','B-Parameter','Dreht das Bild um 0/90/180/270°.','Dreht das simulierte Bild.',''],
+ 'p-focusWidth':['Fokusweite','B-Parameter','Breite bzw. Ausdehnung der Fokuszone.','Wirkt im Simulator nicht.','',true],
+ 'p-vconvex':['Virtuell Konvex','B-Parameter','Erweitert das Bild der Linearsonde trapezförmig nach unten, für ein grösseres Sichtfeld in der Tiefe.','Nur mit L3-12 sichtbar.',''],
+ 'p-power':['Sendeleistung','Drehknopf-Parameter','Die abgegebene Schallenergie (Acoustic Output), beeinflusst MI/TI. ALARA-Prinzip: so niedrig wie möglich, lieber den Gain erhöhen.','MI/TI oben rechts im Monitor ändern sich.',''],
+ 'p-dr':['Dynamikbereich','Drehknopf-Parameter','Spanne der dargestellten Echostärken in dB. Hoch = weicher, mehr Grautöne. Niedrig = kontrastreicher, „härter“.','',''],
+ 'p-freq':['Frequenz','Drehknopf-Parameter','Hohe Frequenz = bessere Auflösung, aber weniger Eindringtiefe. Niedrige Frequenz = tiefer, aber gröber.','Tiefe Bereiche werden bei hoher Frequenz dunkler.',''],
+ 'p-focusPos':['Fokusposition','Drehknopf-Parameter','Tiefe mit der besten seitlichen Auflösung. Auf Höhe der Zielstruktur oder knapp darunter stellen. Markiert ist sie mit ◀ am rechten Bildrand.','',''],
+ 'p-focusNum':['Fokusanzahl','Drehknopf-Parameter','Mehrere Fokuszonen machen das Bild über die Tiefe gleichmässiger scharf, senken aber die Bildrate (FR).','',''],
+ 'p-cfScale':['Skala (PRF) – Farbe','Doppler-Parameter','Der darstellbare Geschwindigkeitsbereich. Zu niedrig gibt Aliasing (Farbumschlag rot↔blau mitten im Gefäss). Zu hoch, und langsamer Fluss ist nicht mehr sichtbar.','Unter ca. 40 cm/s siehst du Aliasing in der Arterie.',''],
+ 'p-cfWF':['Wandfilter','Doppler-Parameter','Filtert langsame Bewegungen (Gewebe, Gefässwand). Zu hoch, und langsamer Fluss (Venen) verschwindet.','',''],
+ 'p-cfBase':['Baseline – Farbe','Doppler-Parameter','Verschiebt die Nulllinie der Farbskala.','',''],
+ 'p-cfInvert':['Invertieren – Farbe','Doppler-Parameter','Tauscht die Farbzuordnung (rot/blau).','',''],
+ 'p-pwScale':['Skala – PW','Doppler-Parameter','Geschwindigkeitsbereich der Spektralkurve. Wird er überschritten, schneidet die Kurve oben ab und erscheint unten wieder (Aliasing).','',''],
+ 'p-pwBase':['Baseline – PW','Doppler-Parameter','Verschiebt die Nulllinie im Spektrum, damit die Kurve Platz hat.','',''],
+ 'p-pwAngle':['Winkelkorrektur','Doppler-Parameter','Winkel zwischen Schallstrahl und Flussrichtung. Für korrekte Geschwindigkeiten parallel zur Gefässachse ausrichten (≤ 60°).','',''],
+ 'p-pwInvert':['Invertieren – PW','Doppler-Parameter','Stellt die Spektralkurve auf den Kopf.','',''],
+ 'p-sweep':['Sweep-Geschwindigkeit','Doppler-Parameter','Wie schnell die Kurve (PW bzw. M-Mode) über den Bildschirm läuft.','',''],
+ 'p-gate':['Gate-Grösse','Doppler-Parameter','Grösse des Messfensters im Gefäss.','','']
+};
+const GROUPS=['Modus-Tasten','Bildoptimierung','Trackball & Messen','Bildbeschriftung','Speichern','System','Touchscreen','B-Parameter','Drehknopf-Parameter','Doppler-Parameter'];
+
+// ================= Übungen =================
+const boxOverVessel=()=>{const v=VESSELS[S.probe][0];const u=vesselU(v);const b=boxGrid();return Math.abs(v.d-S.box.d)<S.box.hd&&Math.abs(u-S.box.u)<b.du;};
+const gateInVessel=()=>gateVessel()!==null;
+const EX=[
+ {title:'Untersuchung starten',steps:[
+  {t:'Tippe links auf dem Touchscreen auf PATIENT.',hl:'tab-patient',ok:e=>e.id==='tab-patient'},
+  {t:'Gib im Reiter „Patient“ einen Nachnamen ein (Fantasiename) und tippe auf „Registrieren“.',hl:'pat-register',ok:e=>e.type==='register'},
+  {t:'Tippe rechts auf die Linearsonde L3-12.',hl:'probe-L3-12',ok:e=>e.id==='probe-L3-12'},
+  {t:'Wähle im Preset-Menü „BWA Allg.“ (Bewegungsapparat allgemein).',hl:'preset-BWA Allg.',ok:e=>e.type==='preset'}]},
+ {title:'B-Bild optimieren',steps:[
+  {t:'Klicke am Depth-Knopf auf ▲, bis die Tiefe höchstens 3 cm beträgt (Wert „D“ links im Monitor).',hl:'depth-up',cond:()=>S.depth<=3},
+  {t:'Drehe den B-Knopf (Mausrad darüber oder hoch/runter ziehen): Die Gesamthelligkeit ändert sich.',hl:'bknob',ok:e=>e.type==='rotate'&&e.id==='bknob'},
+  {t:'Tippe oben auf TGC und verschiebe einen Tiefenregler.',hl:'ts-tgc',ok:e=>e.type==='tgc'},
+  {t:'Schliesse das TGC-Fenster und drehe Knopf 5 unter dem Touchscreen: Der Fokus ◀ am rechten Bildrand wandert.',hl:'k5',ok:e=>e.type==='rotate'&&e.id==='k5'},
+  {t:'Drehe Knopf 4 (Frequenz). Achte darauf, wie sich die Tiefe verhält.',hl:'k4',ok:e=>e.type==='rotate'&&e.id==='k4'},
+  {t:'Drücke AO für die automatische Optimierung.',hl:'ao',ok:e=>e.id==='ao'}]},
+ {title:'Einfrieren, Cine & Messen',steps:[
+  {t:'Drücke Freeze (die breite schwarze Taste).',hl:'freeze',cond:()=>S.freeze},
+  {t:'Ziehe auf dem Trackball nach links/rechts: Du blätterst durch den Cine-Speicher.',hl:'tb',ok:e=>e.type==='tb'&&S.freeze&&!S.measure},
+  {t:'Drücke Measure.',hl:'measure',ok:e=>e.id==='measure'},
+  {t:'Bewege den ersten Messpunkt (Trackball oder Maus im Monitor) und drücke Set.',hl:'setR',ok:e=>e.type==='set'},
+  {t:'Setze den zweiten Messpunkt und bestätige mit Set. Die Distanz steht links unten im Monitor.',hl:'setR',ok:e=>e.type==='measure-done'},
+  {t:'Drehe den Ellipse-Knopf: Aus der Strecke wird eine Ellipse mit Fläche.',hl:'ellipse',ok:e=>e.type==='rotate'&&e.id==='ellipse'},
+  {t:'Drücke Clear, um alles zu löschen.',hl:'clear',ok:e=>e.id==='clear'}]},
+ {title:'Beschriften, Body Pattern, Speichern',steps:[
+  {t:'Drücke Abc.',hl:'abc',ok:e=>e.id==='abc'},
+  {t:'Tippe einen Text, z. B. „M. deltoideus längs“, und bestätige mit Enter.',hl:null,ok:e=>e.type==='annot-done'},
+  {t:'Klicke auf den Ellipse/Body-Pattern-Knopf (drücken): Das Körperpiktogramm erscheint.',hl:'ellipse',ok:e=>e.type==='press'&&e.id==='ellipse'},
+  {t:'Speichere das Bild mit P1.',hl:'p1',ok:e=>e.type==='store'}]},
+ {title:'Farbdoppler, PW & Power-Doppler',steps:[
+  {t:'Falls das Bild eingefroren ist: Freeze drücken, damit es wieder live läuft.',hl:'freeze',cond:()=>!S.freeze},
+  {t:'Klicke auf den X/CF-Knopf: Der Farbdoppler geht an.',hl:'x',cond:()=>S.color==='CF'},
+  {t:'Schiebe die Farbbox mit dem Trackball über das runde dunkle Gefäss (rechts der Mitte).',hl:'tb',cond:boxOverVessel},
+  {t:'Drehe den X-Knopf. Zu viel Gain gibt Farbrauschen im Gewebe, zu wenig füllt das Gefäss nicht.',hl:'x',ok:e=>e.type==='rotate'&&e.id==='x'},
+  {t:'Stelle am Touchscreen (Reiter CF) oder mit Knopf 2 die Skala unter 35 cm/s: In der Arterie siehst du Aliasing.',hl:'k2',cond:()=>S.cfScale<35},
+  {t:'Klicke auf den Y/PW-Knopf und schiebe das Gate mit dem Trackball in die Arterie.',hl:'y',cond:()=>S.spec==='PW'&&gateInVessel()},
+  {t:'Drehe Y, um die Doppler-Verstärkung des Spektrums anzupassen.',hl:'y',ok:e=>e.type==='rotate'&&e.id==='y'},
+  {t:'Drücke PDI und vergleiche: Power-Doppler zeigt Fluss ohne Richtung.',hl:'pdi',ok:e=>e.id==='pdi'},
+  {t:'Klicke auf den B-Knopf: zurück zum reinen B-Bild.',hl:'bknob',ok:e=>e.type==='press'&&e.id==='bknob'}]},
+ {title:'Seitenvergleich & Panorama',steps:[
+  {t:'Drücke L: Die Dual-Ansicht startet, links ist aktiv.',hl:'dualL',ok:e=>e.id==='dualL'},
+  {t:'Drücke R: Jetzt läuft das rechte Bild, das linke bleibt stehen.',hl:'dualR',ok:e=>e.id==='dualR'},
+  {t:'Klicke auf den B-Knopf, um die Dual-Ansicht zu beenden.',hl:'bknob',ok:e=>e.type==='press'&&e.id==='bknob'},
+  {t:'Drücke LOGIQView und warte, bis das Panorama fertig ist (Linearsonde nötig).',hl:'logiqview',ok:e=>e.type==='lv-done'},
+  {t:'Klicke auf B, um das Panorama zu verlassen.',hl:'bknob',ok:e=>e.type==='press'&&e.id==='bknob'}]},
+ {title:'Bilder prüfen & Untersuchung beenden',steps:[
+  {t:'Speichere ein Bild mit P1.',hl:'p1',ok:e=>e.type==='store'},
+  {t:'Öffne PATIENT und dort den Reiter „Aktive Bilder“.',hl:'pat-aktiv',cond:()=>S.tab==='patient'&&S.patSub==='aktiv'},
+  {t:'Tippe ein Vorschaubild an und dann auf „Nachbetracht.“.',hl:'img-review',ok:e=>e.type==='review'},
+  {t:'Tippe links auf UNTERS. BEEN. und bestätige mit „Beenden & archivieren“.',hl:'tab-end',ok:e=>e.type==='end'}]}
+];
+const EXS={cur:null,step:0,done:new Set()};
+
+// ================= Gerät aufbauen =================
+const stage=document.getElementById('stage');
+const ICON={
+ freeze:'<svg viewBox="0 0 40 24" fill="none" stroke="#7ee0c0" stroke-width="2.2"><rect x="2" y="2" width="36" height="20" rx="4"/><path d="M10 7l8 5-8 5zM30 7l-8 5 8 5z" fill="#7ee0c0"/></svg>',
+ abc:'<svg viewBox="0 0 30 24" fill="none" stroke="#777" stroke-width="1.6"><rect x="6" y="2" width="18" height="12" rx="2"/><path d="M10 6h10M10 10h7"/><text x="15" y="23" font-size="9" text-anchor="middle" fill="#777" stroke="none" font-family="sans-serif">Abc</text></svg>',
+ clear:'<svg viewBox="0 0 30 26" fill="none" stroke="#777" stroke-width="1.6"><rect x="8" y="2" width="14" height="12"/><path d="M8 2l14 12M22 2L8 14"/><text x="15" y="24" font-size="8.5" text-anchor="middle" fill="#777" stroke="none" font-family="sans-serif">Clear</text></svg>',
+ pointer:'<svg viewBox="0 0 24 24"><path d="M7 3l11 9-5 1 3 6-2 1-3-6-4 3z" fill="#777"/></svg>',
+ power:'<svg viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><path d="M12 3v8"/><path d="M6.5 7a7 7 0 1 0 11 0"/></svg>',
+ L:'<svg viewBox="0 0 24 24" fill="none" stroke="#eee" stroke-width="1.6"><rect x="4" y="5" width="16" height="14" rx="2"/><rect x="4" y="5" width="8" height="14" fill="#eee"/><text x="15.5" y="16" font-size="9" fill="#eee" stroke="none" font-family="sans-serif">L</text></svg>',
+ R:'<svg viewBox="0 0 24 24" fill="none" stroke="#eee" stroke-width="1.6"><rect x="4" y="5" width="16" height="14" rx="2"/><rect x="12" y="5" width="8" height="14" fill="#eee"/><text x="5.5" y="16" font-size="9" fill="#eee" stroke="none" font-family="sans-serif">R</text></svg>'
+};
+function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
+function pos(x,y,w,h){return `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;}
+function buildStage(){
+ let h='';
+ h+=`<div class="housing"></div><div class="bezel"><div class="brand">LOGIQ</div></div>`;
+ h+=`<div class="ts" id="ts"></div>`;
+ h+=`<div class="console"></div>`;
+ // 5 Drehknöpfe
+ [204,362,520,678,836].forEach((x,i)=>{h+=`<div class="cc knob grey" tabindex="0" role="slider" aria-label="Drehknopf ${i+1}" data-id="k${i+1}" style="${pos(x,598,52,52)}"></div>`;});
+ // linke Gruppe
+ h+=`<button class="cc key" data-id="power" aria-label="Ein/Aus" style="${pos(95,700,86,48)}">${ICON.power}</button>`;
+ h+=`<button class="cc key blue" data-id="pdi" style="${pos(212,700,92,42)}">PDI</button>`;
+ h+=`<button class="cc key blue" data-id="user1" aria-label="Frei belegbare Taste 1" style="${pos(95,800,86,44)}"></button>`;
+ h+=`<button class="cc key" data-id="bflow" style="${pos(212,800,92,42)}">B Flow</button>`;
+ h+=`<button class="cc key blue" data-id="user2" aria-label="Frei belegbare Taste 2" style="${pos(95,892,86,44)}"></button>`;
+ h+=`<button class="cc key blue" data-id="logiqview" style="${pos(212,892,96,42)};font-size:12.5px">LOGIQView</button>`;
+ [['x','X','CF',700],['y','Y','PW',800],['z','Z','M',895]].forEach(([id,ax,lab,y])=>{
+   h+=`<div class="ear" id="ear-${id}" style="left:388px;top:${y+6}px;width:40px;height:40px">${lab}</div>`;
+   h+=`<div class="plabel" style="left:300px;top:${y-42}px">${ax}</div>`;
+   h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="${ax} / ${lab}" data-id="${id}" style="${pos(335,y,60,60)}"></div>`;
+ });
+ h+=`<button class="cc key round" data-id="abc" aria-label="Kommentar" style="${pos(445,745,54,54)}">${ICON.abc}</button>`;
+ h+=`<button class="cc key round" data-id="clear" aria-label="Clear" style="${pos(445,828,54,54)}">${ICON.clear}</button>`;
+ h+=`<button class="cc key round" data-id="pointer" aria-label="Pfeil" style="${pos(445,910,54,54)}">${ICON.pointer}</button>`;
+ // Trackball
+ h+=`<button class="cc tbk" data-id="tbTL" aria-label="Trackball-Taste oben links" style="${pos(522,718,116,34)};transform:translate(-50%,-50%) rotate(-20deg)"></button>`;
+ h+=`<button class="cc tbk" data-id="measure" style="${pos(668,718,116,34)};transform:translate(-50%,-50%) rotate(20deg)">▥ Measure</button>`;
+ h+=`<button class="cc tbk" data-id="tbSL" aria-label="Kleine Trackball-Taste links" style="${pos(502,790,38,40)};transform:translate(-50%,-50%) rotate(-25deg)"></button>`;
+ h+=`<button class="cc tbk" data-id="tbSR" aria-label="Kleine Trackball-Taste rechts" style="${pos(688,790,38,40)};transform:translate(-50%,-50%) rotate(25deg)"></button>`;
+ h+=`<button class="cc tbk" data-id="setL" aria-label="Set links" style="${pos(500,908,36,106)};transform:translate(-50%,-50%) rotate(14deg)"></button>`;
+ h+=`<button class="cc tbk" data-id="setR" aria-label="Set rechts" style="${pos(690,908,36,106)};transform:translate(-50%,-50%) rotate(-14deg)"></button>`;
+ h+=`<div class="cc tb" tabindex="0" role="application" aria-label="Trackball" data-id="tb" style="${pos(595,845,150,150)}"></div>`;
+ // rechte Gruppe
+ h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="Ellipse / Body Pattern" data-id="ellipse" style="${pos(792,688,54,54)}"></div>`;
+ h+=`<div class="plabel small" style="left:800px;top:742px">◯ Ellipse<br>▣ Body Pattern</div>`;
+ h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="B-Mode und Gain" data-id="bknob" style="${pos(808,815,66,66)}"></div>`;
+ h+=`<div class="plabel" style="left:808px;top:870px;font-size:17px">B</div>`;
+ h+=`<div class="cc knob grey" tabindex="0" role="slider" aria-label="Zoom" data-id="depthknob" style="${pos(912,690,50,50)}"></div>`;
+ h+=`<button class="cc arrow" data-id="depth-up" aria-label="Tiefe verringern" style="left:912px;top:648px">▲</button>`;
+ h+=`<button class="cc arrow" data-id="depth-down" aria-label="Tiefe vergrössern" style="left:912px;top:733px">▼</button>`;
+ h+=`<button class="cc arrow" data-id="steer-l" aria-label="Steer links" style="left:868px;top:690px">◀</button>`;
+ h+=`<button class="cc arrow" data-id="steer-r" aria-label="Steer rechts" style="left:956px;top:690px">▶</button>`;
+ h+=`<div class="plabel small" style="left:862px;top:650px">Steer</div>`;
+ h+=`<div class="plabel small" style="left:870px;top:752px">Depth</div>`;
+ h+=`<div class="plabel small" style="left:958px;top:740px">Zoom</div>`;
+ h+=`<button class="cc key blue" data-id="usb" style="${pos(995,705,70,36)};font-size:12px">USB</button>`;
+ h+=`<button class="cc key round" data-id="ao" style="${pos(918,795,50,50)};font-size:16px">AO</button>`;
+ h+=`<button class="cc key blue" data-id="markcine" style="${pos(995,800,74,36)};font-size:11.5px">Mark Cine</button>`;
+ h+=`<button class="cc key dark" data-id="freeze" aria-label="Freeze" style="${pos(912,885,116,54)};border-radius:20px">${ICON.freeze}</button>`;
+ h+=`<button class="cc key dark round" data-id="p1" style="${pos(1003,885,52,52)};font-size:17px">P1</button>`;
+ h+=`<button class="cc key dark round" data-id="dualL" aria-label="Dual links" style="${pos(780,930,44,44)}">${ICON.L}</button>`;
+ h+=`<button class="cc key dark round" data-id="dualR" aria-label="Dual rechts" style="${pos(842,930,44,44)}">${ICON.R}</button>`;
+ stage.innerHTML=h;
+}
+buildStage();
+function fit(){
+ const wrap=document.getElementById('wrap');const w=wrap.clientWidth;
+ let s=w/1040; if(innerWidth>1000) s=Math.min(s,(innerHeight-90)/1000);
+ s=Math.max(s,0.2);stage.style.transform=`scale(${s})`;wrap.style.height=(1000*s)+'px';
+ stage.style.left=Math.max(0,(w-1040*s)/2)+'px';
+}
+addEventListener('resize',fit);
+
+// ================= Touchscreen =================
+const NAVICON={
+ patient:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 22c0-5 4-8 9-8s9 3 9 8z"/></svg>',
+ scan:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6c-5 0-9 4-10 12h20C21 10 17 6 12 6z" opacity=".9"/><rect x="9" y="3" width="6" height="3" rx="1"/></svg>',
+ end:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="10" height="18" rx="1"/><path d="M10 12h11M17 8l4 4-4 4"/></svg>',
+ kbd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M5 9h2M9 9h2M13 9h2M17 9h2M5 12h2M9 12h2M13 12h2M17 12h2M7 15h10"/></svg>',
+ util:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm9 5v-3l-2.4-.5a7 7 0 0 0-.7-1.7l1.3-2-2.1-2.1-2 1.3a7 7 0 0 0-1.7-.7L13 2h-3l-.5 2.4a7 7 0 0 0-1.7.7l-2-1.3-2.1 2.1 1.3 2a7 7 0 0 0-.7 1.7L2 10.5v3l2.4.5c.2.6.4 1.2.7 1.7l-1.3 2 2.1 2.1 2-1.3c.5.3 1.1.5 1.7.7L10 22h3l.5-2.4c.6-.2 1.2-.4 1.7-.7l2 1.3 2.1-2.1-1.3-2c.3-.5.5-1.1.7-1.7z"/></svg>'
+};
+const PROBEICON={
+ convex:'<svg viewBox="0 0 22 26" fill="#1d3f70"><path d="M6 2h10v10H6z"/><path d="M2 20c0-5 4-8 9-8s9 3 9 8z"/></svg>',
+ linear:'<svg viewBox="0 0 22 26" fill="#1d3f70"><path d="M7 2h8v12H7z"/><path d="M4 14h14v8H4z"/></svg>',
+ port:'<svg viewBox="0 0 22 26" fill="none" stroke="#1d3f70" stroke-width="1.6"><rect x="6" y="3" width="10" height="20" rx="1"/><path d="M9 7v2M13 7v2M9 12v2M13 12v2M9 17v2M13 17v2"/></svg>'
+};
+function fmtParam(k){const p=PARAMS[k],v=S[k];if(p.fmt)return p.fmt(v);if(p.kind==='toggle')return v?'An':'Aus';return String(v);}
+function pWidget(k){
+ const p=PARAMS[k];
+ if(p.kind==='toggle')return `<div class="pcell"><span class="pl">&nbsp;</span><button class="tsb ${S[k]?'on':''}" data-p="${k}" data-id="p-${k}">${p.label}</button></div>`;
+ if(p.kind==='select')return `<div class="pcell"><span class="pl">${p.label}</span><button class="tsb" data-p="${k}" data-d="1" data-id="p-${k}">${fmtParam(k)} ▾</button></div>`;
+ return `<div class="pcell"><span class="pl">${p.label}</span><div class="stepper" data-id="p-${k}"><button data-p="${k}" data-d="-1" aria-label="${p.label} verringern">◀</button><span>${fmtParam(k)}</span><button data-p="${k}" data-d="1" aria-label="${p.label} erhöhen">▶</button></div></div>`;
+}
+function activeSubs(){const a=['B'];if(S.color!=='none')a.push(S.color);if(S.spec!=='none')a.push(S.spec);return a;}
+function renderTS(){
+ const ts=document.getElementById('ts');
+ const subs=activeSubs(); if(!subs.includes(S.scanSub))S.scanSub=subs[subs.length-1];
+ let h=`<div class="ts-top">
+  <button class="tsb ${S.page==='meine'?'on':''}" data-act="page-meine" data-id="ts-meineseite">Meine Seite</button>
+  <button class="tsb ${S.page==='trainer'?'on':''}" data-act="page-trainer" data-id="ts-mytrainer">MyTrainer</button>
+  <button class="tsb" data-act="reset" data-id="ts-reset">Rücksetzen</button>
+  <button class="tsb ${S.invert?'on':''}" data-act="invert" data-id="ts-invert">Umkehren</button>
+  <div class="tgcbtn"><button class="tsb ${S.tgcOpen?'on':''}" style="flex:1" data-act="tgc" data-id="ts-tgc">☰ TGC</button><button class="tsb" data-act="collapse" data-id="ts-collapse" aria-label="Touchscreen verkleinern">⤡</button></div>
+ </div><div class="ts-mid"><div class="ts-nav">`;
+ [['patient','Patient','tab-patient'],['scan','Scan','tab-scan'],['end','Unters.<br>Been.','tab-end'],['kbd','KBD','tab-kbd'],['util','Dienstp<br>r','tab-util']].forEach(([k,l,id])=>{
+  const on=(k==='kbd'?S.kbd:(S.tab===k&&!S.page));h+=`<button class="navb ${on?'on':''}" data-act="tab-${k}" data-id="${id}">${NAVICON[k]}<span>${l}</span></button>`;});
+ h+=`</div><div class="ts-content">`;
+ h+=contentHTML();
+ if(S.tgcOpen){h+=`<div class="tgcpanel"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">TGC – Tiefenausgleich (oben = nah)</b><button class="tsb" data-act="tgc" style="min-height:28px">Schliessen</button></div>`;
+  S.tgc.forEach((v,i)=>{h+=`<div class="tgcrow"><span>Zone ${i+1}</span><input type="range" min="-10" max="10" step="1" value="${v}" data-tgc="${i}" id="tgc${i}" aria-label="TGC Zone ${i+1}"><span id="tgcv${i}">${v>0?'+':''}${v}</span></div>`;});
+  h+=`<button class="tsb" data-act="tgc-reset" style="min-height:28px">Alle auf Mitte</button></div>`;}
+ if(S.kbd){const rows=['QWERTZUIOPÜ','ASDFGHJKLÖÄ','YXCVBNM.,-'];h+=`<div class="kbd">`;rows.forEach(r=>{h+='<div>'+[...r].map(c=>`<button data-key="${c}">${c}</button>`).join('')+'</div>';});
+  h+=`<div><button data-key="⇧" style="min-width:60px">⇧ klein</button><button data-key=" " style="min-width:240px">Leerzeichen</button><button data-key="⌫" style="min-width:60px">⌫</button><button data-key="⏎" style="min-width:70px">Enter</button><button data-act="tab-kbd" style="min-width:60px">✕</button></div></div>`;}
+ if(S.presetMenu){const P=PROBES[S.presetMenu];h+=`<div class="menu"><div class="mt">Preset für ${S.presetMenu} wählen</div>`;
+  Object.keys(P.presets).forEach(pr=>{h+=`<button class="tsb ${S.probe===S.presetMenu&&S.preset===pr?'on':''}" data-preset="${pr}" data-id="preset-${pr}">${pr}</button>`;});
+  h+=`<button class="tsb dim" data-act="close-menu">Abbrechen</button></div>`;}
+ h+=`</div><div class="ts-probes">`;
+ h+=`<button class="probe ${S.probe==='C1-6'?'on':''}" data-probe="C1-6" data-id="probe-C1-6">C1-6${PROBEICON.convex}${S.probe==='C1-6'?`<small>${S.preset}</small>`:''}</button>`;
+ h+=`<button class="probe" data-probe="none" data-id="probe-port">${PROBEICON.port}</button><button class="probe" data-probe="none" data-id="probe-port">${PROBEICON.port}</button>`;
+ h+=`<button class="probe ${S.probe==='L3-12'?'on':''}" data-probe="L3-12" data-id="probe-L3-12">L3-12${PROBEICON.linear}${S.probe==='L3-12'?`<small>${S.preset}</small>`:''}</button>`;
+ h+=`</div></div><div class="ts-knobs">`;
+ (KNOBS[S.scanSub]||KNOBS.B).forEach((k,i)=>{
+  if(!k){h+=`<div class="kl"></div>`;return;}
+  const alt=S.knobAlt[i]&&k[1];
+  h+=`<div class="kl"><b class="${alt?'':'act'}">${fmtParam(k[0])}</b><span class="${alt?'':'act'}">${PARAMS[k[0]].label} ↕</span>`;
+  if(k[1])h+=`<span class="alt ${alt?'act':''}">${PARAMS[k[1]].label}: ${fmtParam(k[1])} ↻</span>`;
+  h+=`</div>`;});
+ h+=`</div>`;
+ ts.innerHTML=h;
+ applyHint();
+}
+function contentHTML(){
+ if(S.page==='meine'){return `<div class="subtabs"><button class="on">Meine Seite</button></div><div class="pgrid">${['sri','cxb','chi','frameAvg','vconvex','colorize'].map(pWidget).join('')}</div><p style="font-size:12px;color:#8ea0b8;margin:4px 0 0">Beispiel: Hier legt jeder Nutzer seine Lieblingsparameter ab.</p>`;}
+ if(S.page==='trainer'){return `<div class="subtabs"><button class="on">MyTrainer</button></div><div class="ulist">${['Systemüberblick','Bedienpult','Patient anlegen','B-Mode optimieren','Farbdoppler','PW-Doppler','Messen','Speichern & Senden','Sondenpflege'].map(t=>`<button class="tsb" data-act="trainer-item">${t}</button>`).join('')}</div><p style="font-size:12px;color:#8ea0b8;margin:4px 0 0">Am echten Gerät startet hier ein Lernvideo von GE.</p>`;}
+ if(S.tab==='scan'){
+  const subs=activeSubs();
+  let h=`<div class="subtabs">${subs.map(s=>`<button class="${S.scanSub===s?'on':''}" data-sub="${s}">${s==='BFLOW'?'B-Flow':s}</button>`).join('')}</div>`;
+  h+=`<div class="pgrid">${(PAGES[S.scanSub]||[]).map(pWidget).join('')}</div>`;
+  return h;}
+ if(S.tab==='patient'){
+  let h=`<div class="subtabs">${[['patient','Patient'],['hist','Bild-Hist.'],['aktiv','Aktive Bilder'],['transfer','Daten transfer']].map(([k,l])=>`<button class="${S.patSub===k?'on':''}" data-pat="${k}" data-id="${k==='aktiv'?'pat-aktiv':'pat-sub'}">${l}</button>`).join('')}</div>`;
+  if(S.patSub==='patient'){const p=S.patient;
+   h+=`<div class="form"><label for="pf-last">Nachname</label><input id="pf-last" data-pf="last" value="${esc(p.last)}"><label for="pf-first">Vorname</label><input id="pf-first" data-pf="first" value="${esc(p.first)}">
+    <label for="pf-id">Patienten-ID</label><input id="pf-id" data-pf="id" value="${esc(p.id)}"><label for="pf-dob">Geburtsdatum</label><input id="pf-dob" data-pf="dob" placeholder="TT.MM.JJJJ" value="${esc(p.dob)}">
+    <label for="pf-sex">Geschlecht</label><select id="pf-sex" data-pf="sex"><option value="">–</option><option ${p.sex==='w'?'selected':''} value="w">weiblich</option><option ${p.sex==='m'?'selected':''} value="m">männlich</option><option ${p.sex==='d'?'selected':''} value="d">divers</option></select>
+    <label>Kategorie</label><input value="Bewegungsapparat" disabled></div>
+    <div class="abtns" style="margin-top:6px"><button class="tsb" data-act="newpat">Neuer Patient</button><button class="tsb on" data-act="register" data-id="pat-register">Registrieren</button><button class="tsb dim">Arbeitsliste</button><button class="tsb" data-act="tab-scan">Scannen</button></div>
+    <p style="font-size:11.5px;color:#8ea0b8;margin:0">Nur Fantasienamen verwenden, der Trainer speichert nichts dauerhaft.</p>`;}
+  else if(S.patSub==='aktiv'){
+   const sel=S.images.some(i=>i.sel);
+   h+=`<div class="thumbs">${S.images.length?S.images.map((im,i)=>`<img src="${im.src}" alt="Bild ${i+1}" class="${im.sel?'sel':''}" data-img="${i}" data-id="img-btn">`).join(''):'<span style="font-size:12px;color:#7f8ea5">Noch keine Bilder. Speichere mit P1.</span>'}</div>
+   <div class="abtns"><span></span><span></span><button class="tsb" data-act="img-all" data-id="img-btn">Alle anwählen</button><button class="tsb" data-act="img-none" data-id="img-btn">Alle demarkieren</button>
+   <button class="tsb ${S.review?'on':''}" data-act="img-review" data-id="img-review">Nachbetracht.</button><button class="tsb ${sel?'':'dim'}" data-act="img-perm" data-id="img-btn">Permanent Speichern</button><button class="tsb" data-act="img-print" data-id="img-btn">Standardausdruck</button><button class="tsb ${sel?'':'dim'}" data-act="img-send" data-id="img-btn">Senden an</button>
+   <button class="tsb" data-act="img-del" data-id="img-btn">Markiertes Bild löschen</button><button class="tsb" data-act="img-clear" data-id="img-btn">Temporären Speicher löschen</button><button class="tsb" data-act="img-saveas" data-id="img-btn">Speichern unter Bilder</button><button class="tsb" data-act="img-props" data-id="img-btn">Bild Eigenschaften</button></div>`;}
+  else if(S.patSub==='hist'){h+=`<div style="font-size:13px;color:#b8c6da">${S.history.length?S.history.map(x=>`<div>• ${esc(x)}</div>`).join(''):'Keine früheren Untersuchungen in dieser Sitzung.'}</div><p style="font-size:12px;color:#8ea0b8">Hier findest du am Gerät die früheren Untersuchungen des Patienten.</p>`;}
+  else {h+=`<div class="ulist"><button class="tsb" data-act="toast" data-msg="USB-Stick: nicht verbunden (Simulator)">USB-Stick</button><button class="tsb" data-act="toast" data-msg="PACS: im Simulator nicht verbunden">PACS / DICOM</button><button class="tsb" data-act="toast" data-msg="Import: im Simulator nicht verfügbar">Importieren</button></div><p style="font-size:12px;color:#8ea0b8">Daten exportieren oder importieren (USB, Netzwerk/PACS). Datenschutzregeln der Klinik beachten.</p>`;}
+  return h;}
+ if(S.tab==='end'){return `<div class="confirm"><b>Untersuchung beenden?</b><span style="font-size:13px;color:#b8c6da">${S.images.length} Bild(er) werden archiviert. Danach ist das System bereit für den nächsten Patienten.</span><div style="display:flex;gap:8px"><button class="tsb on" data-act="end-ok">Beenden & archivieren</button><button class="tsb" data-act="tab-scan">Abbrechen</button></div></div>`;}
+ if(S.tab==='util'){return `<div class="subtabs"><button class="on">Dienstprogramme</button></div><div class="ulist">${['System','Bildgebung / Presets','Messen & Analyse','Kommentare','Body Patterns','Konnektivität (DICOM)','Tasten-Belegung (P1, USB)','Admin / Benutzer','Service'].map(t=>`<button class="tsb" data-act="toast" data-msg="${t}: Einstellungen nur nach Absprache ändern (Simulator)">${t}</button>`).join('')}</div>`;}
+ return '';
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// ================= Parameter ändern =================
+function changeParam(k,dir){
+ const p=PARAMS[k];
+ if(p.kind==='toggle'){S[k]=!S[k];}
+ else if(p.list||p.opts){const L=p.list?p.list():p.opts;let i=L.indexOf(S[k]);i=(i+dir+L.length)%L.length;if(p.list){i=Math.max(0,Math.min(L.length-1,L.indexOf(S[k])+dir));}S[k]=L[i];}
+ else{const mx=typeof p.max==='function'?p.max():p.max,st=typeof p.step==='function'?p.step():p.step;S[k]=Math.round(Math.max(p.min,Math.min(mx,S[k]+dir*st))*100)/100;}
+ if(k==='vconvex'||k==='invert')buildMap();
+ if(k==='vconvex'&&PROBES[S.probe].type!=='linear')toast('Virtuell Konvex gibt es nur bei Linearsonden');
+ dirty=true;
+}
+
+// ================= Bildsimulation =================
+const TIS={};const FX={sh:1,en:1};
+function gauss(){let u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random());}
+function boxBlur(a,W,H,rx,ry){
+ const tmp=new Float32Array(a.length);
+ for(let y=0;y<H;y++){const r=y*W;let s=0;for(let x=-rx;x<=rx;x++)s+=a[r+Math.min(W-1,Math.max(0,x))];for(let x=0;x<W;x++){tmp[r+x]=s;s+=a[r+Math.min(W-1,x+rx+1)]-a[r+Math.max(0,x-rx)];}}
+ for(let x=0;x<W;x++){let s=0;for(let y=-ry;y<=ry;y++)s+=tmp[Math.min(H-1,Math.max(0,y))*W+x];for(let y=0;y<H;y++){a[y*W+x]=s;s+=tmp[Math.min(H-1,y+ry+1)*W+x]-tmp[Math.max(0,y-ry)*W+x];}}
+}
+function vesselHit(key,x,d){const V=VESSELS[key];for(let k=0;k<V.length;k++){const v=V[k];const rr=Math.hypot((x-v.x)/v.rx,(d-v.d)/v.ry);if(rr<1.4)return[k,rr];}return null;}
+function fLin(x,d){
+ FX.sh=1;FX.en=1;
+ if(d<0.07)return 1.5;
+ const fatEnd=0.5+0.06*Math.sin(x*1.3)+0.03*Math.sin(x*4.1);
+ if(d<fatEnd){return Math.abs(Math.sin(d*22+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;}
+ if(d<fatEnd+0.05)return 1.25;
+ const vh=vesselHit('L3-12',x,d);
+ if(vh){if(vh[1]<1){FX.en=1.006;return 0.012;}if(vh[1]<1.16)return 1.05;}
+ const m1=2.55+0.18*Math.sin(x*0.6+1);
+ if(d<m1){const ph=(d-0.16*x)*7.5+0.4*Math.sin(x*2.3);const fr=ph-Math.floor(ph);return 0.33+(fr<0.13?0.5:0)+0.06*Math.sin(x*9+d*5);}
+ if(d<m1+0.05)return 1.25;
+ const db=3.55+0.035*x*x;
+ if(d<db){const ph=(d+0.12*x)*6.5;const fr=ph-Math.floor(ph);return 0.3+(fr<0.12?0.45:0);}
+ if(d<db+0.08){FX.sh=0.035;return 3.4;}
+ return 0.25;
+}
+function fCon(x,d){
+ FX.sh=1;FX.en=1;
+ if(d<0.2)return 1.4;
+ const fe=1.5+0.1*Math.sin(x*0.5);
+ if(d<fe)return Math.abs(Math.sin(d*9+2*Math.sin(x*0.8)+x*0.3))>0.96?0.8:0.15;
+ if(d<fe+0.08)return 1.2;
+ if(d<2.5){const ph=(d-0.1*x)*3;return 0.3+((ph-Math.floor(ph))<0.15?0.4:0);}
+ if(d<2.6)return 1.3;
+ const vh=vesselHit('C1-6',x,d);
+ if(vh){const v=VESSELS['C1-6'][vh[0]];if(vh[1]<1){FX.en=1.002;return 0.012;}if(vh[1]<1.22)return v.portal?1.5:0.9;}
+ const ex=(x+2.6)/1.3,ey=(d-7.2)/2.3,e=ex*ex+ey*ey;
+ if(e<1){FX.en=1.0042;return 0.01;}
+ if(e<1.12)return 1.1;
+ const dd=13.5+0.02*x*x;
+ if(d<dd-0.12)return 0.42+0.05*Math.sin(x*1.7+d*1.1)+0.04*Math.sin(x*4.3-d*2.9);
+ if(d<dd+0.12)return 2.6;
+ return 0.22+0.1*Math.sin(d*3+x);
+}
+function genTissue(key){
+ if(TIS[key])return TIS[key];
+ const P=PROBES[key],TW=P.TW,TH=P.TH,N=TW*TH;
+ const t=new Float32Array(N),vid=new Int8Array(N),vrr=new Float32Array(N);
+ const f=P.type==='linear'?fLin:fCon;
+ for(let gu=0;gu<TW;gu++){
+  const u=(gu+0.5)/TW;let trans=1;
+  for(let gd=0;gd<TH;gd++){
+   const d=(gd+0.5)/TH*P.dmax;const x=P.type==='linear'?(u-0.5)*P.Wtot:(u-0.5)*P.theta*(P.R+d);
+   const v=f(x,d);const i=gd*TW+gu;t[i]=v*trans;
+   if(FX.sh<1)trans=Math.min(trans,FX.sh);if(FX.en!==1)trans*=FX.en;
+   const vh=vesselHit(key,x,d);if(vh){vid[i]=vh[0]+1;vrr[i]=vh[1];}
+  }
+ }
+ const g1=new Float32Array(N),g2=new Float32Array(N);for(let i=0;i<N;i++){g1[i]=gauss();g2[i]=gauss();}
+ const rx=P.type==='linear'?2:1,ry=1;boxBlur(g1,TW,TH,rx,ry);boxBlur(g2,TW,TH,rx,ry);
+ const sp=new Float32Array(N);let m=0;for(let i=0;i<N;i++){sp[i]=g1[i]*g1[i]+g2[i]*g2[i];m+=sp[i];}m/=N;for(let i=0;i<N;i++)sp[i]/=m;
+ return TIS[key]={t,sp,vid,vrr,TW,TH};
+}
+const RN=new Float32Array(65536);for(let i=0;i<65536;i++)RN[i]=Math.random();
+
+// Geometrie
+const mon=document.getElementById('mon'),mctx=mon.getContext('2d');
+const IMGX=150,IMGY=48;
+const imgC=document.createElement('canvas'),ictx=imgC.getContext('2d');
+const snapC=document.createElement('canvas'),sctx=snapC.getContext('2d');
+const stripC=document.createElement('canvas');stripC.width=660;stripC.height=200;const stctx=stripC.getContext('2d');
+let MAP=null,DQ=null,G={},AVG=null,IMG=null,GRAY=null,dirty=true;
+function imgSize(){return S.spec!=='none'?[500,295]:[500,520];}
+function buildMap(){
+ const [IW,IH]=imgSize();if(imgC.width!==IW||imgC.height!==IH){imgC.width=IW;imgC.height=IH;}
+ const P=PROBES[S.probe],T=genTissue(S.probe);const n=IW*IH;
+ MAP=new Int32Array(n);DQ=new Uint8Array(n);AVG=new Float32Array(n);IMG=ictx.createImageData(IW,IH);GRAY=new Float32Array(n);
+ const cx=IW/2;let ppc,ya=0,viewW=0,tanv=Math.tan(0.35),imgH;
+ const lin=P.type==='linear';const pano=S.lv==='done'&&lin;
+ if(lin){viewW=pano?P.Wtot:P.W;const half=viewW/2+(S.vconvex&&!pano?S.depth*tanv:0);ppc=Math.min(IW/(2*half),IH/S.depth);imgH=S.depth*ppc;}
+ else{const th=P.theta,R=P.R;ppc=Math.min(IH/(R+S.depth-R*Math.cos(th/2)),IW/(2*Math.sin(th/2)*(R+S.depth)));ya=-R*Math.cos(th/2)*ppc;imgH=(R+S.depth-R*Math.cos(th/2))*ppc;}
+ const zc={x:cx,y:imgH/2};
+ G={ppc,cx,ya,zc,imgH,viewW,lin,pano,tanv,IW,IH};
+ const TW=T.TW,TH=T.TH;
+ for(let py=0;py<IH;py++)for(let px=0;px<IW;px++){
+  const i=py*IW+px;const qx=zc.x+(px-zc.x)/S.zoom,qy=zc.y+(py-zc.y)/S.zoom;let u,d;
+  if(lin){d=qy/ppc;if(d<0||d>S.depth){MAP[i]=-1;continue;}let x=(qx-cx)/ppc;const half=viewW/2+(S.vconvex&&!pano?d*tanv:0);if(Math.abs(x)>half){MAP[i]=-1;continue;}x=x/half*(viewW/2);if(S.invert)x=-x;u=x/P.Wtot+0.5;}
+  else{const rx=(qx-cx)/ppc,ry=(qy-ya)/ppc;const r=Math.hypot(rx,ry);let a=Math.atan2(rx,ry);if(Math.abs(a)>P.theta/2||r<P.R||r>P.R+S.depth){MAP[i]=-1;continue;}d=r-P.R;if(S.invert)a=-a;u=a/P.theta+0.5;}
+  const gu=Math.min(TW-1,Math.max(0,u*TW|0)),gd=Math.min(TH-1,Math.max(0,d/P.dmax*TH|0));
+  MAP[i]=gd*TW+gu;DQ[i]=Math.min(255,d/S.depth*255|0);
+ }
+ dirty=true;
+}
+function toScreen(u,d){
+ const P=PROBES[S.probe];let px,py;
+ if(G.lin){let x=(u-0.5)*P.Wtot;if(S.invert)x=-x;const half=G.viewW/2+(S.vconvex&&!G.pano?d*G.tanv:0);px=G.cx+x*(half/(G.viewW/2))*G.ppc;py=d*G.ppc;}
+ else{let a=(u-0.5)*P.theta;if(S.invert)a=-a;const r=P.R+d;px=G.cx+r*Math.sin(a)*G.ppc;py=G.ya+r*Math.cos(a)*G.ppc;}
+ return[G.zc.x+(px-G.zc.x)*S.zoom,G.zc.y+(py-G.zc.y)*S.zoom];
+}
+function spanCm(d){const P=PROBES[S.probe];return P.type==='linear'?P.Wtot:P.theta*(P.R+d);}
+function vesselU(v){const P=PROBES[S.probe];return P.type==='linear'?v.x/P.Wtot+0.5:v.x/(P.theta*(P.R+v.d))+0.5;}
+function boxGrid(){return{du:S.box.hu/spanCm(S.box.d)};}
+function gateVessel(){const P=PROBES[S.probe];const x=P.type==='linear'?(S.gateU-0.5)*P.Wtot:(S.gateU-0.5)*P.theta*(P.R+S.gateD);const h=vesselHit(S.probe,x,S.gateD);return h&&h[1]<1?h:null;}
+function pulse(v,t){if(v.type==='ven')return 0.85+0.15*Math.sin(t*1.4);const p=(t*1.15)%1;
+ if(p<0.1)return p/0.1;if(p<0.28)return 1-(p-0.1)/0.18*1.15;if(p<0.4)return -0.15+(p-0.28)/0.12*0.27;return 0.12*Math.exp(-(p-0.4)*5);}
+const TINT={'Aus':[1,1,1],'B-Color A':[1,0.9,0.74],'B-Color B':[0.8,0.92,1],'B-Color C':[0.88,1,0.86],'B-Color D':[1,0.95,0.86]};
+const GAMMA={'Grau Skala A':1,'Grau Skala B':0.85,'Grau Skala C':1.2,'Grau Skala D':0.7,'Grau Skala E':1.4,'Grau Skala F':1.05};
+function renderImage(t){
+ const P=PROBES[S.probe],T=TIS[S.probe];if(!MAP)buildMap();
+ const IW=imgC.width,IH=imgC.height,n=IW*IH,TW=T.TW,TH=T.TH,N=TW*TH;
+ const pano=G.pano, rec=S.lv==='rec';
+ // Tiefen-LUT
+ const lut=new Float32Array(256);
+ const gain=Math.pow(10,(S.gainB-50)/40),pw=Math.sqrt(S.power/100);
+ for(let b=0;b<256;b++){const d=b/255*S.depth;const z=b/255*7;const zi=Math.min(6,z|0),fr=z-zi;const tg=S.tgc[zi]*(1-fr)+S.tgc[zi+1]*fr;
+  const att=Math.exp(-0.0065*S.freq*d*(S.chi?1.15:1));const fw=0.12*S.depth*(1+0.6*(S.focusNum-1));let foc=1+0.28*Math.exp(-Math.pow((d-S.focusPos)/fw,2));if(S.focusNum>1)foc=1.12;
+  lut[b]=0.25*att*Math.pow(10,tg/20*1.2)*gain*pw*foc;}
+ const DRe=S.dr*0.6,kLog=8.686/DRe,rej=S.reject*0.035,gm=GAMMA[S.gray]||1,tint=TINT[S.colorize]||[1,1,1];
+ const sm=Math.min(0.8,0.12+0.09*S.sri+(S.cxb?({Niedrig:0.08,Mittel:0.14,Hoch:0.2})[S.cxbLevel]:0));
+ const jitU=rec?((t*90)|0)%TW*0:Math.round(Math.sin(t*1.3)*1.5),jitD=Math.round(Math.sin(t*0.9)*1.2);
+ const jit=jitD*TW+jitU;const fo=(t*997|0)&65535;
+ const live=!S.freeze;const fa=S.frameAvg,a=live&&fa>0?fa/(fa+1)*0.8:0;
+ const data=IMG.data;
+ // Farbe
+ const col=S.color,V=VESSELS[S.probe];
+ let bu0=0,du=0,bd=0,hd=0,stK=0;
+ if(col==='CF'||col==='PDI'){bu0=S.box.u;bd=S.box.d;hd=S.box.hd;du=S.box.hu/spanCm(bd);stK=P.type==='linear'?Math.tan(S.steer*Math.PI/180)/P.Wtot:0;}
+ const vel=V.map(v=>v.vmax*pulse(v,t));
+ const cg=S.gainCF/50;
+ const edge=S.edge*0.012;
+ for(let i=0;i<n;i++){
+  const g0=MAP[i];const j=i*4;
+  if(g0<0){data[j]=data[j+1]=data[j+2]=0;data[j+3]=255;GRAY[i]=0;continue;}
+  let g=g0+jit;if(g<0||g>=N)g=g0;
+  let tv=T.t[g];tv=S.chi?tv*(0.7+0.3*Math.min(tv,1.5)):tv+0.05;
+  let s=1+(T.sp[g]-1)*(1-sm);s*=0.9+0.2*RN[(i+fo)&65535];
+  const I=tv*s*lut[DQ[i]];
+  let v=1+Math.log(I+1e-6)*kLog;if(v<rej)v=0;else if(v>1)v=1;
+  if(a>0){v=AVG[i]*a+v*(1-a);}AVG[i]=v;
+  let gr=Math.pow(v,gm)*(1+edge);if(gr>1)gr=1;GRAY[i]=gr;
+  let r=gr*255*tint[0],gg=gr*255*tint[1],b=gr*255*tint[2];
+  const vi=T.vid[g];
+  if(vi>0&&col!=='none'){
+   const rr=T.vrr[g];const vs=V[vi-1];
+   if(col==='BFLOW'){if(rr<1){const q=RN[(g*13+((t*30)|0)*977)&65535];const bb=q>0.72?0.55+0.45*q:0.06;r=gg=b=bb*255;}}
+   else{
+    const gu=g%TW,gdd=(g/TW)|0,uu=gu/TW,dd=gdd/TH*P.dmax;
+    if(Math.abs(dd-bd)<=hd&&Math.abs(uu-bu0-(dd-bd)*stK)<=du){
+     const fill=Math.min(1.25,cg*0.95);
+     const show=rr<Math.min(1,fill)||(rr>=1&&cg>1.3&&rr<1+(cg-1.3)*0.8);
+     let vv=vel[vi-1]*(1-Math.min(rr,1)*Math.min(rr,1)*0.85);
+     if(show&&Math.abs(vv)>S.cfWF*3.5){
+      if(col==='PDI'){const am=Math.min(1,0.55+0.45*(1-rr)+(cg-1)*0.2);r=255*am;gg=(90+120*(1-rr))*am;b=20*am;}
+      else{if(S.cfInvert)vv=-vv;const sc=S.cfScale;vv-=S.cfBase*sc/8;if(vv>sc)vv-=2*sc;else if(vv<-sc)vv+=2*sc;const fr=Math.min(1,Math.abs(vv)/sc);
+       if(vv>0){r=150+105*fr;gg=fr>0.7?(fr-0.7)*700:20;b=10;}else{r=10;gg=fr>0.7?(fr-0.7)*600+40:40;b=150+105*fr;}}
+     }
+    }
+   }
+  }
+  if((col==='CF'||col==='PDI')&&S.gainCF>72&&RN[(i*7+fo*3)&65535]<(S.gainCF-72)/180){
+   const gu=g%TW,gdd=(g/TW)|0,uu=gu/TW,dd=gdd/TH*P.dmax;
+   if(Math.abs(dd-bd)<=hd&&Math.abs(uu-bu0-(dd-bd)*stK)<=du){if(col==='PDI'){r=230;gg=110;b=20;}else if(RN[(i*3+fo)&65535]<0.5){r=200;gg=30;b=10;}else{r=10;gg=40;b=200;}}
+  }
+  data[j]=r;data[j+1]=gg;data[j+2]=b;data[j+3]=255;
+ }
+ ictx.putImageData(IMG,0,0);
+ drawOverlays(t);
+}
+function drawOverlays(t){
+ const c=ictx,P=PROBES[S.probe];
+ c.save();c.lineWidth=1.5;
+ // Tiefenskala
+ c.fillStyle='#cfd6df';c.strokeStyle='#cfd6df';c.font='11px IBM Plex Mono, monospace';
+ const step=S.depth>12?2:(S.depth>5?1:0.5);
+ for(let d=0;d<=S.depth+0.001;d+=step){const y=toScreen(0.5,d)[1];if(y<0||y>imgC.height)continue;c.fillRect(imgC.width-12,y,Math.abs(d%1)<0.01?10:5,1.5);if(Math.abs(d%1)<0.01)c.fillText(d.toFixed(0),imgC.width-34,y+4);}
+ // Fokus
+ c.fillStyle='#ffd27a';for(let k=0;k<S.focusNum;k++){const fd=S.focusNum===1?S.focusPos:S.focusPos*(0.55+0.3*k);const y=toScreen(0.5,fd)[1];c.beginPath();c.moveTo(imgC.width-14,y);c.lineTo(imgC.width-6,y-5);c.lineTo(imgC.width-6,y+5);c.fill();}
+ // Orientierungsmarke
+const om=G.lin?toScreen(S.invert?0.5+(P.W/2-0.15)/P.Wtot:0.5-(P.W/2-0.15)/P.Wtot,0):toScreen(S.invert?0.97:0.03,0);
+ c.fillStyle='#5ea0ff';c.beginPath();c.arc(Math.max(8,Math.min(imgC.width-8,om[0])),Math.max(8,om[1]+8),5,0,7);c.fill();
+ // Farbbox
+ if(S.color==='CF'||S.color==='PDI'){
+  const b=S.box,du=b.hu/spanCm(b.d),stK=P.type==='linear'?Math.tan(S.steer*Math.PI/180)/P.Wtot:0;
+  c.strokeStyle=S.tbMode==='size'?'#ffd27a':'#e8eef6';c.setLineDash(S.tbMode==='size'?[5,4]:[]);c.beginPath();
+  const pts=[];for(let k=0;k<=10;k++)pts.push([b.u-du+(b.d-b.hd-b.d)*stK+2*du*k/10,b.d-b.hd]);for(let k=0;k<=10;k++)pts.push([b.u+du+(b.hd)*stK-2*du*k/10,b.d+b.hd]);
+  pts.forEach(([u,d],k)=>{const [x,y]=toScreen(u,d);k?c.lineTo(x,y):c.moveTo(x,y);});c.closePath();c.stroke();c.setLineDash([]);
+ }
+ // PW-Linie + Gate
+ if(S.spec==='PW'){const [x0,y0]=toScreen(S.gateU,0),[x1,y1]=toScreen(S.gateU,S.depth);c.strokeStyle='rgba(220,230,240,.7)';c.setLineDash([2,4]);c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();c.setLineDash([]);
+  const [ga,gb]=toScreen(S.gateU,S.gateD-S.gate/2),[gc,gd]=toScreen(S.gateU,S.gateD+S.gate/2);c.strokeStyle='#7ee0c0';c.lineWidth=2;[[ga,gb],[gc,gd]].forEach(([x,y])=>{c.beginPath();c.moveTo(x-9,y);c.lineTo(x+9,y);c.stroke();});
+  const [cx2,cy2]=toScreen(S.gateU,S.gateD);const an=S.pwAngle*Math.PI/180;c.beginPath();c.moveTo(cx2-16*Math.cos(an),cy2+16*Math.sin(an));c.lineTo(cx2+16*Math.cos(an),cy2-16*Math.sin(an));c.stroke();}
+ if(S.spec==='M'){const [x0,y0]=toScreen(S.mU,0),[x1,y1]=toScreen(S.mU,S.depth);c.strokeStyle='rgba(126,224,192,.85)';c.setLineDash([3,3]);c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();c.setLineDash([]);}
+ // Messung
+ const m=S.measure;
+ if(m){c.strokeStyle='#ffd27a';c.fillStyle='#ffd27a';c.font='bold 13px IBM Plex Sans, sans-serif';
+  m.pts.forEach((p,k)=>{c.beginPath();c.moveTo(p[0]-6,p[1]);c.lineTo(p[0]+6,p[1]);c.moveTo(p[0],p[1]-6);c.lineTo(p[0],p[1]+6);c.stroke();c.fillText(k?'2':'1',p[0]+6,p[1]-6);});
+  if(m.pts.length===2){c.setLineDash([3,3]);c.beginPath();c.moveTo(...m.pts[0]);c.lineTo(...m.pts[1]);c.stroke();c.setLineDash([]);
+   if(m.ell){const [a,b]=m.pts;const cxm=(a[0]+b[0])/2,cym=(a[1]+b[1])/2,ang=Math.atan2(b[1]-a[1],b[0]-a[0]),ra=Math.hypot(b[0]-a[0],b[1]-a[1])/2,rb=m.ell*G.ppc*S.zoom;c.beginPath();c.ellipse(cxm,cym,ra,rb,ang,0,7);c.stroke();}}}
+ // Kommentare & Pfeile
+ c.font='15px IBM Plex Sans, sans-serif';c.fillStyle='#fff';
+ S.annots.forEach(an=>c.fillText(an.text,an.x,an.y));
+ if(S.editing){c.fillStyle='#ffd27a';c.fillText((S.editing.text||'')+'▌',S.editing.x,S.editing.y);}
+ const drawArrow=(ar,colr)=>{c.save();c.translate(ar.x,ar.y);c.rotate(ar.ang);c.fillStyle=colr;c.beginPath();c.moveTo(0,0);c.lineTo(-12,-6);c.lineTo(-9,-1.5);c.lineTo(-26,-1.5);c.lineTo(-26,1.5);c.lineTo(-9,1.5);c.lineTo(-12,6);c.closePath();c.fill();c.restore();};
+ S.arrows.forEach(ar=>drawArrow(ar,'#fff'));if(S.arrowEdit)drawArrow(S.arrowEdit,'#ffd27a');
+ if(G.pano){c.fillStyle='#ffd27a';c.font='bold 13px IBM Plex Sans, sans-serif';c.fillText('LOGIQView – Panorama (15 cm)',10,imgC.height-10);}
+ c.restore();
+}
+// Spektrum / M-Mode
+let stripX=0;
+function pushStrip(t,dt){
+ const H=stripC.height,W=stripC.width;const sp=Math.max(1,Math.round(S.sweep*0.9*dt*25));
+ stctx.drawImage(stripC,-sp,0);
+ const id=stctx.createImageData(sp,H),dd=id.data;
+ if(S.spec==='PW'){
+  const gv=gateVessel();const V=VESSELS[S.probe];const base=H*(0.5-S.pwBase*0.08);const sc=S.pwScale;const k=S.gainPW/50;
+  const cosA=Math.cos(Math.min(1.2,Math.abs(S.pwAngle)*Math.PI/180));
+  for(let x=0;x<sp;x++){
+   const tt=t-(sp-x)/(25*sp)*dt*25/25;
+   let v=0,has=false;if(gv){const ves=V[gv[0]];v=ves.vmax*pulse(ves,tt)*0.8/cosA*(1-gv[1]*gv[1]*0.3);has=true;}
+   if(S.pwInvert)v=-v;
+   for(let y=0;y<H;y++){let vel=(base-y)/(H/2)*sc;let I=0.04*k*RN[(y*31+x*7+(tt*500|0))&65535];
+    if(has){let vw=v;if(vw>sc*(H-base)/(H/2)+0.0001){} // Aliasing
+     const top=(base)/(H/2)*sc, bot=-(H-base)/(H/2)*sc;
+     let vv=vw;if(vv>top)vv-= (top-bot);if(vv<bot)vv+=(top-bot);
+     const inSpec=(vv>=0?(vel>=0&&vel<=vv):(vel<=0&&vel>=vv));
+     if(inSpec){const rel=Math.abs(vel)/(Math.abs(vv)+1e-3);I+=(0.35+0.55*rel*rel)*k*(0.6+0.4*RN[(y*13+x*17+(tt*900|0))&65535]);}
+     if(vw!==vv){const inW=vw>=0?(vel>=0&&vel<=top):(vel<=0&&vel>=bot);if(inW)I+=0.45*k*(0.6+0.4*RN[(y*7+x)&65535]);}
+    }
+    const q=Math.min(1,I)*255;const o=(y*sp+x)*4;dd[o]=q;dd[o+1]=q;dd[o+2]=q;dd[o+3]=255;}
+   const o=(Math.round(base)*sp+x)*4;if(base>=0&&base<H){dd[o]=90;dd[o+1]=160;dd[o+2]=255;}
+  }
+ } else {
+  const k=S.gainM/50;
+  for(let x=0;x<sp;x++)for(let y=0;y<H;y++){const d=y/H*S.depth;const [px,py]=toScreen(S.mU,d);const ix=Math.max(0,Math.min(imgC.width-1,px|0)),iy=Math.max(0,Math.min(imgC.height-1,py|0));let q=GRAY[iy*imgC.width+ix]*255*k;if(q>255)q=255;const o=(y*sp+x)*4;dd[o]=q;dd[o+1]=q;dd[o+2]=q;dd[o+3]=255;}
+ }
+ stctx.putImageData(id,W-sp,0);
+}
+
+// Body Pattern zeichnen
+function drawBody(c,x,y){
+ c.save();c.translate(x,y);c.strokeStyle='#8fb4e6';c.lineWidth=2;c.fillStyle='rgba(143,180,230,.12)';
+ c.fillRect(-4,-4,98,108);c.strokeRect(-4,-4,98,108);
+ c.beginPath();c.arc(45,12,8,0,7);c.stroke();
+ c.beginPath();c.moveTo(45,20);c.lineTo(45,60);c.moveTo(28,26);c.lineTo(62,26);c.moveTo(28,26);c.lineTo(20,52);c.lineTo(16,66);c.moveTo(62,26);c.lineTo(70,52);c.lineTo(74,66);c.moveTo(45,60);c.lineTo(36,80);c.lineTo(34,98);c.moveTo(45,60);c.lineTo(54,80);c.lineTo(56,98);c.stroke();
+ const spots={'Schulter':[62,26],'Ellenbogen':[70,48],'Hand':[74,66],'Hüfte':[52,62],'Knie':[54,80],'Sprunggelenk':[56,96],'Abdomen':[45,45]};
+ const [sx,sy]=spots[BODY[S.bpIdx]];c.strokeStyle='#ffd27a';c.lineWidth=3;c.beginPath();c.moveTo(sx-7,sy-4);c.lineTo(sx+7,sy+4);c.stroke();
+ c.fillStyle='#cfe0ff';c.font='10px IBM Plex Sans, sans-serif';c.fillText(BODY[S.bpIdx],0,104);
+ c.restore();
+}
+const reviewImg=new Image();
+function drawMonitor(t,now){
+ const c=mctx,P=PROBES[S.probe];
+ c.fillStyle='#000';c.fillRect(0,0,800,600);
+ c.fillStyle='#0d1626';c.fillRect(0,0,800,40);
+ c.font='13px IBM Plex Sans, sans-serif';c.fillStyle='#e5edf9';
+ const pn=S.registered?(S.patient.last+(S.patient.first?', '+S.patient.first:'')):'Kein Patient';c.fillText(pn,12,17);
+ c.fillStyle='#8ea0b8';c.font='11px IBM Plex Mono, monospace';c.fillText(S.registered?('ID '+(S.patient.id||'–')):'PATIENT › Registrieren',12,33);
+ const dt=new Date();c.fillText(dt.toLocaleDateString('de-CH')+' '+dt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}),330,17);
+ const mi=(0.3+0.9*S.power/100*(S.probe==='L3-12'?1:1.25)).toFixed(1),ti=(0.1+0.5*S.power/100*(S.spec==='PW'?2:1)).toFixed(1);
+ c.fillText(`MI ${mi}  TIs ${ti}`,590,17);c.fillStyle='#cfe0ff';c.fillText(`${S.probe} · ${S.preset}`,590,33);
+ if(S.review){c.drawImage(reviewImg,80,50,640,480);c.fillStyle='#ffd27a';c.font='bold 14px IBM Plex Sans, sans-serif';c.fillText('Nachbetrachtung – gespeichertes Bild (erneut „Nachbetracht.“ schliesst)',90,560);return;}
+ // Bild
+ if(S.dual){const w=310,h=w*imgC.height/imgC.width;const pos=[[85,60],[405,60]];const act=S.dual==='L'?0:1;
+  c.drawImage(imgC,pos[act][0],pos[act][1],w,h);if(snapC.width)c.drawImage(snapC,pos[1-act][0],pos[1-act][1],w,h);
+  c.strokeStyle='#5ea0ff';c.lineWidth=2;c.strokeRect(pos[act][0]-2,pos[act][1]-2,w+4,h+4);c.fillStyle='#8ea0b8';c.font='12px IBM Plex Sans, sans-serif';c.fillText('L',pos[0][0],pos[0][1]+h+16);c.fillText('R',pos[1][0],pos[1][1]+h+16);}
+ else if(S.rotation){c.save();const cx=IMGX+imgC.width/2,cy=IMGY+imgC.height/2;c.translate(cx,cy);c.rotate(S.rotation*Math.PI/180);const sc=(S.rotation%180)?Math.min(imgC.height/imgC.width,1):1;c.scale(sc,sc);c.drawImage(imgC,-imgC.width/2,-imgC.height/2);c.restore();}
+ else c.drawImage(imgC,IMGX,IMGY);
+ // Spektrum
+ if(S.spec!=='none'&&!S.dual){const y0=360;c.drawImage(stripC,110,y0);c.strokeStyle='#33435d';c.strokeRect(110,y0,660,200);
+  c.fillStyle='#8ea0b8';c.font='10px IBM Plex Mono, monospace';
+  if(S.spec==='PW'){const base=200*(0.5-S.pwBase*0.08);c.fillText('cm/s',72,y0+10);[1,0.5,0,-0.5,-1].forEach(f=>{const yy=y0+base-f*100;if(yy>=y0&&yy<=y0+200)c.fillText(String(Math.round(f*S.pwScale)),76,yy+3);});
+   const gv=gateVessel();c.fillStyle=gv?'#7ee0c0':'#e0a54a';c.font='12px IBM Plex Sans, sans-serif';c.fillText(gv?'Gate im Gefäss':'Gate ausserhalb des Gefässes',600,y0+216);}
+  else c.fillText('M-Mode',72,y0+10);}
+ // Linke Parameterspalte
+ c.font='12px IBM Plex Mono, monospace';let y=70;const L=(s,col)=>{c.fillStyle=col||'#b8c6da';c.fillText(s,10,y);y+=17;};
+ L('B','#ffffff');L(`Frq ${S.freq.toFixed(1)}`);L(`Gn ${S.gainB}`);L(`D ${S.depth.toFixed(1)} cm`);L(`DR ${S.dr}`);
+ const fr=Math.round((G.lin?62:34)/(S.cxb?({Niedrig:1.6,Mittel:2.2,Hoch:3})[S.cxbLevel]:1)/S.focusNum*(S.color!=='none'?0.45:1));L(`FR ${fr} Hz`);
+ L(`SRI ${S.sri}`);L(`CRI ${S.cxb?S.cxbLevel:'Aus'}`);if(S.chi)L('CHI');if(S.zoom>1)L(`Zoom ${S.zoom.toFixed(1)}x`,'#ffd27a');
+ if(S.color!=='none'){y+=6;L(S.color==='BFLOW'?'B-Flow':S.color,'#ffffff');if(S.color!=='BFLOW'){L(`Gn ${S.gainCF}`);L(`Skala ${S.cfScale}`);L(`WF ${S.cfWF}`);if(S.steer)L(`Steer ${S.steer}°`);}}
+ if(S.spec!=='none'){y+=6;L(S.spec,'#ffffff');L(`Gn ${S.spec==='PW'?S.gainPW:S.gainM}`);if(S.spec==='PW'){L(`Skala ${S.pwScale}`);L(`Winkel ${S.pwAngle}°`);}}
+ // Messergebnis
+ const m=S.measure;if(m&&m.pts.length===2){const [a,b]=m.pts;const dcm=Math.hypot(b[0]-a[0],b[1]-a[1])/(G.ppc*S.zoom);c.fillStyle='#ffd27a';c.font='bold 13px IBM Plex Mono, monospace';
+  c.fillText(`D  ${dcm.toFixed(2)} cm`,10,y+8);if(m.ell){const A=Math.PI*(dcm/2)*m.ell,ra=dcm/2,rb=m.ell,Cc=Math.PI*(3*(ra+rb)-Math.sqrt((3*ra+rb)*(ra+3*rb)));c.fillText(`A  ${A.toFixed(2)} cm²`,10,y+26);c.fillText(`U  ${Cc.toFixed(2)} cm`,10,y+44);}}
+ // Farbskala
+ if(S.color==='CF'||S.color==='PDI'){const gx=668,gy=60;for(let k=0;k<100;k++){const f=1-k/50;let col;if(S.color==='PDI')col=`rgb(${255*(1-k/100)},${110*(1-k/100)},10)`;else col=f>0?`rgb(${150+105*f},${f>0.7?(f-0.7)*700:20},10)`:`rgb(10,${-f>0.7?(-f-0.7)*600+40:40},${150-105*f})`;if(S.cfInvert&&S.color==='CF'){}c.fillStyle=col;c.fillRect(gx,gy+k,10,1);}
+  c.fillStyle='#b8c6da';c.font='10px IBM Plex Mono, monospace';if(S.color==='CF'){c.fillText('+'+S.cfScale,gx+14,gy+8);c.fillText('-'+S.cfScale,gx+14,gy+100);}}
+ // TGC-Kurve
+ if(S.tgcOpen){const gx=720,gy=60,gh=imgC.height*0.9;c.strokeStyle='#7ee0c0';c.beginPath();S.tgc.forEach((v,k)=>{const xx=gx+20+v*2.5,yy=gy+k*gh/7;k?c.lineTo(xx,yy):c.moveTo(xx,yy);});c.stroke();c.fillStyle='#7ee0c0';c.font='10px IBM Plex Mono, monospace';c.fillText('TGC',gx+8,gy-6);}
+ // Body Pattern
+ if(S.bodyPattern)drawBody(c,22,S.spec!=='none'?250:440);
+ // Trackball-Funktion
+ c.fillStyle='#6f84a8';c.font='11px IBM Plex Sans, sans-serif';c.fillText('Trackball: '+tbLabel(),10,592);
+ // Clipboard
+ const thumbs=S.images.slice(-5);thumbs.forEach((im,k)=>{if(!im.el){im.el=new Image();im.el.src=im.src;}if(im.el.complete)c.drawImage(im.el,560+k*46,572,42,26);c.strokeStyle='#33435d';c.strokeRect(560+k*46,572,42,26);});
+ // Freeze / Cine
+ if(S.freeze){c.fillStyle='#7ee0c0';c.font='bold 13px IBM Plex Sans, sans-serif';c.fillText('❄ Eingefroren',650,585-(S.images.length?30:0));
+  const bx=650,by=592-(S.images.length?30:0)-28;c.fillStyle='#22324c';c.fillRect(bx,by,130,6);const f=(S.cine+4)/4;c.fillStyle='#7ee0c0';c.fillRect(bx+f*126,by-3,4,12);
+  S.cineMarks.forEach(cm=>{c.fillStyle='#ffd27a';c.fillRect(bx+((cm+4)/4)*126,by-5,2,16);});
+  c.fillStyle='#b8c6da';c.font='10px IBM Plex Mono, monospace';c.fillText(`Cine ${Math.round(100+S.cine*25)}/100`,bx,by-6);}
+ // LOGIQView Aufnahme
+ if(S.lv==='rec'){const p=Math.min(1,(now-S.lvStart)/4);c.fillStyle='rgba(0,0,0,.55)';c.fillRect(IMGX,IMGY+200,500,70);c.fillStyle='#ffd27a';c.font='bold 15px IBM Plex Sans, sans-serif';c.fillText('LOGIQView: Sonde langsam & gleichmässig verschieben …',IMGX+20,IMGY+228);c.fillStyle='#22324c';c.fillRect(IMGX+20,IMGY+244,460,8);c.fillStyle='#ffd27a';c.fillRect(IMGX+20,IMGY+244,460*p,8);}
+ // Toast
+ if(S.toast&&now<S.toast.until){c.font='bold 14px IBM Plex Sans, sans-serif';const w=Math.min(760,c.measureText(S.toast.msg).width+30);c.fillStyle='rgba(18,40,80,.92)';c.fillRect(400-w/2,48,w,30);c.strokeStyle='#5ea0ff';c.strokeRect(400-w/2,48,w,30);c.fillStyle='#fff';c.textAlign='center';c.fillText(S.toast.msg,400,68);c.textAlign='left';}
+}
+function tbLabel(){if(S.measure&&S.measure.active!=null)return 'Messpunkt '+(S.measure.active+1);if(S.editing)return 'Kommentar-Position';if(S.arrowEdit)return 'Pfeil';if(S.freeze)return 'Cine blättern';if(S.spec==='PW')return 'Doppler-Gate';if(S.spec==='M')return 'M-Linie';if(S.color==='CF'||S.color==='PDI')return 'Farbbox '+(S.tbMode==='size'?'Grösse':'Position');return '–';}
+function toast(msg,ms=2600){S.toast={msg,until:performance.now()/1000+ms/1000};dirty=true;}
+
+// ================= Aktionen =================
+function emit(type,id,extra){
+ if(EXS.cur==null)return;const ex=EX[EXS.cur],st=ex.steps[EXS.step];if(!st)return;
+ const e={type,id,...extra};let ok=false;
+ if(st.ok&&st.ok(e))ok=true;if(st.cond&&st.cond())ok=true;
+ if(ok){EXS.step++;if(EXS.step>=ex.steps.length){EXS.done.add(EXS.cur);toast('✓ Übung „'+ex.title+'“ geschafft!',3500);}renderPanel();applyHint();setTimeout(()=>emit('tick','tick'),30);}
+}
+function doFreeze(){
+ S.freeze=!S.freeze;
+ if(S.freeze){S.tFreeze=S.tNow;S.cine=0;S.cineMarks=[];}
+ else{S.measure=null;S.review=null;S.editing=null;hideAnn();}
+ dirty=true;
+}
+function setProbe(key,preset){
+ S.probe=key;S.preset=preset;const P=PROBES[key];
+ IMGDEF.forEach(k=>S[k]=DEFAULTS[k]);
+ S.depth=P.presets[preset];S.freq=P.freqs[P.freqs.length-1];if(key==='C1-6')S.freq=4;
+ S.focusPos=+(S.depth*0.42).toFixed(1);S.color='none';S.spec='none';S.lv=null;S.dual=null;S.measure=null;
+ S.box={u:0.5,d:S.depth*0.38,hu:key==='L3-12'?0.8:2.5,hd:key==='L3-12'?0.55:2};S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
+ S.tgc=[0,0,0,0,0,0,0,0];
+ buildMap();
+}
+function depthChange(dir){
+ const P=PROBES[S.probe];const st=P.type==='linear'?0.5:1;const mn=P.type==='linear'?1:4;
+ S.depth=Math.max(mn,Math.min(P.dmax,+(S.depth+dir*st).toFixed(1)));S.focusPos=Math.min(S.focusPos,S.depth*0.95);
+ if(S.lv==='done')S.lv=null;buildMap();
+}
+function press(id){
+ switch(id){
+  case 'power':toast('Ein/Aus: Am echten Gerät öffnet sich jetzt der Dialog zum Herunterfahren.');break;
+  case 'pdi':S.color=S.color==='PDI'?'none':'PDI';if(S.color==='PDI')S.scanSub='PDI';break;
+  case 'bflow':S.color=S.color==='BFLOW'?'none':'BFLOW';if(S.color==='BFLOW')S.scanSub='BFLOW';break;
+  case 'x':S.color=S.color==='CF'?'none':'CF';if(S.color==='CF'){S.scanSub='CF';S.tbMode='pos';}break;
+  case 'y':{const was=S.spec;S.spec=S.spec==='PW'?'none':'PW';if(S.spec==='PW')S.scanSub='PW';stctx.fillStyle='#000';stctx.fillRect(0,0,660,200);if((was==='none')!==(S.spec==='none'))buildMap();break;}
+  case 'z':{const was=S.spec;S.spec=S.spec==='M'?'none':'M';if(S.spec==='M')S.scanSub='M';stctx.fillStyle='#000';stctx.fillRect(0,0,660,200);if((was==='none')!==(S.spec==='none'))buildMap();break;}
+  case 'user1':case 'user2':toast('Frei belegbare Taste – Belegung je nach Konfiguration/Lizenz');break;
+  case 'logiqview':
+   if(PROBES[S.probe].type!=='linear'){toast('LOGIQView bitte mit der Linearsonde L3-12 üben');break;}
+   if(S.lv){S.lv=null;buildMap();}else{if(S.freeze)doFreeze();S.lv='rec';S.lvStart=performance.now()/1000;S.color='none';if(S.spec!=='none'){S.spec='none';}buildMap();}break;
+  case 'bknob':{const had=S.spec!=='none';S.color='none';S.spec='none';S.dual=null;if(S.lv){S.lv=null;}S.scanSub='B';buildMap();if(had)buildMap();break;}
+  case 'abc':if(!S.freeze&&false){}S.editing={x:imgC.width*0.3,y:40,text:''};showAnn();break;
+  case 'clear':S.measure=null;S.annots=[];S.arrows=[];S.arrowEdit=null;S.bodyPattern=false;S.editing=null;hideAnn();toast('Markierungen gelöscht');break;
+  case 'pointer':S.arrowEdit={x:imgC.width/2,y:imgC.height/2,ang:0.6};break;
+  case 'measure':if(!S.freeze){doFreeze();toast('Bild eingefroren – Messpunkt mit Trackball/Maus setzen, dann Set');}S.measure={pts:[[imgC.width/2-30,imgC.height/2]],active:0,ell:null};break;
+  case 'tbTL':if(S.measure&&S.measure.active!=null){S.measure=null;toast('Messung abgebrochen');}else if(S.arrowEdit){S.arrowEdit=null;}else toast('Obere linke Taste: Belegung konfigurationsabhängig');break;
+  case 'tbSL':case 'tbSR':if(S.color==='CF'||S.color==='PDI'){S.tbMode=S.tbMode==='pos'?'size':'pos';toast('Trackball: Farbbox '+(S.tbMode==='size'?'Grösse':'Position'));}else toast('Trackball-Funktion wechseln (je nach Modus)');break;
+  case 'setL':case 'setR':doSet();break;
+  case 'ellipse':S.bodyPattern=!S.bodyPattern;break;
+  case 'depthknob':S.zoom=1;buildMap();toast('Zoom zurückgesetzt');break;
+  case 'depth-up':depthChange(-1);break;
+  case 'depth-down':depthChange(1);break;
+  case 'steer-l':case 'steer-r':
+   if(PROBES[S.probe].type!=='linear'||(S.color!=='CF'&&S.color!=='PDI'&&S.spec!=='PW')){toast('Steer wirkt bei Linearsonden auf Farbbox/Doppler-Linie');break;}
+   S.steer=Math.max(-20,Math.min(20,S.steer+(id==='steer-l'?-10:10)));toast('Steer '+S.steer+'°');break;
+  case 'usb':toast(S.freeze?'Cine-Loop auf USB-Stick exportiert (Simulator)':'Bild auf USB-Stick exportiert (Simulator)');break;
+  case 'ao':S.gainB=50;S.tgc=[0,0,0,0,0,0,0,0];if(S.color!=='none')S.gainCF=55;if(S.spec==='PW'){const gv=gateVessel();if(gv){const vm=Math.abs(VESSELS[S.probe][gv[0]].vmax)*0.8/Math.cos(Math.abs(S.pwAngle)*Math.PI/180);S.pwScale=Math.min(250,Math.ceil(vm*1.4/10)*10);S.pwBase=-2;}}toast('AO: Bild automatisch optimiert');break;
+  case 'markcine':if(!S.freeze){toast('Mark Cine: erst einfrieren (Freeze)');break;}S.cineMarks.push(S.cine);if(S.cineMarks.length>2)S.cineMarks.shift();toast('Cine-Markierung gesetzt');break;
+  case 'freeze':doFreeze();break;
+  case 'p1':storeImage();break;
+  case 'dualL':case 'dualR':{const side=id==='dualL'?'L':'R';if(S.freeze)doFreeze();if(!S.dual){snapC.width=imgC.width;snapC.height=imgC.height;sctx.fillStyle='#000';sctx.fillRect(0,0,snapC.width,snapC.height);S.dual=side;}else if(S.dual!==side){snapC.width=imgC.width;snapC.height=imgC.height;sctx.drawImage(imgC,0,0);S.dual=side;}break;}
+  default:
+   if(/^k[1-5]$/.test(id)){const i=+id[1]-1;const k=(KNOBS[S.scanSub]||KNOBS.B)[i];if(!k){toast('Knopf '+(i+1)+': auf dieser Seite unbelegt');break;}if(k[1]){S.knobAlt[i]=!S.knobAlt[i];toast('Knopf '+(i+1)+': '+PARAMS[S.knobAlt[i]?k[1]:k[0]].label);}else toast(PARAMS[k[0]].label+': drehen zum Ändern');}
+ }
+ dirty=true;renderTS();emit('press',id);
+}
+function rotate(id,dir){
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ switch(id){
+  case 'bknob':S.gainB=clamp(S.gainB+dir*2,0,100);break;
+  case 'x':S.gainCF=clamp(S.gainCF+dir*3,0,100);if(S.color==='none')toast('Farb-Gain – erst X/CF drücken, um Farbe einzuschalten');break;
+  case 'y':S.gainPW=clamp(S.gainPW+dir*3,0,100);if(S.spec!=='PW')toast('PW-Gain – erst Y/PW drücken');break;
+  case 'z':S.gainM=clamp(S.gainM+dir*3,0,100);if(S.spec!=='M')toast('M-Gain – erst Z/M drücken');break;
+  case 'depthknob':S.zoom=clamp(+(S.zoom+dir*0.2).toFixed(1),1,4);buildMap();break;
+  case 'ellipse':
+   if(S.measure&&S.measure.pts.length===2&&S.measure.active==null){const m=S.measure;const dcm=Math.hypot(m.pts[1][0]-m.pts[0][0],m.pts[1][1]-m.pts[0][1])/(G.ppc*S.zoom);m.ell=clamp((m.ell||dcm/2)+dir*0.03,0.03,dcm*1.5);}
+   else if(S.arrowEdit){S.arrowEdit.ang+=dir*0.2;}
+   else{S.bpIdx=(S.bpIdx+dir+BODY.length)%BODY.length;S.bodyPattern=true;}
+   break;
+  default:
+   if(/^k[1-5]$/.test(id)){const i=+id[1]-1;const k=(KNOBS[S.scanSub]||KNOBS.B)[i];if(!k){toast('Knopf '+(i+1)+': unbelegt');break;}const key=S.knobAlt[i]&&k[1]?k[1]:k[0];changeParam(key,dir);renderTS();}
+ }
+ const knob=stage.querySelector(`[data-id="${id}"]`);if(knob){const r=(parseFloat(knob.dataset.rot||0)+dir*18);knob.dataset.rot=r;knob.style.setProperty('--rot',r+'deg');}
+ dirty=true;emit('rotate',id);
+}
+function doSet(){
+ const m=S.measure;
+ if(S.editing){commitAnn();return;}
+ if(S.arrowEdit){S.arrows.push(S.arrowEdit);S.arrowEdit=null;dirty=true;emit('set','set');return;}
+ if(m&&m.active===0){m.pts.push([m.pts[0][0]+60,m.pts[0][1]+20]);m.active=1;dirty=true;emit('set','set');return;}
+ if(m&&m.active===1){m.active=null;dirty=true;emit('set','set');emit('measure-done','m');return;}
+ if(S.color==='CF'||S.color==='PDI'){S.tbMode=S.tbMode==='pos'?'size':'pos';toast('Trackball: Farbbox '+(S.tbMode==='size'?'Grösse':'Position'));}
+ emit('set','set');
+}
+function tbMove(dx,dy){
+ const P=PROBES[S.probe];
+ if(S.measure&&S.measure.active!=null){const p=S.measure.pts[S.measure.active];p[0]=Math.max(0,Math.min(imgC.width,p[0]+dx*0.7));p[1]=Math.max(0,Math.min(imgC.height,p[1]+dy*0.7));}
+ else if(S.editing){S.editing.x+=dx*0.7;S.editing.y+=dy*0.7;}
+ else if(S.arrowEdit){S.arrowEdit.x+=dx*0.7;S.arrowEdit.y+=dy*0.7;}
+ else if(S.freeze){S.cine=Math.max(-4,Math.min(0,S.cine+dx*0.01));}
+ else if(S.spec==='PW'){S.gateU=Math.max(0.02,Math.min(0.98,S.gateU+dx*0.02/spanCm(S.gateD)*(S.depth/5)));S.gateD=Math.max(0.1,Math.min(S.depth,S.gateD+dy*0.012*(S.depth/5)));}
+ else if(S.spec==='M'){S.mU=Math.max(0.02,Math.min(0.98,S.mU+dx*0.02/spanCm(S.depth/2)*(S.depth/5)));}
+ else if(S.color==='CF'||S.color==='PDI'){const b=S.box,k=S.depth/5;
+  if(S.tbMode==='pos'){b.u=Math.max(0.02,Math.min(0.98,b.u+dx*0.02*k/spanCm(b.d)));b.d=Math.max(b.hd,Math.min(S.depth-b.hd*0.5,b.d+dy*0.012*k));}
+  else{b.hu=Math.max(0.2,Math.min(spanCm(b.d)*0.45,b.hu+dx*0.01*k));b.hd=Math.max(0.2,Math.min(S.depth/2,b.hd+dy*0.008*k));}}
+ dirty=true;emit('tb','tb');
+}
+function storeImage(){
+ const tc=document.createElement('canvas');tc.width=200;tc.height=150;tc.getContext('2d').drawImage(mon,0,0,200,150);
+ const src=tc.toDataURL('image/jpeg',0.8);
+ S.images.push({src,sel:false});if(S.images.length>24)S.images.shift();
+ toast('Bild '+S.images.length+' gespeichert (P1) – siehe PATIENT › Aktive Bilder');renderTS();emit('store','p1');
+}
+// Kommentar-Eingabe
+const annBox=document.getElementById('annBox'),annIn=document.getElementById('annIn');
+function showAnn(){annBox.hidden=false;annIn.value='';setTimeout(()=>annIn.focus(),0);}
+function hideAnn(){annBox.hidden=true;}
+function commitAnn(){if(!S.editing)return;const tx=(S.editing.text||'').trim();if(tx){S.annots.push({x:S.editing.x,y:S.editing.y,text:tx});emit('annot-done','abc');}S.editing=null;hideAnn();dirty=true;}
+annIn.addEventListener('input',()=>{if(S.editing){S.editing.text=annIn.value;dirty=true;}});
+annIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitAnn();}if(e.key==='Escape'){S.editing=null;hideAnn();dirty=true;}e.stopPropagation();});
+
+// ================= Eingabe: Bedienpult =================
+let drag=null;
+stage.addEventListener('pointerdown',e=>{
+ const t=e.target.closest('.knob,.tb');if(!t)return;
+ e.preventDefault();t.setPointerCapture(e.pointerId);
+ drag={el:t,id:t.dataset.id,x:e.clientX,y:e.clientY,acc:0,moved:false,tb:t.classList.contains('tb')};
+});
+stage.addEventListener('pointermove',e=>{
+ if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+ if(drag.tb){if(Math.abs(dx)+Math.abs(dy)>0){tbMove(dx,dy);drag.moved=true;}drag.x=e.clientX;drag.y=e.clientY;return;}
+ drag.acc+=-(dy);drag.y=e.clientY;if(Math.abs(drag.acc)>=14){const st=Math.trunc(drag.acc/14);drag.acc-=st*14;drag.moved=true;for(let k=0;k<Math.abs(st);k++)rotate(drag.id,Math.sign(st));}
+});
+stage.addEventListener('pointerup',e=>{
+ if(!drag)return;const d=drag;drag=null;
+ if(!d.moved){if(d.tb){showInfo('tb');}else{press(d.id);showInfo(infoId(d.id));}}
+ else showInfo(infoId(d.id),true);
+});
+let wheelAcc=0;
+stage.addEventListener('wheel',e=>{
+ const t=e.target.closest('.knob');if(!t)return;e.preventDefault();
+ wheelAcc+=e.deltaY;const th=e.deltaMode?1:30;
+ while(Math.abs(wheelAcc)>=th){const s=Math.sign(wheelAcc);wheelAcc-=s*th;rotate(t.dataset.id,-s);}
+ showInfo(infoId(t.dataset.id),true);
+},{passive:false});
+stage.addEventListener('keydown',e=>{
+ const t=e.target.closest('.knob,.tb');if(!t)return;const id=t.dataset.id;
+ if(t.classList.contains('tb')){const m={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,-8],ArrowDown:[0,8]}[e.key];if(m){e.preventDefault();tbMove(...m);}return;}
+ if(e.key==='Enter'||e.key===' '){e.preventDefault();press(id);showInfo(infoId(id));}
+ if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();rotate(id,1);}
+ if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();rotate(id,-1);}
+});
+function infoId(id){if(/^(depth-|steer-)/.test(id))return 'depthknob';return id;}
+// Klicks: Tasten + Touchscreen
+stage.addEventListener('click',e=>{
+ const k=e.target.closest('button.cc');
+ if(k){press(k.dataset.id);showInfo(infoId(k.dataset.id));return;}
+ const b=e.target.closest('#ts button,#ts img');if(!b)return;
+ const ds=b.dataset;
+ if(ds.key!==undefined){kbdKey(ds.key);return;}
+ if(ds.p){changeParam(ds.p,ds.d?+ds.d:1);renderTS();showInfo('p-'+ds.p,true);emit('touch','p-'+ds.p);return;}
+ if(ds.sub){S.scanSub=ds.sub;renderTS();return;}
+ if(ds.pat){S.patSub=ds.pat;renderTS();showInfo(ds.pat==='aktiv'?'img-btn':'pat-sub',true);emit('touch','pat-'+ds.pat);return;}
+ if(ds.probe){if(ds.probe==='none'){toast('An diesem Anschluss ist keine Sonde angeschlossen');showInfo('probe-port');return;}S.presetMenu=ds.probe;renderTS();showInfo('probe-'+ds.probe);emit('touch','probe-'+ds.probe);return;}
+ if(ds.preset){setProbe(S.presetMenu,ds.preset);S.presetMenu=null;toast('Sonde '+S.probe+' · Preset '+S.preset);renderTS();emit('preset',ds.preset);return;}
+ if(ds.img!==undefined){const im=S.images[+ds.img];im.sel=!im.sel;renderTS();showInfo('img-btn',true);return;}
+ const act=ds.act;if(!act)return;
+ tsAction(act,b);
+ if(b.dataset.id)showInfo(b.dataset.id,true);
+});
+function tsAction(act,b){
+ switch(act){
+  case 'page-meine':S.page=S.page==='meine'?null:'meine';break;
+  case 'page-trainer':S.page=S.page==='trainer'?null:'trainer';break;
+  case 'trainer-item':toast('MyTrainer: Am echten Gerät startet hier das Video „'+b.textContent+'“');break;
+  case 'reset':IMGDEF.forEach(k=>{if(!['invert'].includes(k))S[k]=DEFAULTS[k];});S.tgc=[0,0,0,0,0,0,0,0];buildMap();toast('Bildparameter auf Preset zurückgesetzt');break;
+  case 'invert':S.invert=!S.invert;buildMap();break;
+  case 'tgc':S.tgcOpen=!S.tgcOpen;S.kbd=false;break;
+  case 'tgc-reset':S.tgc=[0,0,0,0,0,0,0,0];emit('tgc','tgc');break;
+  case 'collapse':toast('Touchscreen minimieren (im Simulator ohne Funktion)');break;
+  case 'tab-patient':S.tab='patient';S.page=null;S.presetMenu=null;break;
+  case 'tab-scan':S.tab='scan';S.page=null;break;
+  case 'tab-end':S.tab='end';S.page=null;break;
+  case 'tab-kbd':S.kbd=!S.kbd;S.tgcOpen=false;break;
+  case 'tab-util':S.tab='util';S.page=null;break;
+  case 'close-menu':S.presetMenu=null;break;
+  case 'newpat':S.patient={last:'',first:'',id:'',dob:'',sex:''};S.registered=false;break;
+  case 'register':if(!S.patient.last.trim()){toast('Bitte zuerst einen Nachnamen eingeben');break;}S.registered=true;if(!S.patient.id)S.patient.id='SIM'+String(Math.floor(Math.random()*90000+10000));toast('Patient registriert – jetzt Sonde/Preset wählen und scannen');S.tab='scan';renderTS();emit('register','pat');return;
+  case 'img-all':S.images.forEach(i=>i.sel=true);break;
+  case 'img-none':S.images.forEach(i=>i.sel=false);break;
+  case 'img-review':{if(S.review){S.review=null;break;}const im=S.images.find(i=>i.sel)||S.images[S.images.length-1];if(!im){toast('Keine Bilder vorhanden – erst mit P1 speichern');break;}reviewImg.src=im.src;S.review=im.src;emit('review','r');break;}
+  case 'img-perm':toast(S.images.some(i=>i.sel)?'Markierte Bilder permanent gespeichert':'Erst Bilder markieren');break;
+  case 'img-print':toast('Standardausdruck gesendet (Simulator)');break;
+  case 'img-send':toast(S.images.some(i=>i.sel)?'Senden an: Ziel wählen (PACS/USB) – Simulator':'Erst Bilder markieren');break;
+  case 'img-del':{const n=S.images.length;S.images=S.images.filter(i=>!i.sel);toast(n-S.images.length?(n-S.images.length)+' Bild(er) gelöscht':'Kein Bild markiert');break;}
+  case 'img-clear':S.images=[];S.review=null;toast('Temporärer Speicher geleert');break;
+  case 'img-saveas':toast('Speichern unter: Format wählen, z. B. JPEG/DICOM (Simulator)');break;
+  case 'img-props':toast(`Bild-Eigenschaften: ${S.probe}, ${S.preset}, ${S.freq} MHz, Tiefe ${S.depth} cm`);break;
+  case 'end-ok':S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
+   S.images=[];S.review=null;S.patient={last:'',first:'',id:'',dob:'',sex:''};S.registered=false;S.measure=null;S.annots=[];S.arrows=[];S.bodyPattern=false;if(S.freeze)doFreeze();S.tab='patient';S.patSub='patient';toast('Untersuchung beendet und archiviert – bereit für den nächsten Patienten');renderTS();emit('end','end');return;
+  case 'toast':toast(b.dataset.msg);break;
+ }
+ dirty=true;renderTS();emit('touch',b.dataset.id||act);
+}
+// Formular + TGC
+let lastInput=null;
+stage.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.dataset.pf){S.patient[t.dataset.pf]=t.value;}
+ if(t.dataset.tgc!==undefined){const i=+t.dataset.tgc;S.tgc[i]=+t.value;const sp=document.getElementById('tgcv'+i);if(sp)sp.textContent=(t.value>0?'+':'')+t.value;dirty=true;emit('tgc','tgc');showInfo('ts-tgc',true);}
+});
+stage.addEventListener('focusin',e=>{if(e.target.matches('#ts input[data-pf]'))lastInput=e.target;});
+let kbdShift=true;
+function kbdKey(k){
+ const target=S.editing?annIn:(lastInput&&document.body.contains(lastInput)?lastInput:null);
+ if(k==='⇧'){kbdShift=!kbdShift;return;}
+ if(!target){toast('Erst ein Textfeld antippen oder Abc drücken');return;}
+ if(k==='⏎'){if(S.editing)commitAnn();return;}
+ if(k==='⌫')target.value=target.value.slice(0,-1);else target.value+=kbdShift?k:k.toLowerCase();
+ target.dispatchEvent(new Event('input',{bubbles:true}));
+}
+// Maus im Monitor (Messpunkte)
+function monPos(e){const r=mon.getBoundingClientRect();return[(e.clientX-r.left)*800/r.width-IMGX,(e.clientY-r.top)*600/r.height-IMGY];}
+mon.addEventListener('mousemove',e=>{
+ if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
+ if(S.measure&&S.measure.active!=null){const p=S.measure.pts[S.measure.active];p[0]=Math.max(0,Math.min(imgC.width,x));p[1]=Math.max(0,Math.min(imgC.height,y));dirty=true;}
+ else if(S.arrowEdit){S.arrowEdit.x=x;S.arrowEdit.y=y;dirty=true;}
+});
+mon.addEventListener('click',e=>{
+ if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
+ if(S.measure&&S.measure.active!=null){doSet();showInfo('setR',true);}
+ else if(S.arrowEdit)doSet();
+ else if(S.editing){S.editing.x=x;S.editing.y=y;dirty=true;annIn.focus();}
+});
+document.addEventListener('keydown',e=>{
+ if(e.target.matches('input,select,textarea'))return;
+ if(e.key==='f'||e.key==='F'){press('freeze');showInfo('freeze',true);}
+ if(e.key==='p'||e.key==='P'){press('p1');showInfo('p1',true);}
+});
+
+// ================= Panel =================
+let ptab='info',lastInfo='tb';
+const pbody=document.getElementById('pbody');
+document.querySelectorAll('[data-ptab]').forEach(b=>b.addEventListener('click',()=>{ptab=b.dataset.ptab;renderPanel();}));
+function showInfo(id,soft){
+ if(!INFO[id])return;lastInfo=id;
+ if(EXS.cur!=null&&ptab==='ex'){renderPanel();return;}
+ if(ptab!=='info'&&soft&&ptab!=='idx')return;
+ ptab='info';renderPanel();
+}
+function infoHTML(id){
+ const [name,grp,func,sim,tip,uns]=INFO[id];
+ return `<span class="chip">${grp}</span>${uns?'<span class="chip unsure">Belegung unsicher</span>':''}<h2>${name}</h2>
+ <h3>Funktion</h3><p>${func}</p>${sim?`<h3>Im Simulator</h3><p>${sim}</p>`:''}${tip?`<h3>Praxistipp</h3><p>${tip}</p>`:''}`;
+}
+function renderPanel(){
+ document.querySelectorAll('[data-ptab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.ptab===ptab));
+ let h='';
+ if(ptab==='info'){h=infoHTML(lastInfo)+`<div class="hintbox" style="margin-top:14px">Klicke auf eine beliebige Taste, einen Knopf oder ein Touchscreen-Feld, um hier die Erklärung zu sehen. Unter <b>Übungen</b> führe ich dich Schritt für Schritt durch typische Abläufe.</div>`;}
+ else if(ptab==='ex'){
+  if(EXS.cur==null){h=`<h2>Geführte Übungen</h2><p class="muted">Das nächste Bedienelement leuchtet jeweils orange. Die Übungen bauen aufeinander auf, du kannst aber auch einzeln starten.</p><div class="exlist">${EX.map((x,i)=>`<button data-ex="${i}"><span>${i+1}. ${x.title}</span><span class="${EXS.done.has(i)?'done':'muted'}">${EXS.done.has(i)?'✓ erledigt':x.steps.length+' Schritte'}</span></button>`).join('')}</div>`;}
+  else{const ex=EX[EXS.cur];const fin=EXS.step>=ex.steps.length;
+   h=`<span class="chip">Übung ${EXS.cur+1} von ${EX.length}</span><h2>${ex.title}</h2><ol class="steps">${ex.steps.map((s,i)=>`<li class="${i<EXS.step?'ok':(i===EXS.step?'cur':'')}"><span class="dot">${i<EXS.step?'✓':i+1}</span><span>${s.t}</span></li>`).join('')}</ol>`;
+   if(fin)h+=`<div class="hintbox">✓ Geschafft! ${EXS.cur+1<EX.length?'Weiter mit der nächsten Übung?':'Du hast alle Übungen abgeschlossen.'}</div>`;
+   h+=`<div class="btnrow">${fin&&EXS.cur+1<EX.length?`<button class="btn primary" data-exgo="${EXS.cur+1}">Nächste Übung</button>`:''}${!fin?`<button class="btn" data-exskip="1">Schritt überspringen</button>`:''}<button class="btn" data-exlist="1">Zur Übersicht</button></div>`;
+   if(lastInfo&&INFO[lastInfo])h+=`<h3>Zuletzt benutzt: ${INFO[lastInfo][0]}</h3><p class="muted" style="font-size:14px">${INFO[lastInfo][2]}</p>`;}
+ }
+ else if(ptab==='idx'){h='<div class="idx">';GROUPS.forEach(g=>{const items=Object.keys(INFO).filter(k=>INFO[k][1]===g&&!['probe-port','pat-sub'].includes(k));if(!items.length)return;h+=`<h3>${g}</h3><ul>${items.map(k=>`<li><button data-goto="${k}">${INFO[k][0]}</button></li>`).join('')}</ul>`;});h+='</div>';}
+ else{h=`<div class="flow"><h2>Typischer Ablauf einer Untersuchung</h2><ol>
+  <li><b>Patient anlegen:</b> PATIENT › Reiter Patient › Daten eingeben › Registrieren.</li>
+  <li><b>Sonde & Preset:</b> rechts am Touchscreen die Sonde antippen (L3-12 für Bewegungsapparat) und das Preset wählen, z. B. „BWA Allg.“.</li>
+  <li><b>Bild einstellen:</b> Tiefe (Depth) → Fokus (Knopf 5) → Gain (B-Knopf drehen) → TGC → ggf. Frequenz (Knopf 4). Oder AO als Startpunkt.</li>
+  <li><b>Feintuning am Touchscreen:</b> CrossXBeam, SRI HD, CHI, Dynamikbereich nach Bedarf.</li>
+  <li><b>Doppler bei Bedarf:</b> PDI (Entzündung) oder CF (X) drücken, Box mit Trackball platzieren, Gain mit X. PW über Y.</li>
+  <li><b>Einfrieren & Messen:</b> Freeze → Trackball blättert im Cine → Measure → Set, Set.</li>
+  <li><b>Dokumentieren:</b> Abc (Seite/Ebene), Body Pattern (Ellipse-Knopf drücken), Pfeil.</li>
+  <li><b>Speichern:</b> P1 (Bild/Cine), ggf. USB-Taste für Export.</li>
+  <li><b>Kontrolle:</b> PATIENT › Aktive Bilder › Nachbetracht.</li>
+  <li><b>Abschluss:</b> UNTERS. BEEN. → Bilder werden archiviert/gesendet. Sonde reinigen.</li></ol>
+  <h3>Faustregeln</h3><p>Erst die Geometrie (Tiefe, Fokus), dann die Helligkeit (Gain/TGC), dann die Verarbeitung (SRI, Compound). ALARA: Sendeleistung so niedrig wie sinnvoll, nicht unnötig live schallen.</p>
+  <h3>Offizielle Quellen</h3><p>Am Gerät: Hilfe (F1) bzw. die Online-Hilfe und <b>MyTrainer</b>. GE stellt die Bedienungsanleitungen (Basic User Manual, „Control Panel Map“) im GE-Dokumentationsportal bzw. über den Service bereit.</p>
+  <button class="btn primary" data-ptabgo="ex">Zu den Übungen</button></div>`;}
+ pbody.innerHTML=h;
+}
+pbody.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+ if(d.ex!==undefined||d.exgo!==undefined){EXS.cur=+(d.ex??d.exgo);EXS.step=0;renderPanel();applyHint();emit('tick','tick');}
+ if(d.exskip){EXS.step++;if(EXS.step>=EX[EXS.cur].steps.length)EXS.done.add(EXS.cur);renderPanel();applyHint();}
+ if(d.exlist){EXS.cur=null;renderPanel();applyHint();}
+ if(d.goto){lastInfo=d.goto;const t=stage.querySelector(`[data-id="${d.goto}"]`);ptab='info';renderPanel();if(t){t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),2200);t.scrollIntoView({block:'nearest',behavior:'smooth'});}}
+ if(d.ptabgo){ptab=d.ptabgo;renderPanel();}
+});
+function applyHint(){
+ stage.querySelectorAll('.hint').forEach(x=>x.classList.remove('hint'));
+ if(EXS.cur==null)return;const st=EX[EXS.cur].steps[EXS.step];if(!st||!st.hl)return;
+ const t=stage.querySelector(`[data-id="${CSS.escape(st.hl)}"]`);if(t)t.classList.add('hint');
+}
+
+// ================= Loop =================
+let lastFrame=0;
+function loop(ts){
+ requestAnimationFrame(loop);
+ const now=ts/1000;
+ if(S.lv==='rec'&&now-S.lvStart>=4){S.lv='done';buildMap();toast('Panorama fertig – B drücken zum Beenden');emit('lv-done','lv');}
+ const toastOn=S.toast&&now<S.toast.until+0.1;
+ if(!S.freeze){if(now-lastFrame<1/25)return;}
+ else if(!dirty&&!toastOn&&S.lv!=='rec')return;
+ const dt=Math.min(0.2,now-lastFrame||0.04);lastFrame=now;dirty=false;
+ if(!S.freeze)S.tNow=now;
+ const t=S.freeze?S.tFreeze+S.cine:now;
+ renderImage(t);
+ if(!S.freeze&&S.spec!=='none')pushStrip(t,dt);
+ drawMonitor(t,now);
+ if(EXS.cur!=null&&!S.freeze&&((now*4)|0)%4===0)emit('tick','tick');
+}
+// Start
+setProbe('L3-12','BWA Allg.');
+S.focusPos=1.6;
+renderTS();renderPanel();fit();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
