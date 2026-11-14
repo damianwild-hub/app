@@ -211,7 +211,10 @@ body.mode-card #cardbar{display:block;order:0;background:#ff9f1a;color:#1a1204;f
 .posbar svg .body{fill:none;stroke:var(--muted);stroke-width:1.4}
 .posctl{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
 .poslabel{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
-.posbtns{display:flex;flex-wrap:wrap;gap:5px}
+.posbtns{display:flex;flex-direction:column;gap:5px}
+.pgrp{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.pgrp>span{font:600 11px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;min-width:118px}
+.lblbtn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:6px;padding:5px 10px;font:600 13px var(--f-body);cursor:pointer}.lblbtn[aria-pressed="true"]{background:var(--hl);border-color:var(--hl);color:#1a1204}
+.posbar.big svg{width:190px}
 .posbtns button{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:6px;padding:5px 9px;font:500 13px var(--f-body);cursor:pointer;touch-action:manipulation}
 .posbtns button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .caserow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
@@ -291,7 +294,7 @@ html,body{overscroll-behavior:none}
         <div class="posctl">
           <div class="poslabel">Schallkopf-Position am Patienten</div>
           <div class="posbtns" id="posbtns"></div>
-          <div class="caserow"><label for="caseSel">Befund des Patienten:</label>
+          <div class="caserow"><button id="lblBtn" class="lblbtn" aria-pressed="false">Beschriftung an</button><label for="caseSel">Befund:</label>
             <select id="caseSel" data-id="case-select">
               <option value="normal">Normalbefund</option>
               <option value="ff">Freie Flüssigkeit (Morison, Milz, Douglas)</option>
@@ -337,23 +340,92 @@ const VES_MSK=[{x:0.6,d:1.55,rx:0.28,ry:0.28,type:'art',vmax:62,name:'Arterie'},
 const VES_LIVER=[{x:2.8,d:10,rx:0.9,ry:0.9,type:'art',vmax:70,name:'grosses Gefäss'},{x:-1,d:11.2,rx:0.45,ry:0.45,type:'ven',vmax:-20},
          {x:-4,d:5,rx:0.35,ry:0.35,type:'ven',vmax:-18,portal:true},{x:3.6,d:5.5,rx:0.3,ry:0.3,type:'ven',vmax:-16,portal:true}];
 const HEART={x:1.6,d:11,rx:5.4,ry:3.9,a:-0.45};HEART.c=Math.cos(HEART.a);HEART.s=Math.sin(HEART.a);
+const VES_NECK=[{x:-1.15,d:1.55,rx:0.38,ry:0.38,type:'art',vmax:85,name:'A. carotis communis'},{x:-1.95,d:1.2,rx:0.45,ry:0.28,type:'ven',vmax:-25,name:'V. jugularis interna'}];
+const VES_EPI=[{x:0.5,d:10.5,rx:0.95,ry:0.95,type:'art',vmax:90,name:'Aorta'},{x:-2.4,d:9.9,rx:1.2,ry:0.6,type:'ven',vmax:-22,name:'V. cava inferior'},{x:0.4,d:9.0,rx:0.3,ry:0.3,type:'art',vmax:110,name:'A. mesenterica superior'}];
+// Beschriftung: [Name, x (cm, seitlich), d (cm, Tiefe), Kurzbeschreibung]
 const SCENES={
- msk:{name:'Schulter / Muskulatur',short:'Schulter/Muskel',f:fLin,vessels:VES_MSK,dot:[86,36]},
- liver:{name:'Oberbauch rechts: Leber/Gallenblase',short:'Leber',f:fCon,vessels:VES_LIVER,dot:[48,74]},
- ruq:{name:'eFAST 1 · rechter Oberbauch (RUQ)',short:'1 RUQ',f:fRUQ,vessels:[],dot:[38,82]},
- luq:{name:'eFAST 2 · linker Oberbauch (LUQ)',short:'2 LUQ',f:fLUQ,vessels:[],dot:[82,76]},
- pelvis:{name:'eFAST 3 · Becken quer (suprapubisch)',short:'3 Becken',f:fPelvis,vessels:[],dot:[60,118]},
- cardiac:{name:'eFAST 4 · subxiphoidal (Herz)',short:'4 Herz',f:fCardiac,vessels:[],warp:'heart',dot:[60,66]},
- lungR:{name:'eFAST 5 · Thorax rechts anterior',short:'5 Lunge re.',f:fLung,vessels:[],warp:'lung',pleura:1.6,dot:[47,44]},
- lungL:{name:'eFAST 6 · Thorax links anterior',short:'6 Lunge li.',f:fLung,vessels:[],warp:'lung',pleura:1.6,dot:[73,44]}
+ sh_ssp:{grp:'Bewegungsapparat',name:'Schulter · Supraspinatussehne längs',short:'Schulter SSP',f:fShSSP,vessels:[],labels:[
+  ['M. deltoideus',0.2,0.75,'Deltamuskel: echoarm mit feiner, schräg gestreifter (gefiederter) Faserstruktur.'],
+  ['Bursa subacromialis',-0.9,1.19,'Feiner echoarmer Streifen zwischen zwei hellen Fettlinien, normal höchstens etwa 2 mm.'],
+  ['Supraspinatussehne',0.1,1.55,'Echoreich, fein fibrillär, konvexe Oberfläche, läuft „schnabelförmig“ zum Tuberculum majus.'],
+  ['Gelenkknorpel',-0.7,1.9,'Gleichmässig echofreier/echoarmer Saum auf dem Humeruskopf – nicht mit Flüssigkeit verwechseln.'],
+  ['Humeruskopf',-0.7,2.25,'Helle Knochenoberfläche mit dorsalem Schallschatten.'],
+  ['Tuberculum majus',1.6,2.05,'Knöcherner Ansatz (Footprint) der Supraspinatussehne.'],
+  ['Acromion',-2.15,0.95,'Knochen mit Schallschatten medial; darunter verschwindet die Sehne.']]},
+ sh_lbs:{grp:'Bewegungsapparat',name:'Schulter · lange Bizepssehne quer',short:'Schulter LBS',f:fShLBS,vessels:[],labels:[
+  ['M. deltoideus',0,0.62,'Deltamuskel über dem Sulcus.'],
+  ['Lig. transversum',0.45,1.17,'Dünnes echoreiches Band, das die Bizepssehne im Sulcus hält.'],
+  ['Lange Bizepssehne',0,1.45,'Im Querschnitt ovaler, echoreicher Punkt in der Knochenrinne.'],
+  ['Sulcus intertubercularis',0,1.78,'Knöcherne Rinne zwischen Tuberculum minus und majus.'],
+  ['Tuberculum minus',-1.6,1.32,'Medialer Knochenhöcker (Ansatz M. subscapularis).'],
+  ['Tuberculum majus',1.6,1.32,'Lateraler Knochenhöcker.']]},
+ kn_supra:{grp:'Bewegungsapparat',name:'Knie · suprapatellar längs',short:'Knie supra',f:fKnSupra,vessels:[],labels:[
+  ['Quadrizepssehne',-0.6,0.7,'Echoreiche, fibrilläre, mehrschichtige Sehne zur Patella.'],
+  ['Patella',1.85,0.62,'Kniescheibe: helle Knochenlinie mit Schallschatten.'],
+  ['Suprapatellarer Fettkörper',-0.5,1.2,'Mässig echoreiches Fettgewebe über dem Recessus.'],
+  ['Recessus suprapatellaris',-1.3,1.49,'Normal nur ein feiner echoarmer Spalt; hier sammelt sich ein Gelenkerguss zuerst.'],
+  ['Präfemoraler Fettkörper',-0.4,1.85,'Fettgewebe zwischen Recessus und Femur.'],
+  ['Femur',-0.9,2.2,'Distaler Femur: helle Kortikalis mit Schallschatten.']]},
+ kn_pat:{grp:'Bewegungsapparat',name:'Knie · Patellarsehne längs',short:'Knie Patellarsehne',f:fKnPat,vessels:[],labels:[
+  ['Patellarsehne',0,0.62,'Echoreiches, fibrilläres Band von der Patellaspitze zur Tuberositas tibiae, normal 4–6 mm dick.'],
+  ['Patella (Apex)',-2.05,0.5,'Unterer Patellapol mit Schallschatten – Ursprung der Patellarsehne.'],
+  ['Hoffa-Fettkörper',-0.4,1.8,'Infrapatellarer Fettkörper: echoreich, inhomogen, unter der Sehne.'],
+  ['Tuberositas tibiae',1.95,0.78,'Knöcherner Ansatz der Patellarsehne an der Tibia.'],
+  ['Bursa infrapatellaris profunda',1.12,0.99,'Kleine echoarme Bursa zwischen Sehne und Tibia – wenig Flüssigkeit ist normal.']]},
+ neck:{grp:'Hals',name:'Hals · Schilddrüse rechts quer',short:'Schilddrüse',f:fNeck,vessels:VES_NECK,labels:[
+  ['Schilddrüse',0.2,1.35,'Rechter Schilddrüsenlappen: homogen, echoreicher als die Halsmuskeln.'],
+  ['Isthmus',1.7,0.8,'Schmale Gewebebrücke vor der Trachea, verbindet beide Lappen.'],
+  ['Trachea',2.25,1.15,'Luftröhre: helle Luftgrenze mit Wiederholungsartefakten dahinter.'],
+  ['A. carotis communis',-1.15,1.55,'Rund, echofrei, pulsiert, nicht komprimierbar; liegt medial der Vene.'],
+  ['V. jugularis interna',-1.95,1.2,'Oval, echofrei, lässt sich mit der Sonde komprimieren, wird beim Valsalva weiter.'],
+  ['M. sternocleidomastoideus',-1.5,0.58,'Kopfwender: echoarmer Muskel lateral-oberflächlich.'],
+  ['Infrahyoidale Muskeln',1.0,0.47,'Gerade Halsmuskeln: dünne echoarme Schicht über der Schilddrüse.'],
+  ['M. longus colli',0,2.45,'Tiefer Halsmuskel vor der Wirbelsäule, hinter der Schilddrüse.']]},
+ abd_epi:{grp:'Abdomen',name:'Oberbauch quer (epigastrisch)',short:'Oberbauch quer',f:fAbdEpi,vessels:VES_EPI,labels:[
+  ['Leber (linker Lappen)',-1.0,4.2,'Homogenes, mittelgradig echoreiches Parenchym im Nahfeld.'],
+  ['Magen',3.7,3.4,'Wandschichtung, Luft mit hellem Reflex und Schallschatten.'],
+  ['Pankreas',-0.6,7.0,'Quer liegendes, meist etwas echoreicheres Organ vor der Milzvene.'],
+  ['V. lienalis',2.0,7.9,'Milzvene: echofreies Band hinter dem Pankreas – Leitstruktur zum Pankreas.'],
+  ['A. mesenterica superior',0.4,9.0,'Kleiner runder Querschnitt mit hellem Fettmantel, vor der Aorta.'],
+  ['Aorta',0.5,10.5,'Rund, pulsiert, links vor der Wirbelsäule; Durchmesser normal unter 3 cm.'],
+  ['V. cava inferior',-2.4,9.9,'Oval, rechts der Aorta, atemvariabel.'],
+  ['Wirbelkörper',0,12.7,'Heller Bogen mit Schallschatten in der Tiefe.']]},
+ liver:{grp:'Abdomen',name:'Oberbauch rechts: Leber/Gallenblase',short:'Leber/Galle',f:fCon,vessels:VES_LIVER,labels:[
+  ['Leber',-0.5,4.2,'Homogenes Parenchym, mittlere Echogenität.'],
+  ['Gallenblase',-2.6,7.2,'Echofrei mit dorsaler Schallverstärkung (heller Bereich dahinter).'],
+  ['Portalvenenast',-4,5,'Echofrei mit hellen Wänden (Glisson-Trias).'],
+  ['Lebervene',-1,11.2,'Echofrei, ohne helle Wandreflexe.'],
+  ['Zwerchfell',0,13.5,'Helle gebogene Linie am unteren Leberrand.']]},
+ msk:{grp:'Übung',name:'Muskel / Gefässe (Übungsbild)',short:'Muskel/Gefässe',f:fLin,vessels:VES_MSK,dot:[86,36],labels:[
+  ['Subkutis',0,0.3,'Unterhautfett: echoarm mit hellen Septen.'],
+  ['Muskel',-1.5,1.4,'Echoarm mit hellen Fiederungslinien.'],
+  ['Arterie',0.6,1.55,'Rund, echofrei, pulsierend.'],
+  ['Vene',-0.9,1.7,'Oval, echofrei, komprimierbar.'],
+  ['Knochen',0,3.65,'Helle Kortikalis mit Schallschatten.']]},
+ ruq:{grp:'eFAST',name:'eFAST 1 · rechter Oberbauch (RUQ)',short:'1 RUQ',f:fRUQ,vessels:[],labels:[
+  ['Leber',0,5,'Homogenes Parenchym.'],['Niere',2.6,9.4,'Rinde echoärmer als Leber, Mark mit dunklen Pyramiden, Sinus echoreich.'],
+  ['Morison-Pouch',1.2,7.3,'Spalt zwischen Leber und Niere – tiefster Punkt im rechten Oberbauch.'],['Zwerchfell',-4.2,6,'Helle gebogene Linie.'],
+  ['Thorax (Spiegelbild)',-5.2,9,'Spiegelartefakt der Leber über dem Zwerchfell – normal, kein Hämatothorax.']]},
+ luq:{grp:'eFAST',name:'eFAST 2 · linker Oberbauch (LUQ)',short:'2 LUQ',f:fLUQ,vessels:[],labels:[
+  ['Milz',0.2,6,'Homogen, etwas echoreicher als die Leber.'],['Niere',3.4,10.2,'Linke Niere unterhalb der Milz.'],['Zwerchfell',-3.3,5.4,'Helle Linie über der Milz.']]},
+ pelvis:{grp:'eFAST',name:'eFAST 3 · Becken quer (suprapubisch)',short:'3 Becken',f:fPelvis,vessels:[],labels:[
+  ['Harnblase',0,5.6,'Echofrei, glatte Wand, dorsale Schallverstärkung.'],['Uterus',0,9.7,'Hinter der Blase, mit hellem Endometriumstreifen.'],['Rektusmuskulatur',1.6,2.0,'Bauchwand vor der Blase.']]},
+ cardiac:{grp:'eFAST',name:'eFAST 4 · subxiphoidal (Herz)',short:'4 Herz',f:fCardiac,vessels:[],warp:'heart',labels:[
+  ['Leber',-2,5,'Schallfenster im Nahfeld.'],['Perikard',-0.1,7.5,'Helle Linie um das Herz.'],['Rechter Ventrikel',0.23,9.55,'Liegt der Leber am nächsten.'],
+  ['Linker Ventrikel',3.17,10.8,'Dickere Wand, rechts im Bild.'],['Rechter Vorhof',-0.71,13.1,'Links-tief im Bild.'],['Linker Vorhof',2.06,13.3,'Tief, hinter dem linken Ventrikel.']]},
+ lungR:{grp:'eFAST',name:'eFAST 5 · Thorax rechts anterior',short:'5 Lunge re.',f:fLung,vessels:[],warp:'lung',pleura:1.6,labels:[
+  ['M. pectoralis',0,0.9,'Brustmuskel über den Rippen.'],['Rippe',-1.9,1.36,'Knochen mit Schallschatten (Bat sign).'],['Pleuralinie',0,1.6,'Helle Linie zwischen den Rippen – hier gleitet die Lunge.'],['A-Linie',0,3.2,'Wiederholungsartefakt der Pleura im gleichen Abstand.']]},
+ lungL:{grp:'eFAST',name:'eFAST 6 · Thorax links anterior',short:'6 Lunge li.',f:fLung,vessels:[],warp:'lung',pleura:1.6,labels:[
+  ['Rippe',1.9,1.36,'Knochen mit Schallschatten.'],['Pleuralinie',0,1.6,'Lungengleiten sichtbar.'],['A-Linie',0,3.2,'Wiederholungsartefakt.']]}
 };
-const PRESET_SCENE={'Abdomen Allg.':'liver','Leber':'liver','Niere':'liver','Aorta':'liver','Hüfte (BWA tief)':'liver','eFAST':'ruq','Lunge':'lungR'};
+const PRESET_SCENE={'Abdomen Allg.':'abd_epi','Leber':'liver','Niere':'ruq','Aorta':'abd_epi','Hüfte (BWA tief)':'liver','eFAST':'ruq','Lunge':'lungR','Schulter':'sh_ssp','Knie':'kn_supra','Schilddrüse':'neck'};
 const CASES={normal:'Normalbefund',ff:'Freie Flüssigkeit intraabdominal',pe:'Perikarderguss',ptxR:'Pneumothorax rechts',htxL:'Hämatothorax links',multi:'Polytrauma'};
 function VES(){return SCENES[S.scene].vessels;}
 const BODY=['Schulter','Ellenbogen','Hand','Hüfte','Knie','Sprunggelenk','Abdomen'];
 
 // ================= Zustand =================
 const S={
+ labels:false,labelFocus:-1,
  probe:'L3-12',preset:'BWA Allg.',scene:'msk',caseKey:'normal',caseHidden:false,off:false,bootUntil:0,booting:false,endCount:0,color:'none',spec:'none',
  gainB:52,gainCF:50,gainPW:50,gainM:50,depth:4,zoom:1,steer:0,freeze:false,tFreeze:0,tNow:0,cine:0,cineMarks:[],
  power:100,dr:63,freq:12,focusPos:1.6,focusNum:1,focusWidth:1,
@@ -875,6 +947,77 @@ function fCardiac(x,d){FX.sh=1;FX.en=1;
   return 0.5+0.06*Math.sin(lx*3+ld*2);}
  const ao=Math.hypot(x-4.2,d-16.8)/0.85;if(ao<1)return 0.012;if(ao<1.2)return 1.0;
  return 0.26+0.04*Math.sin(x*2+d*1.3);}
+function septaF(x,d){return Math.abs(Math.sin(d*24+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;}
+function fib(v,freq,off){const ph=v*freq+(off||0);return (ph-Math.floor(ph));}
+function fShSSP(x,d){FX.sh=1;FX.en=1;
+ if(d<0.06)return 1.5; if(d<0.35)return septaF(x,d);
+ if(x<-1.7){const ad=0.95+0.12*(x+1.7);if(d>ad&&d<ad+0.12){FX.sh=0.03;return 2.8;}}
+ if(d<1.12)return 0.3+(fib(d+0.25*x,7,0.3*Math.sin(x*2))<0.14?0.45:0);
+ if(d<1.16)return 1.3; if(d<1.22)return 0.05; if(d<1.25)return 1.2;
+ const dh=1.95+0.085*(x+0.6)**2-(x>0.9?0.2*Math.exp(-(((x-1.6)/0.45)**2)):0);
+ const cart=x<0.95;
+ if(d<dh-(cart?0.12:0)){if(x<2.05){return 0.55+(fib((d-1.25)/Math.max(0.2,dh-1.37),8,0.25*Math.sin(x*3))<0.25?0.4:0);}return 0.35;}
+ if(cart&&d<dh)return 0.07;
+ if(d<dh+0.09){FX.sh=0.03;return 3.0;}
+ return 0.2;}
+function fShLBS(x,d){FX.sh=1;FX.en=1;
+ if(d<0.06)return 1.5; if(d<0.3)return septaF(x,d);
+ if(d<1.0)return 0.3+(hsh(x*2.1,d*2.3)>0.82?0.45:0);
+ if(d<1.04)return 1.2;
+ const te=(x/0.38)**2+((d-1.45)/0.21)**2;if(te<1)return 0.7+(hsh(x*5,d*5)>0.55?0.45:0);
+ if(Math.abs(x)<0.75&&Math.abs(d-1.17)<0.035)return 1.4;
+ const surf=1.25+0.48*Math.exp(-x*x/0.35);
+ if(d<surf)return 0.24;
+ if(d<surf+0.09){FX.sh=0.03;return 3.0;}
+ return 0.2;}
+function fKnSupra(x,d){FX.sh=1;FX.en=1;
+ if(d<0.06)return 1.5; if(d<0.45)return septaF(x,d);
+ if(x>1.0){const dp=x>=1.2?0.62-0.04*(x-1.2):0.62+((1.2-x)/0.2)**2*0.5;if(d>=dp&&d<dp+0.1){FX.sh=0.03;return 3.0;}if(d>=dp+0.1)return 0.2;}
+ if(d<0.95)return 0.55+(fib(d+0.02*x,11)<0.28?0.4:0);
+ if(d<1.45)return 0.52+0.06*Math.sin(x*4+d*9)+(hsh(x,d)>0.9?0.3:0);
+ const rw=CF.ff?0.45:0.07;
+ if(d<1.45+rw){FX.en=1.004;return 0.03;}
+ if(d<2.15+0.05*x-(CF.ff?0:0))return 0.48+0.06*Math.sin(x*5+d*7);
+ if(d<2.25+0.05*x){FX.sh=0.03;return 3.0;}
+ return 0.2;}
+function fKnPat(x,d){FX.sh=1;FX.en=1;
+ if(d<0.06)return 1.5; if(d<0.38)return septaF(x,d);
+ if(x<-1.3){const dp=x<-1.6?0.42:0.42+(x+1.6)*1.6;if(d>=dp&&d<dp+0.1){FX.sh=0.03;return 3.0;}if(d>=dp)return 0.2;}
+ if(x>1.4){const dt=0.95-0.32*Math.min(1,(x-1.4)/0.6);if(d>=dt&&d<dt+0.1){FX.sh=0.03;return 3.0;}if(d>=dt)return 0.2;}
+ if(d<0.86)return 0.58+(fib(d,13)<0.3?0.38:0);
+ if(x>0.95&&x<1.42&&d<1.06&&d>0.9)return 0.05;
+ if(d<3.0)return 0.55+0.25*(hsh(x*1.7,d*1.3)>0.75?1:0)+0.05*Math.sin(x*3+d*4);
+ return 0.3;}
+function fNeck(x,d){FX.sh=1;FX.en=1;
+ if(d<0.06)return 1.5; if(d<0.3)return septaF(x,d);
+ const vv=vesIn(x,d,[[-1.15,1.55,0.38]],1.1);if(vv!==null)return vv;
+ const jq=((x+1.95)/0.45)**2+((d-1.2)/0.28)**2;if(jq<1){FX.en=1.002;return 0.012;}if(jq<1.2)return 0.8;
+ const tr=Math.hypot(x-2.3,d-1.95);
+ if(tr<0.98&&d<1.95){if(tr>0.82)return 0.35;const top=1.95-Math.sqrt(Math.max(0,0.82*0.82-(x-2.3)**2));if(d<top+0.06){return 2.6;}const k=(d-top)/0.28;return (k-Math.floor(k))<0.18?0.9/(1+Math.floor(k)):0.03;}
+ if(tr<0.98)return 0.03;
+ const sc=((x+1.4)/1.3)**2+((d-0.65)/0.35)**2;if(sc<1)return 0.3+(hsh(x*2,d*2)>0.8?0.4:0);
+ const th=((x-0.2)/1.15)**2+((d-1.35)/0.7)**2;
+ if(th<1)return th>0.94?1.1:0.78+0.05*Math.sin(x*6+d*5);
+ if(x>0.9&&x<2.6&&d>0.62&&d<0.95)return 0.78;
+ if(d<0.62&&x>-0.4)return 0.3;
+ const lc=(x/0.9)**2+((d-2.45)/0.3)**2;if(lc<1)return 0.3+(fib(d,8)<0.2?0.3:0);
+ if(d>2.9&&Math.abs(x)<1.1){if(d<3.0+0.08*x*x+0.08){FX.sh=0.04;return 2.4;}}
+ return 0.36+0.05*Math.sin(x*3+d*2);}
+function fAbdEpi(x,d){FX.sh=1;FX.en=1;
+ if(d<0.2)return 1.4; if(d<1.4)return septaF(x,d);
+ if(d<2.3){if(Math.abs(x)<0.15)return 1.0;return 0.3+(fib(d-0.08*x,3.2)<0.15?0.38:0);} if(d<2.37)return 1.2;
+ const st=((x-3.8)/1.8)**2+((d-4.1)/1.3)**2;
+ if(st<1){if(d<3.5){FX.sh=0.12;return 2.2;}return 0.3;} if(st<1.12)return 0.9;
+ const le=6.2-0.25*x;
+ if(d<le-0.1&&x<3.6)return liverTex(x,d); if(d<le+0.05&&x<3.6)return 1.1;
+ const dpc=7.0+0.04*x*x;
+ if(Math.abs(d-(dpc+0.85))<0.2&&x>-1.6&&x<4.2){FX.en=1.002;return 0.015;}
+ if(Math.abs(d-dpc)<0.7&&x>-3.3&&x<3.9)return 0.6+(hsh(x*2,d*2)>0.7?0.25:0)+0.04*Math.sin(x*5);
+ const sma=Math.hypot(x-0.4,d-9.0);if(sma<0.3){FX.en=1.002;return 0.012;}if(sma<0.75)return 1.15;
+ const vv=vesIn(x,d,[[0.5,10.5,0.95]],1.1);if(vv!==null)return vv;
+ const ivc=((x+2.4)/1.2)**2+((d-9.9)/0.6)**2;if(ivc<1){FX.en=1.002;return 0.012;}if(ivc<1.15)return 0.8;
+ if(Math.abs(x)<2.6){const dv=12.6+0.06*x*x;if(d>dv&&d<dv+0.15){FX.sh=0.04;return 2.4;}}
+ return 0.35+0.05*Math.sin(x*2.3+d*1.7)+(hsh(x,d)>0.985?1.2:0);}
 function fLung(x,d){FX.sh=1;FX.en=1;const PL=1.6;
  if(d<0.08)return 1.5;
  if(d<0.5)return Math.abs(Math.sin(d*22+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;
@@ -998,6 +1141,28 @@ function renderImage(t){
  ictx.putImageData(IMG,0,0);
  drawOverlays(t);
 }
+function labelXY(x,d){const P=PROBES[S.probe];const u=P.type==='linear'?x/P.Wtot+0.5:x/(P.theta*(P.R+d))+0.5;return toScreen(u,d);}
+function drawLabels(c){
+ const L=SCENES[S.scene].labels;if(!S.labels||!L)return;const W=imgC.width,H=imgC.height;
+ c.save();c.font='600 12px IBM Plex Sans, sans-serif';c.lineJoin='round';const PLACED=[];
+ const order=L.map((l,i)=>i).sort((a,b)=>(b===S.labelFocus)-(a===S.labelFocus));
+ order.forEach(i=>{const l=L[i];
+  const quiz=S.labels==='quiz';if(quiz&&i!==S.labelFocus)return;
+  const [px,py]=labelXY(l[1],l[2]);if(px<2||px>W-2||py<2||py>H-2)return;
+  const foc=i===S.labelFocus;const col=foc?'#ff9f1a':'#ffffff';
+  if(quiz){c.strokeStyle='#ff9f1a';c.fillStyle='#ff9f1a';c.lineWidth=3;const ax=px+(px<W/2?34:-34),ay=py-26;c.beginPath();c.moveTo(ax,ay);c.lineTo(px+(px<W/2?6:-6),py-5);c.stroke();const an=Math.atan2(py-5-ay,px+(px<W/2?6:-6)-ax);c.beginPath();c.moveTo(px+(px<W/2?6:-6),py-5);c.lineTo(px+(px<W/2?6:-6)-10*Math.cos(an-0.45),py-5-10*Math.sin(an-0.45));c.lineTo(px+(px<W/2?6:-6)-10*Math.cos(an+0.45),py-5-10*Math.sin(an+0.45));c.fill();c.beginPath();c.arc(px,py,9,0,7);c.stroke();return;}
+  c.font=(foc?'700 14px':'600 12px')+' IBM Plex Sans, sans-serif';const tw=c.measureText(l[0]).width+6,th=foc?17:15;
+  let best=null;const pref=px<W*0.55?[1,-1]:[-1,1];
+  for(const dy of [-14,14,-30,30,-46,46,-62,62]){for(const sd of pref){const x0=sd>0?px+16:px-16-tw,y0=py+dy-th/2;if(x0<2||x0+tw>W-2||y0<2||y0+th>H-2)continue;const hit=PLACED.some(r=>x0<r[0]+r[2]&&x0+tw>r[0]&&y0<r[1]+r[3]&&y0+th>r[1]);if(!hit){best=[x0,y0,sd];break;}}if(best)break;}
+  if(!best)best=[pref[0]>0?Math.min(px+16,W-tw-2):Math.max(2,px-16-tw),Math.max(2,py-th/2),pref[0]];
+  PLACED.push([best[0],best[1],tw,th]);
+  const lx=best[2]>0?best[0]:best[0]+tw,ly=best[1]+th/2;
+  c.strokeStyle=col;c.lineWidth=foc?2:1.2;c.beginPath();c.moveTo(px,py);c.lineTo(lx,ly);c.stroke();
+  c.fillStyle=col;c.beginPath();c.arc(px,py,foc?5:3,0,7);c.fill();
+  if(foc){c.strokeStyle='rgba(255,159,26,.55)';c.lineWidth=3;c.beginPath();c.arc(px,py,11,0,7);c.stroke();}
+  c.textAlign='left';c.lineWidth=4;c.strokeStyle='rgba(0,0,0,.85)';c.strokeText(l[0],best[0]+3,best[1]+th-4);c.fillStyle=col;c.fillText(l[0],best[0]+3,best[1]+th-4);
+ });
+ c.restore();}
 function drawOverlays(t){
  const c=ictx,P=PROBES[S.probe];
  c.save();c.lineWidth=1.5;
@@ -1034,6 +1199,7 @@ const om=G.lin?toScreen(S.invert?0.5+(P.W/2-0.15)/P.Wtot:0.5-(P.W/2-0.15)/P.Wtot
  if(S.editing){c.fillStyle='#ffd27a';c.fillText((S.editing.text||'')+'▌',S.editing.x,S.editing.y);}
  const drawArrow=(ar,colr)=>{c.save();c.translate(ar.x,ar.y);c.rotate(ar.ang);c.fillStyle=colr;c.beginPath();c.moveTo(0,0);c.lineTo(-12,-6);c.lineTo(-9,-1.5);c.lineTo(-26,-1.5);c.lineTo(-26,1.5);c.lineTo(-9,1.5);c.lineTo(-12,6);c.closePath();c.fill();c.restore();};
  S.arrows.forEach(ar=>drawArrow(ar,'#fff'));if(S.arrowEdit)drawArrow(S.arrowEdit,'#ffd27a');
+ drawLabels(c);
  if(G.pano){c.fillStyle='#ffd27a';c.font='bold 13px IBM Plex Sans, sans-serif';c.fillText('LOGIQView – Panorama (15 cm)',10,imgC.height-10);}
  c.restore();
 }
@@ -1510,15 +1676,21 @@ const BODY_SVG=`<defs>
 <path d="M84,276 Q83,295 85,315 M116,276 Q117,295 115,315"/><path d="M95,56 Q100,60 105,56"/>
 </g>
 <ellipse cx="94" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><ellipse cx="106" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><path d="M95,41 Q100,44 105,41" stroke="#8a4f36" stroke-width="1.2" fill="none"/>`;
-const POSE={msk:[144,84,62],liver:[80,150,-25],ruq:[60,150,90],luq:[140,138,-90],pelvis:[100,190,0],cardiac:[100,126,0],lungR:[82,96,90],lungL:[118,96,-90],shoulder:[146,84,62],knee:[87,262,0],neck:[100,62,0],abdomen:[100,150,0]};
-function probeSVG(x,y,a){return `<g transform="translate(${x},${y}) rotate(${a})"><circle class="glow" cx="0" cy="0" r="9" fill="#ff9f1a" opacity=".8"/><g transform="translate(0,-2)" filter="url(#fSoft)"><path d="M-5.5,-6 Q-6.5,-20 0,-23 Q6.5,-20 5.5,-6 L6.5,0 L-6.5,0 Z" fill="url(#gProbe)" stroke="#6b737d" stroke-width=".8"/><rect x="-7.5" y="-1" width="15" height="4" rx="1.6" fill="#2b2f35"/><path d="M0,-23 C0,-36 10,-42 16,-58" stroke="#d6d9de" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="-3" cy="-12" r="1.1" fill="#1c66c9"/></g></g>`;}
+const POSE={sh_ssp:[146,80,70],sh_lbs:[136,100,0],kn_supra:[87,246,90],kn_pat:[87,278,90],neck:[93,63,0],abd_epi:[100,136,0],msk:[144,84,62],liver:[80,150,-25],ruq:[60,150,90],luq:[140,138,-90],pelvis:[100,190,0],cardiac:[100,126,0],lungR:[82,96,90],lungL:[118,96,-90],shoulder:[146,84,62],knee:[87,262,0],neck:[100,62,0],abdomen:[100,150,0]};
+function probeSVG(x,y,a){return `<g><circle class="glow" cx="0" cy="0" r="9" fill="#ff9f1a" opacity=".8"/><g transform="translate(0,-2)" filter="url(#fSoft)"><path d="M-5.5,-6 Q-6.5,-20 0,-23 Q6.5,-20 5.5,-6 L6.5,0 L-6.5,0 Z" fill="url(#gProbe)" stroke="#6b737d" stroke-width=".8"/><rect x="-7.5" y="-1" width="15" height="4" rx="1.6" fill="#2b2f35"/><path d="M0,-23 C0,-36 10,-42 16,-58" stroke="#d6d9de" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="-3" cy="-12" r="1.1" fill="#1c66c9"/></g></g>`;}
 function updPos(){
- bodysvg.innerHTML=BODY_SVG+Object.keys(SCENES).filter(k=>k!==S.scene&&POSE[k]).map(k=>`<circle class="pdot" data-pos="${k}" cx="${POSE[k][0]}" cy="${POSE[k][1]}" r="4.5"><title>${SCENES[k].name}</title></circle>`).join('')+(POSE[S.scene]?probeSVG(...POSE[S.scene]):'');
- posbtns.innerHTML=Object.entries(SCENES).map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${S.scene===k?'on':''}" title="${v.name}">${v.short}</button>`).join('');
+ if(!bodysvg.dataset.built){bodysvg.innerHTML=BODY_SVG+'<g id="dotsG"></g><g id="probeG" style="transition:transform 1.1s cubic-bezier(.4,.1,.2,1)">'+probeSVG(0,0,0)+'</g>';bodysvg.dataset.built='1';}
+ const pg=document.getElementById('probeG'),pose=POSE[S.scene]||[100,150,0];
+ pg.style.transform=`translate(${pose[0]}px,${pose[1]}px) rotate(${pose[2]}deg)`;
+ document.getElementById('dotsG').innerHTML=Object.keys(SCENES).filter(k=>k!==S.scene&&POSE[k]).map(k=>`<circle class="pdot" data-pos="${k}" cx="${POSE[k][0]}" cy="${POSE[k][1]}" r="4.5"><title>${SCENES[k].name}</title></circle>`).join('');
+ const groups={};Object.entries(SCENES).forEach(([k,v])=>{(groups[v.grp]=groups[v.grp]||[]).push([k,v]);});
+ posbtns.innerHTML=Object.entries(groups).map(([g,list])=>`<div class="pgrp"><span>${g}</span>${list.map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${S.scene===k?'on':''}" title="${v.name}">${v.short}</button>`).join('')}</div>`).join('');
+ const lb=document.getElementById('lblBtn');if(lb){lb.setAttribute('aria-pressed',!!S.labels);lb.textContent=S.labels?'Beschriftung aus':'Beschriftung an';}
 }
+
 function setScene(k){
  if(isOff()){toast('System ist aus');return;}
- S.scene=k;S.measure=null;S.lv=null;S.box.u=0.5;S.box.d=Math.min(S.depth*0.38,S.depth-0.5);S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
+ S.scene=k;S.labelFocus=-1;S.measure=null;S.lv=null;S.box.u=0.5;S.box.d=Math.min(S.depth*0.38,S.depth-0.5);S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
  buildMap();updPos();dirty=true;
  if(['ruq','luq','pelvis','cardiac'].includes(k)&&S.depth<12)toast('Tipp: Tiefe erhöhen (▼), für eFAST 14–18 cm');
  else if(/^lung/.test(k)&&S.depth>8)toast('Tipp: Für die Pleura Tiefe ca. 4–6 cm, ideal mit L3-12');
@@ -1527,7 +1699,7 @@ function setScene(k){
 }
 function syncCase(){caseSel.value=S.caseHidden?'hidden':S.caseKey;caseSel.disabled=S.caseHidden;}
 function setCase(k){S.caseKey=k;buildMap();syncCase();dirty=true;emit('case',k);}
-document.getElementById('posbar').addEventListener('click',e=>{const t=e.target.closest('[data-pos]');if(t)setScene(t.dataset.pos);});
+document.getElementById('posbar').addEventListener('click',e=>{if(e.target.closest('#lblBtn')){S.labels=!S.labels;S.labelFocus=-1;updPos();dirty=true;emit('touch','labels');return;}const t=e.target.closest('[data-pos]');if(t)setScene(t.dataset.pos);});
 caseSel.addEventListener('change',()=>{if(caseSel.value!=='hidden'){setCase(caseSel.value);toast('Befund: '+CASES[caseSel.value]);showInfo('case-select',true);}});
 
 // ================= eFAST-Text =================
@@ -1551,11 +1723,11 @@ async function vwait(ms){const tk=V.token;let t=0;while(t<ms){if(tk!==V.token)th
 function tgt(sel){if(!sel)return null;return document.querySelector(/^[#.\[]/.test(sel)?sel:`[data-id="${CSS.escape(sel)}"]`);}
 const vmark=document.getElementById('vmark');
 function nameOf(el){const id=el&&el.dataset&&el.dataset.id;if(id&&INFO[infoId(id)])return INFO[infoId(id)][0];if(el&&el.id==='caseSel')return 'Befund des Patienten';if(el&&el.id&&el.id.startsWith('tgc'))return 'TGC-Regler Zone '+(+el.id.slice(3)+1);if(el&&el.id==='annIn')return 'Kommentar';if(el&&el.id&&el.id.startsWith('pf-'))return 'Patientendaten';const t=(el&&el.textContent||'').trim();return t.slice(0,40);}
-function mark(el,verb,extra,rot){
+function mark(el,verb,extra,rot,nm){
  if(!el){vmark.classList.remove('on');return;}
  const r=el.getBoundingClientRect(),pad=6;
  vmark.style.left=(r.left-pad)+'px';vmark.style.top=(r.top-pad)+'px';vmark.style.width=(r.width+2*pad)+'px';vmark.style.height=(r.height+2*pad)+'px';
- const vl=vmark.querySelector('.vl');vl.innerHTML=`<b>${verb}</b> · ${esc(nameOf(el))}${extra?' '+extra:''}`;
+ const vl=vmark.querySelector('.vl');vl.innerHTML=`<b>${verb}</b> · ${esc(nm||nameOf(el))}${extra?' '+extra:''}`;
  vl.classList.toggle('below',r.top<70);
  vmark.classList.add('on');vmark.classList.toggle('rot',!!rot);vmark.classList.toggle('ccw',rot<0);
 }
@@ -1572,10 +1744,12 @@ async function A_boxTo(u,d){const k=S.depth/5;await A_tb((u-S.box.u)*spanCm(S.bo
 async function A_gateTo(u,d){const k=S.depth/5;await A_tb((u-S.gateU)*spanCm(S.gateD)/(0.02*k),(d-S.gateD)/(0.012*k),24);S.gateU=u;S.gateD=d;dirty=true;}
 async function A_mTo(u){const k=S.depth/5;await A_tb((u-S.mU)*spanCm(S.depth/2)/(0.02*k),0,16);S.mU=u;dirty=true;}
 async function A_depthTo(v){while(Math.abs(S.depth-v)>0.01){const before=S.depth;await A_click(S.depth>v?'depth-up':'depth-down');if(S.depth===before)break;}}
+async function A_label(name){const L=SCENES[S.scene].labels||[];const i=L.findIndex(l=>l[0]===name);S.labels=true;S.labelFocus=i;updPos();dirty=true;mark(document.getElementById('mon'),'STRUKTUR',null,0,name);await vwait(400);}
 async function A_preset(probe,preset){await A_click('probe-'+probe);await A_click('preset-'+preset);}
 async function A_annot(text){await A_click('abc');await A_type('#annIn',text);commitAnn();await vwait(300);}
 async function A_store(label){await A_click('freeze');if(label)await A_annot(label);await A_click('p1');await vwait(500);await A_click('freeze');}
 function resetAll(o={}){
+ S.labels=false;S.labelFocus=-1;document.getElementById('posbar').classList.toggle('big',!!o.big);
  S.off=false;S.bootUntil=0;if(S.freeze)doFreeze();S.review=null;S.measure=null;S.annots=[];S.arrows=[];S.arrowEdit=null;S.editing=null;hideAnn();S.bodyPattern=false;
  S.images=[];S.tab='scan';S.page=null;S.presetMenu=null;S.tgcOpen=false;S.kbd=false;S.dual=null;
  S.patient={last:o.last||'',first:o.first||'',id:o.last?'SIM10001':'',dob:'',sex:''};S.registered=!!o.last;
@@ -1694,7 +1868,75 @@ const TUTS=[
   T('Im M-Mode: nur waagrechte Linien, auch unter der Pleura. Das ist das Barcode- oder Stratosphären-Zeichen.',async()=>{await A_click('z');await A_mTo(0.5);await vwait(2500);}),
   T('Zum Vergleich die gesunde linke Seite: unter der Pleura körnig, also Seashore.',async()=>{await A_click('pos-lungL');await vwait(2500);}),
   T('Merke: Lungengleiten oder B-Linien schliessen einen Pneumothorax an dieser Stelle aus. Der Übergang von Gleiten zu Nicht-Gleiten, der Lung point, beweist ihn.',async()=>{await A_click('z');await A_select('normal');}),
-  T('Teste dich jetzt selbst: Unter Tests gibt es einen eFAST-Fall mit verdecktem Befund.')]}
+  T('Teste dich jetzt selbst: Unter Tests gibt es einen eFAST-Fall mit verdecktem Befund.')]},
+ {title:'Anatomie Schulter: Supraspinatus und Bizepssehne',sub:'Sondenposition, Schichten und Strukturen',setup:()=>resetAll({last:'Muster',first:'Max',preset:'Schulter',big:true}),steps:[
+  T('Anatomie der Schulter. Die Bilder sind schematisch vereinfacht, die Lage der Strukturen entspricht aber der echten Anatomie.'),
+  T('Lagerung für die Supraspinatussehne: Der Patient legt die Hand hinten in die Gesässtasche, die modifizierte Crass-Position. So dreht die Sehne unter dem Acromion hervor.'),
+  T('Die Linearsonde kommt oben seitlich auf die Schulter, längs zum Verlauf der Sehne.',()=>A_click('pos-sh_ssp')),
+  T('Wir blenden die Beschriftungen ein.',()=>A_click('#lblBtn')),
+  T('Ganz oben Haut und Unterhautfett, darunter der Deltamuskel mit seiner schräg gestreiften, gefiederten Struktur.',()=>A_label('M. deltoideus')),
+  T('Unter dem Deltamuskel eine helle Fettlinie mit der Bursa subacromialis. Normal ist sie nur ein feiner dunkler Strich von höchstens etwa zwei Millimetern.',()=>A_label('Bursa subacromialis')),
+  T('Darunter die Supraspinatussehne: echoreich, fein gestreift, mit gewölbter Oberfläche. Sie läuft wie ein Vogelschnabel zum Knochenansatz.',()=>A_label('Supraspinatussehne')),
+  T('Der dunkle Saum direkt über dem Knochen ist der Gelenkknorpel des Humeruskopfs. Nicht mit Flüssigkeit verwechseln!',()=>A_label('Gelenkknorpel')),
+  T('Die helle Linie mit dem Schallschatten darunter ist die Knochenoberfläche des Humeruskopfs.',()=>A_label('Humeruskopf')),
+  T('Seitlich steigt der Knochen zum Tuberculum majus an. Hier setzt die Sehne an, ihr sogenannter Footprint.',()=>A_label('Tuberculum majus')),
+  T('Ganz medial wirft das Acromion einen Schallschatten, darunter verschwindet die Sehne.',()=>A_label('Acromion')),
+  T('Achtung Anisotropie: Steht die Sonde nicht senkrecht zur Sehne, erscheint sie fälschlich dunkel und kann wie ein Riss aussehen. Dann die Sonde leicht kippen.'),
+  T('Jetzt die lange Bizepssehne: Sonde vorne quer auf den Oberarm, der Arm ist leicht aussenrotiert.',()=>A_click('pos-sh_lbs')),
+  T('Links das Tuberculum minus, rechts das Tuberculum majus, zwei Knochenhöcker mit Schallschatten.',async()=>{await A_label('Tuberculum minus');await vwait(1200);await A_label('Tuberculum majus');}),
+  T('Dazwischen die knöcherne Rinne, der Sulcus intertubercularis.',()=>A_label('Sulcus intertubercularis')),
+  T('In der Rinne liegt die lange Bizepssehne, im Querschnitt ein ovaler, echoreicher Punkt.',()=>A_label('Lange Bizepssehne')),
+  T('Darüber spannt sich das Ligamentum transversum, das die Sehne in der Rinne hält.',()=>A_label('Lig. transversum')),
+  T('Merke: Ein dunkler Flüssigkeitssaum um die Bizepssehne weist oft auf einen Gelenkerguss hin, weil ihre Sehnenscheide mit dem Schultergelenk verbunden ist.'),
+  T('Bild beschriften und speichern.',()=>A_store('re. Schulter LBS quer'))]},
+ {title:'Anatomie Knie: suprapatellar und Patellarsehne',sub:'Quadrizepssehne, Recessus, Erguss, Patellarsehne',setup:()=>resetAll({last:'Muster',first:'Max',preset:'Knie',big:true}),steps:[
+  T('Anatomie des Knies. Lagerung: Rückenlage, das Knie liegt etwa 20 bis 30 Grad gebeugt auf einer Rolle.'),
+  T('Die Linearsonde kommt längs oberhalb der Kniescheibe auf den Oberschenkel.',()=>A_click('pos-kn_supra')),
+  T('Beschriftungen an.',()=>A_click('#lblBtn')),
+  T('Oben die Quadrizepssehne: echoreich, fein fibrillär und mehrschichtig. Sie zieht zur Patella.',()=>A_label('Quadrizepssehne')),
+  T('Rechts die Patella, eine helle Knochenlinie mit Schallschatten.',()=>A_label('Patella')),
+  T('Unter der Sehne liegt der suprapatellare Fettkörper.',()=>A_label('Suprapatellarer Fettkörper')),
+  T('Der feine dunkle Spalt darunter ist der Recessus suprapatellaris, eine Aussackung der Gelenkhöhle.',()=>A_label('Recessus suprapatellaris')),
+  T('Darunter der präfemorale Fettkörper und ganz unten die helle Kortikalis des Femurs.',async()=>{await A_label('Präfemoraler Fettkörper');await vwait(1500);await A_label('Femur');}),
+  T('So sieht ein Gelenkerguss aus: Der Recessus weitet sich zu einem breiten schwarzen Raum. Hier sammelt sich Flüssigkeit zuerst.',async()=>{await A_select('ff');await A_label('Recessus suprapatellaris');}),
+  T('Wieder Normalbefund. Jetzt zur Patellarsehne: Sonde längs unterhalb der Kniescheibe.',async()=>{await A_select('normal');await A_click('pos-kn_pat');}),
+  T('Die Patellarsehne zieht als echoreiches Band von der Patellaspitze zur Tuberositas tibiae. Normal ist sie etwa 4 bis 6 Millimeter dick.',()=>A_label('Patellarsehne')),
+  T('Links die Patellaspitze, rechts die Tuberositas tibiae, beides Knochen mit Schallschatten.',async()=>{await A_label('Patella (Apex)');await vwait(1300);await A_label('Tuberositas tibiae');}),
+  T('Unter der Sehne liegt der echoreiche, inhomogene Hoffa-Fettkörper.',()=>A_label('Hoffa-Fettkörper')),
+  T('Am Ansatz an der Tibia sieht man oft die Bursa infrapatellaris profunda, ein wenig Flüssigkeit darin ist normal.',()=>A_label('Bursa infrapatellaris profunda')),
+  T('Klinik: Beim Patellaspitzensyndrom, dem Jumper’s Knee, ist die Sehne am Ursprung an der Patellaspitze verdickt und echoarm.'),
+  T('Bild speichern.',()=>A_store('re. Knie Patellarsehne längs'))]},
+ {title:'Anatomie Hals: Schilddrüse und Halsgefässe',sub:'Schilddrüse, Trachea, Carotis, Jugularis, Muskeln',setup:()=>resetAll({last:'Muster',first:'Max',preset:'Schilddrüse',big:true}),steps:[
+  T('Anatomie des Halses. Lagerung: Rückenlage, Kopf leicht überstreckt, eventuell ein Kissen unter die Schultern.'),
+  T('Die Linearsonde liegt quer auf dem Hals, rechts neben der Mittellinie. Links im Bild ist lateral, rechts im Bild medial.',()=>A_click('pos-neck')),
+  T('Beschriftungen an.',()=>A_click('#lblBtn')),
+  T('In der Mitte der rechte Schilddrüsenlappen: homogen und echoreicher als die umgebenden Muskeln.',()=>A_label('Schilddrüse')),
+  T('Vor der Luftröhre verbindet der Isthmus die beiden Lappen.',()=>A_label('Isthmus')),
+  T('Ganz rechts die Trachea. Luft reflektiert fast alles: eine helle Linie und dahinter nur Wiederholungsartefakte.',()=>A_label('Trachea')),
+  T('Seitlich der Schilddrüse liegt die Arteria carotis communis: rund, echofrei, pulsierend und nicht komprimierbar.',()=>A_label('A. carotis communis')),
+  T('Noch weiter lateral die Vena jugularis interna: oval, sie lässt sich mit der Sonde zusammendrücken und wird beim Pressen weiter.',()=>A_label('V. jugularis interna')),
+  T('Oberflächlich liegen der Musculus sternocleidomastoideus und die dünnen infrahyoidalen Muskeln.',async()=>{await A_label('M. sternocleidomastoideus');await vwait(1500);await A_label('Infrahyoidale Muskeln');}),
+  T('In der Tiefe vor der Wirbelsäule liegt der Musculus longus colli.',()=>A_label('M. longus colli')),
+  T('Mit dem Farbdoppler unterscheidest du die Gefässe: Die Carotis pulsiert rot, die Jugularis fliesst kontinuierlich in die Gegenrichtung.',async()=>{await A_click('x');await A_boxTo(vesselU(VES()[0])-0.015,1.4);await vwait(2500);await A_click('bknob');}),
+  T('Volumen eines Schilddrüsenlappens: Länge mal Breite mal Tiefe mal 0,52. Normal insgesamt bei Frauen bis etwa 18, bei Männern bis etwa 25 Milliliter.'),
+  T('Bild speichern.',()=>A_store('SD re. quer'))]},
+ {title:'Anatomie Abdomen: Oberbauch, Leber, Niere, Milz',sub:'Gefässe, Pankreas, Gallenblase, Niere',setup:()=>resetAll({last:'Muster',first:'Max',probe:'C1-6',preset:'Abdomen Allg.',big:true}),steps:[
+  T('Anatomie des Oberbauchs mit der Konvexsonde. Der Patient liegt auf dem Rücken, am besten nüchtern.'),
+  T('Die Sonde liegt quer im Epigastrium, unter dem Rippenbogen in der Mitte. Links im Bild ist die rechte Körperseite des Patienten.',()=>A_click('pos-abd_epi')),
+  T('Beschriftungen an.',()=>A_click('#lblBtn')),
+  T('Im Nahfeld der linke Leberlappen, rechts daneben der Magen mit Luft und Schallschatten.',async()=>{await A_label('Leber (linker Lappen)');await vwait(1500);await A_label('Magen');}),
+  T('In der Tiefe der helle Bogen des Wirbelkörpers. Davor links die Aorta: rund, pulsierend, normal unter drei Zentimetern.',async()=>{await A_label('Wirbelkörper');await vwait(1300);await A_label('Aorta');}),
+  T('Rechts der Aorta, im Bild links, die ovale Vena cava inferior, deren Weite mit der Atmung schwankt.',()=>A_label('V. cava inferior')),
+  T('Vor der Aorta die Arteria mesenterica superior mit ihrem hellen Fettmantel.',()=>A_label('A. mesenterica superior')),
+  T('Davor verläuft die Milzvene, die Vena lienalis, als dunkles Band. Sie ist die Leitstruktur zum Pankreas.',()=>A_label('V. lienalis')),
+  T('Das Pankreas liegt quer direkt vor der Milzvene und ist meist etwas echoreicher als die Leber.',()=>A_label('Pankreas')),
+  T('Jetzt unter den rechten Rippenbogen: Leber und Gallenblase.',async()=>{await A_click('pos-liver');await A_depthTo(16);}),
+  T('Die Gallenblase ist echofrei, dahinter wird das Bild heller: dorsale Schallverstärkung.',()=>A_label('Gallenblase')),
+  T('Portalvenenäste haben helle Wände, Lebervenen nicht. Unten begrenzt das Zwerchfell die Leber.',async()=>{await A_label('Portalvenenast');await vwait(1300);await A_label('Lebervene');await vwait(1300);await A_label('Zwerchfell');}),
+  T('Seitlich in der Flanke: die rechte Niere unter der Leber.',()=>A_click('pos-ruq')),
+  T('Die Nierenrinde ist echoärmer als die Leber, die Markpyramiden sind dunkel, der zentrale Sinus ist hell. Zwischen Leber und Niere liegt der Morison-Pouch.',async()=>{await A_label('Niere');await vwait(1500);await A_label('Morison-Pouch');}),
+  T('Links in der Flanke, etwas höher und weiter hinten: die Milz über der linken Niere.',async()=>{await A_click('pos-luq');await A_label('Milz');}),
+  T('Bild speichern. Damit kennst du die wichtigsten Strukturen im Oberbauch.',()=>A_store('Milz li.'))]}
 ];
 function tutDur(t){const i=TUTS.indexOf(t);return Math.max(1,Math.round(t.steps.reduce((a,s,k)=>{const c=clipFor(i,k);return a+Math.max(2.4,s.c.length*0.055,c?c.t+0.6:0)+2;},0)/60));}
 const TUTA=new Audio();TUTA.preload='auto';
@@ -1898,7 +2140,7 @@ async function askClaude(){
 
 // ================= Zwei Geräte: Monitor (Mac) + Bedienpult (iPad) =================
 const SYNC={mode:'all',room:null,bc:null,lastJson:'',lastSend:0,remoteAt:0,geo:''};
-const SYNC_KEYS=['probe','preset','scene','caseKey','caseHidden','color','spec','gainB','gainCF','gainPW','gainM','depth','zoom','steer','freeze','cine','cineMarks','power','dr','freq','focusPos','focusNum','sri','cxb','cxbLevel','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','tgc','tgcOpen','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate','box','tbMode','gateU','gateD','mU','dual','lv','measure','annots','editing','arrows','arrowEdit','bodyPattern','bpIdx','registered','off'];
+const SYNC_KEYS=['probe','preset','scene','caseKey','caseHidden','color','spec','gainB','gainCF','gainPW','gainM','depth','zoom','steer','freeze','cine','cineMarks','power','dr','freq','focusPos','focusNum','sri','cxb','cxbLevel','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','tgc','tgcOpen','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate','box','tbMode','gateU','gateD','mU','dual','lv','measure','annots','editing','arrows','arrowEdit','bodyPattern','bpIdx','registered','off','labels','labelFocus'];
 function snapState(now){const o={};SYNC_KEYS.forEach(k=>o[k]=S[k]);o.pn=S.patient.last+(S.patient.first?', '+S.patient.first:'');o.pid=S.patient.id;
  o.boot=Math.max(0,S.bootUntil-now);o.lvp=S.lv==='rec'?(now-S.lvStart):0;o.ni=S.images.length;o.rv=S.review?1:0;
  if(S.toast&&now<S.toast.until)o.toast={m:S.toast.msg,l:+(S.toast.until-now).toFixed(1),id:S.toast.id};
