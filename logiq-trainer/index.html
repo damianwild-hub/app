@@ -187,9 +187,25 @@ body.mode-pult .grid{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
 body.mode-pult #annBox{position:fixed;top:12px;z-index:50}
 .monitor:fullscreen{display:grid;place-items:center;background:#000;max-width:none}
 .monitor:fullscreen canvas{width:auto;height:100vh;max-width:100vw}
+/* Anki-Kartenmodus */
+#cardbar{display:none}
+body.mode-card header.top,body.mode-card .posbar,body.mode-card .foot,body.mode-card .ptabs{display:none}
+body.mode-card .app{padding-block:8px}
+body.mode-card .grid{display:flex;flex-direction:column;gap:10px}
+body.mode-card .side{display:contents}
+body.mode-card .monitor{order:1;max-width:560px;width:100%;margin:0 auto}
+body.mode-card .devicecol{order:2;width:100%}
+body.mode-card .panel{order:3}
+body.mode-card .pbody{max-height:none}
+body.mode-card #cardbar{display:block;order:0;background:#ff9f1a;color:#1a1204;font:700 15px var(--f-body);border-radius:8px;padding:8px 12px;text-align:center}
 /* Positions-Leiste, Tutorials, Tests, iPad */
 .posbar{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:12px;align-items:flex-start}
-.posbar svg{width:92px;flex:0 0 auto}
+.posbar svg{width:118px;flex:0 0 auto;overflow:visible}
+.posbar svg .pdot{fill:rgba(255,255,255,.75);stroke:#1c66c9;stroke-width:1.6;cursor:pointer}
+.posbar svg .pdot:hover{fill:#ff9f1a}
+.posbar svg .glow{animation:glow 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes glow{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:.25;transform:scale(1.5)}}
+@media (prefers-reduced-motion:reduce){.posbar svg .glow{animation:none}}
 .posbar svg .dot{fill:var(--surface2);stroke:var(--accent);stroke-width:1.5;cursor:pointer}
 .posbar svg .dot.on{fill:var(--hl);stroke:var(--hl)}
 .posbar svg .body{fill:none;stroke:var(--muted);stroke-width:1.4}
@@ -261,6 +277,7 @@ html,body{overscroll-behavior:none}
     </div>
   </header>
   <div class="grid">
+    <div id="cardbar"></div>
     <section class="devicecol" aria-label="Gerät">
       <div class="stagewrap" id="wrap"><div class="stage" id="stage"></div></div>
     </section>
@@ -270,12 +287,7 @@ html,body{overscroll-behavior:none}
         <div id="annBox" hidden><span>Kommentar:</span><input id="annIn" autocomplete="off" placeholder="Text, dann Enter"></div>
       </div>
       <div class="posbar" id="posbar">
-        <svg viewBox="0 0 120 150" aria-label="Schallkopf-Position am Patienten" id="bodysvg">
-          <circle class="body" cx="60" cy="14" r="10"/>
-          <path class="body" d="M40 30 Q60 24 80 30 L86 70 Q84 100 80 128 L40 128 Q36 100 34 70 Z"/>
-          <path class="body" d="M40 30 L26 60 L22 92 M80 30 L94 60 L98 92"/>
-          <path class="body" d="M54 34 L54 30 M66 34 L66 30"/>
-        </svg>
+        <svg viewBox="0 0 200 345" aria-label="Schallkopf-Position am Patienten" id="bodysvg"></svg>
         <div class="posctl">
           <div class="poslabel">Schallkopf-Position am Patienten</div>
           <div class="posbtns" id="posbtns"></div>
@@ -311,6 +323,7 @@ html,body{overscroll-behavior:none}
 <svg id="vcur" viewBox="0 0 24 24"><path d="M4 2l15 11-6.5 1.2 3.8 7.3-2.9 1.5-3.8-7.4L4 20z" fill="#fff" stroke="#111" stroke-width="1.3"/></svg>
 <div id="vcap" hidden></div>
 <script src="tut-audio.js"></script>
+<script src="voice-lines.js"></script>
 <script>
 "use strict";
 // ================= Daten: Sonden =================
@@ -1135,7 +1148,8 @@ function emit(type,id,extra){
  if(EXS.cur==null)return;const ex=EX[EXS.cur],st=ex.steps[EXS.step];if(!st)return;
  const e={type,id,...extra};let ok=false;
  if(st.ok&&st.ok(e))ok=true;if(st.cond&&st.cond())ok=true;
- if(ok){EXS.step++;if(EXS.step>=ex.steps.length){EXS.done.add(EXS.cur);toast('✓ Übung „'+ex.title+'“ geschafft!',3500);}renderPanel();applyHint();setTimeout(()=>emit('tick','tick'),30);}
+ if(ok){const prev=st;EXS.step++;if(EXS.step>=ex.steps.length){EXS.done.add(EXS.cur);toast('✓ Übung „'+ex.title+'“ geschafft!',3500);}GUIDE.wrong=0;GUIDE.showHl=false;renderPanel();applyHint();if(GUIDE.on)guideSuccess(prev);setTimeout(()=>emit('tick','tick'),30);}
+ else if(GUIDE.on&&(type==='press'||type==='rotate'||type==='touch')&&id&&id!=='tick')guideWrong(id);
 }
 function doFreeze(){
  S.freeze=!S.freeze;
@@ -1385,6 +1399,7 @@ function showInfo(id,soft){
  if(!INFO[id])return;lastInfo=id;
  if(EXS.cur!=null&&ptab==='ex'){renderPanel();return;}
  if(ptab==='tut'||ptab==='test')return;
+ if(window.CARD&&CARD.id){ptab='info';renderPanel();return;}
  if(ptab!=='info'&&soft&&ptab!=='idx')return;
  ptab='info';renderPanel();
 }
@@ -1400,10 +1415,13 @@ function renderPanel(){
  else if(ptab==='test'){h=testHTML();}
  else if(ptab==='info'){h=infoHTML(lastInfo)+`<div class="hintbox" style="margin-top:14px">Klicke auf eine beliebige Taste, einen Knopf oder ein Touchscreen-Feld, um hier die Erklärung zu sehen. Unter <b>Übungen</b> führe ich dich Schritt für Schritt durch typische Abläufe.</div>`;}
  else if(ptab==='ex'){
-  if(EXS.cur==null){h=`<h2>Geführte Übungen</h2><p class="muted">Das nächste Bedienelement leuchtet jeweils orange. Die Übungen bauen aufeinander auf, du kannst aber auch einzeln starten.</p><div class="exlist">${EX.map((x,i)=>`<button data-ex="${i}"><span>${i+1}. ${x.title}</span><span class="${EXS.done.has(i)?'done':'muted'}">${EXS.done.has(i)?'✓ erledigt':x.steps.length+' Schritte'}</span></button>`).join('')}</div>`;}
+  if(EXS.cur==null){h=`<h2>Geführte Übungen</h2><p class="muted">${GUIDE.on?'Mit Sprachführung: Die Stimme sagt dir, was zu tun ist, und wartet, bis du es gemacht hast. Drückst du etwas anderes, erklärt sie dir, was das war. Markiert wird erst, wenn du Hilfe brauchst.':'Das nächste Bedienelement leuchtet jeweils orange.'} Die Übungen bauen aufeinander auf, du kannst aber auch einzeln starten.</p>
+  <div class="btnrow" style="margin:0 0 10px"><button class="btn ${GUIDE.on?'primary':''}" data-gtoggle="1">${GUIDE.on?'🔊 Sprachführung an':'🔇 Sprachführung aus'}</button></div><div class="exlist">${EX.map((x,i)=>`<button data-ex="${i}"><span>${i+1}. ${x.title}</span><span class="${EXS.done.has(i)?'done':'muted'}">${EXS.done.has(i)?'✓ erledigt':x.steps.length+' Schritte'}</span></button>`).join('')}</div>`;}
   else{const ex=EX[EXS.cur];const fin=EXS.step>=ex.steps.length;
    h=`<span class="chip">Übung ${EXS.cur+1} von ${EX.length}</span><h2>${ex.title}</h2><ol class="steps">${ex.steps.map((s,i)=>`<li class="${i<EXS.step?'ok':(i===EXS.step?'cur':'')}"><span class="dot">${i<EXS.step?'✓':i+1}</span><span>${s.t}</span></li>`).join('')}</ol>`;
    if(fin)h+=`<div class="hintbox">✓ Geschafft! ${EXS.cur+1<EX.length?'Weiter mit der nächsten Übung?':'Du hast alle Übungen abgeschlossen.'}</div>`;
+   if(!fin&&GUIDE.on)h+=`<div class="btnrow"><button class="btn" data-g="repeat">🔁 Nochmal sagen</button><button class="btn" data-g="show">👀 Zeig mir, wo</button><button class="btn" data-g="explain">❓ Erklär mir das</button><button class="btn" data-g="mute">${GUIDE.muted?'🔇 Stumm':'🔊 Ton an'}</button></div>`;
+   if(GUIDE.on)h+=voiceSel()+askHTML();
    h+=`<div class="btnrow">${fin&&EXS.cur+1<EX.length?`<button class="btn primary" data-exgo="${EXS.cur+1}">Nächste Übung</button>`:''}${!fin?`<button class="btn" data-exskip="1">Schritt überspringen</button>`:''}<button class="btn" data-exlist="1">Zur Übersicht</button></div>`;
    if(lastInfo&&INFO[lastInfo])h+=`<h3>Zuletzt benutzt: ${INFO[lastInfo][0]}</h3><p class="muted" style="font-size:14px">${INFO[lastInfo][2]}</p>`;}
  }
@@ -1424,11 +1442,16 @@ function renderPanel(){
   <button class="btn primary" data-ptabgo="ex">Zu den Übungen</button>${EFAST_HTML}</div>`;}
  pbody.innerHTML=h;
 }
+pbody.addEventListener('change',e=>{if(e.target.id==='voiceSel'){VOICE_SRC=e.target.value;try{localStorage.setItem('logiq-voice',VOICE_SRC);}catch(err){}unlockAudio();sayStop();say(['So klinge ich. Gut gemacht!']);}});
+pbody.addEventListener('keydown',e=>{if(e.target.id==='askIn'&&e.key==='Enter'){e.preventDefault();askClaude();}e.stopPropagation();});
 pbody.addEventListener('click',e=>{
  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
- if(d.ex!==undefined||d.exgo!==undefined){EXS.cur=+(d.ex??d.exgo);EXS.step=0;renderPanel();applyHint();emit('tick','tick');}
- if(d.exskip){EXS.step++;if(EXS.step>=EX[EXS.cur].steps.length)EXS.done.add(EXS.cur);renderPanel();applyHint();}
- if(d.exlist){EXS.cur=null;renderPanel();applyHint();}
+ if(d.ex!==undefined||d.exgo!==undefined){unlockAudio();EXS.cur=+(d.ex??d.exgo);EXS.step=0;GUIDE.wrong=0;GUIDE.showHl=false;renderPanel();applyHint();if(GUIDE.on)guideStart();emit('tick','tick');}
+ if(d.gtoggle){GUIDE.on=!GUIDE.on;if(!GUIDE.on)sayStop();renderPanel();applyHint();}
+ if(d.g){unlockAudio();guideBtn(d.g);}
+ if(d.ask){askClaude();}
+ if(d.exskip){GUIDE.wrong=0;GUIDE.showHl=false;EXS.step++;if(GUIDE.on&&EX[EXS.cur].steps[EXS.step])say(['Gut, wir überspringen das.','Als Nächstes:',EX[EXS.cur].steps[EXS.step].t]);if(EXS.step>=EX[EXS.cur].steps.length)EXS.done.add(EXS.cur);renderPanel();applyHint();}
+ if(d.exlist){EXS.cur=null;sayStop();renderPanel();applyHint();}
  if(d.goto){lastInfo=d.goto;const t=stage.querySelector(`[data-id="${d.goto}"]`);ptab='info';renderPanel();if(t){t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),2200);t.scrollIntoView({block:'nearest',behavior:'smooth'});}}
  if(d.ptabgo){ptab=d.ptabgo;renderPanel();}
  if(d.tplay!==undefined){unlockAudio();playTut(+d.tplay,0);}
@@ -1444,8 +1467,9 @@ pbody.addEventListener('click',e=>{
 function applyHint(){
  document.querySelectorAll('.hint').forEach(x=>x.classList.remove('hint'));
  let hl=null;
- if(TS.set!=null){const tk=TESTS[TS.set].tasks[TS.i];if(tk&&TS.hint)hl=tk.hl;}
- else if(EXS.cur!=null){const st=EX[EXS.cur].steps[EXS.step];if(st)hl=st.hl;}
+ if(window.CARD&&CARD.hl)hl=CARD.hl;
+ else if(TS.set!=null){const tk=TESTS[TS.set].tasks[TS.i];if(tk&&TS.hint)hl=tk.hl;}
+ else if(EXS.cur!=null&&(!GUIDE.on||GUIDE.showHl)){const st=EX[EXS.cur].steps[EXS.step];if(st)hl=st.hl;}
  if(!hl)return;
  const t=document.querySelector(`[data-id="${CSS.escape(hl)}"]`);if(t)t.classList.add('hint');
 }
@@ -1453,10 +1477,44 @@ function applyHint(){
 // ================= Schallkopf-Position & Befund =================
 const posbtns=document.getElementById('posbtns'),caseSel=document.getElementById('caseSel'),bodysvg=document.getElementById('bodysvg');
 function imgsWith(f){return S.images.some(f);}
+const BODY_SVG=`<defs>
+<linearGradient id="gLimb" x1="0" x2="1"><stop offset="0" stop-color="#b9785a"/><stop offset=".35" stop-color="#f0c3a1"/><stop offset=".62" stop-color="#e9b691"/><stop offset="1" stop-color="#ad6c4e"/></linearGradient>
+<radialGradient id="gTorso" cx=".5" cy=".38" r=".7"><stop offset="0" stop-color="#f7d3b5"/><stop offset=".55" stop-color="#e5ab84"/><stop offset="1" stop-color="#b8775a"/></radialGradient>
+<radialGradient id="gHead" cx=".42" cy=".35" r=".75"><stop offset="0" stop-color="#f6d0b1"/><stop offset=".7" stop-color="#dda07a"/><stop offset="1" stop-color="#b8775a"/></radialGradient>
+<radialGradient id="gDelt" cx=".45" cy=".35" r=".7"><stop offset="0" stop-color="#f5cdae"/><stop offset="1" stop-color="#c0805f"/></radialGradient>
+<linearGradient id="gShorts" x1="0" x2="1"><stop offset="0" stop-color="#16325e"/><stop offset=".5" stop-color="#2b5aa5"/><stop offset="1" stop-color="#132a50"/></linearGradient>
+<linearGradient id="gProbe" x1="0" x2="1"><stop offset="0" stop-color="#cfd3d8"/><stop offset=".45" stop-color="#ffffff"/><stop offset="1" stop-color="#aab0b8"/></linearGradient>
+<filter id="fSoft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".28"/></filter>
+</defs>
+<ellipse cx="100" cy="338" rx="46" ry="5" fill="#000" opacity=".15"/>
+<g filter="url(#fSoft)" stroke="#9c5f43" stroke-width=".8">
+<path fill="url(#gLimb)" d="M72,196 C68,222 71,244 78,262 L97,262 C99,244 101,222 100,198 Z"/><path fill="url(#gLimb)" d="M128,196 C132,222 129,244 122,262 L103,262 C101,244 99,222 100,198 Z"/>
+<path fill="url(#gLimb)" d="M78,268 C74,290 77,310 80,328 L93,328 C95,310 98,290 97,268 Z"/><path fill="url(#gLimb)" d="M122,268 C126,290 123,310 120,328 L107,328 C105,310 102,290 103,268 Z"/>
+<ellipse cx="87" cy="266" rx="10.5" ry="8" fill="url(#gDelt)"/><ellipse cx="113" cy="266" rx="10.5" ry="8" fill="url(#gDelt)"/>
+<ellipse cx="85" cy="333" rx="10" ry="5" fill="url(#gLimb)"/><ellipse cx="115" cy="333" rx="10" ry="5" fill="url(#gLimb)"/>
+<path fill="url(#gLimb)" d="M47,92 C39,110 35,128 35,150 L50,153 C52,131 58,113 63,99 Z"/><path fill="url(#gLimb)" d="M153,92 C161,110 165,128 165,150 L150,153 C148,131 142,113 137,99 Z"/>
+<path fill="url(#gLimb)" d="M35,151 C32,173 31,193 33,214 L44,214 C46,193 48,173 50,153 Z"/><path fill="url(#gLimb)" d="M165,151 C168,173 169,193 167,214 L156,214 C154,193 152,173 150,153 Z"/>
+<ellipse cx="38.5" cy="223" rx="6.5" ry="10.5" fill="url(#gLimb)"/><ellipse cx="161.5" cy="223" rx="6.5" ry="10.5" fill="url(#gLimb)"/>
+<path fill="url(#gLimb)" d="M90,48 L110,48 L113,72 L87,72 Z"/>
+<path fill="url(#gTorso)" d="M70,73 C59,78 53,90 55,108 C57,130 66,150 72,166 C70,178 70,188 72,198 L128,198 C130,188 130,178 128,166 C134,150 143,130 145,108 C147,90 141,78 130,73 C117,67 83,67 70,73 Z"/>
+<ellipse cx="57" cy="87" rx="15" ry="13" fill="url(#gDelt)"/><ellipse cx="143" cy="87" rx="15" ry="13" fill="url(#gDelt)"/>
+<ellipse cx="100" cy="31" rx="16" ry="20" fill="url(#gHead)"/>
+<path fill="url(#gShorts)" stroke="#0e1f3a" d="M70,188 L130,188 L135,228 L104,230 L100,214 L96,230 L65,228 Z"/>
+</g>
+<path d="M85,14 C90,8 110,8 115,14 C117,19 116,22 115,24 C110,17 90,17 85,24 C84,22 83,19 85,14 Z" fill="#3a2a20"/>
+<g fill="none" stroke="#8a4f36" stroke-opacity=".38" stroke-width="1.15" stroke-linecap="round">
+<path d="M76,76 Q88,80 99,76 M124,76 Q112,80 101,76"/><path d="M100,82 L100,124"/><path d="M71,107 Q86,119 99,112 M129,107 Q114,119 101,112"/>
+<path d="M100,128 L100,180 M89,137 Q100,140 111,137 M88,151 Q100,154 112,151 M89,165 Q100,168 111,165"/>
+<path d="M77,138 Q84,158 86,182 M123,138 Q116,158 114,182"/><path d="M50,96 Q57,104 64,98 M150,96 Q143,104 136,98"/>
+<path d="M44,112 Q46,128 47,142 M156,112 Q154,128 153,142"/><path d="M84,236 Q88,248 87,258 M116,236 Q112,248 113,258 M92,240 Q94,250 93,258 M108,240 Q106,250 107,258"/>
+<path d="M84,276 Q83,295 85,315 M116,276 Q117,295 115,315"/><path d="M95,56 Q100,60 105,56"/>
+</g>
+<ellipse cx="94" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><ellipse cx="106" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><path d="M95,41 Q100,44 105,41" stroke="#8a4f36" stroke-width="1.2" fill="none"/>`;
+const POSE={msk:[144,84,62],liver:[80,150,-25],ruq:[60,150,90],luq:[140,138,-90],pelvis:[100,190,0],cardiac:[100,126,0],lungR:[82,96,90],lungL:[118,96,-90],shoulder:[146,84,62],knee:[87,262,0],neck:[100,62,0],abdomen:[100,150,0]};
+function probeSVG(x,y,a){return `<g transform="translate(${x},${y}) rotate(${a})"><circle class="glow" cx="0" cy="0" r="9" fill="#ff9f1a" opacity=".8"/><g transform="translate(0,-2)" filter="url(#fSoft)"><path d="M-5.5,-6 Q-6.5,-20 0,-23 Q6.5,-20 5.5,-6 L6.5,0 L-6.5,0 Z" fill="url(#gProbe)" stroke="#6b737d" stroke-width=".8"/><rect x="-7.5" y="-1" width="15" height="4" rx="1.6" fill="#2b2f35"/><path d="M0,-23 C0,-36 10,-42 16,-58" stroke="#d6d9de" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="-3" cy="-12" r="1.1" fill="#1c66c9"/></g></g>`;}
 function updPos(){
+ bodysvg.innerHTML=BODY_SVG+Object.keys(SCENES).filter(k=>k!==S.scene&&POSE[k]).map(k=>`<circle class="pdot" data-pos="${k}" cx="${POSE[k][0]}" cy="${POSE[k][1]}" r="4.5"><title>${SCENES[k].name}</title></circle>`).join('')+(POSE[S.scene]?probeSVG(...POSE[S.scene]):'');
  posbtns.innerHTML=Object.entries(SCENES).map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${S.scene===k?'on':''}" title="${v.name}">${v.short}</button>`).join('');
- bodysvg.querySelectorAll('.dot').forEach(d=>d.remove());
- Object.entries(SCENES).forEach(([k,v])=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',v.dot[0]);c.setAttribute('cy',v.dot[1]);c.setAttribute('r',S.scene===k?6:4.5);c.setAttribute('class','dot'+(S.scene===k?' on':''));c.dataset.pos=k;const ti=document.createElementNS('http://www.w3.org/2000/svg','title');ti.textContent=v.name;c.appendChild(ti);bodysvg.appendChild(c);});
 }
 function setScene(k){
  if(isOff()){toast('System ist aus');return;}
@@ -1644,7 +1702,13 @@ function capHash(t){let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|
 function clipFor(i,k){const A=window.TUT_AUDIO;const c=A&&A[i]&&A[i][k];if(!c)return null;return c.h===capHash(TUTS[i].steps[k].c)?c:null;}
 function unlockAudio(){try{TUTA.src='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';const p=TUTA.play();if(p)p.catch(()=>{});}catch(e){}}
 function playClip(c){return new Promise(res=>{try{TUTA.pause();TUTA.src=c.d;TUTA.playbackRate=V.speed;TUTA.onended=res;TUTA.onerror=res;const p=TUTA.play();if(p)p.catch(()=>res());setTimeout(res,(c.t/V.speed)*1000+2500);}catch(e){res();}});}
+const VOICES=[['thorsten','Thorsten (überall)'],['buttery','Claude · Buttery'],['airy','Claude · Airy'],['glassy','Claude · Glassy'],['rounded','Claude · Rounded']];
+let VOICE_SRC='thorsten';try{VOICE_SRC=localStorage.getItem('logiq-voice')||'thorsten';}catch(e){}
+function claudeVoice(){return VOICE_SRC!=='thorsten'&&window.TTSCAP?VOICE_SRC:null;}
+function voiceSel(){if(!window.TTSCAP)return '';return `<label class="caserow" style="margin:6px 0">Stimme: <select id="voiceSel">${VOICES.map(([k,l])=>`<option value="${k}" ${VOICE_SRC===k?'selected':''}>${l}</option>`).join('')}</select></label>`;}
+function ttsSpeak(text){return new Promise(res=>{const cv=claudeVoice();if(!cv)return res(false);window.TTSCAP.speak(text.replace(/▲/g,'Pfeil nach oben').replace(/▼/g,'Pfeil nach unten'),{voice:cv,language:'de',rate:Math.min(1.5,Math.max(0.7,V.speed))}).then(()=>res(true),()=>res(false));});}
 function speak(text,clip){
+ if(!V.rec&&V.voice&&claudeVoice())return ttsSpeak(text);
  if(V.rec||!V.voice)return Promise.resolve();
  if(clip)return playClip(clip);
  if(!('speechSynthesis' in window))return Promise.resolve();
@@ -1658,14 +1722,14 @@ function updVcap(){
 }
 vcap.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){unlockAudio();vctl(b.dataset.v);}});
 function vctl(a){
- if(a==='pause'){V.paused=!V.paused;try{V.paused?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}if(V.paused)TUTA.pause();else if(TUTA.src&&!TUTA.ended)TUTA.play().catch(()=>{});updVcap();}
+ if(a==='pause'){V.paused=!V.paused;try{if(window.TTSCAP)V.paused?window.TTSCAP.pause():window.TTSCAP.resume();}catch(e){}try{V.paused?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}if(V.paused)TUTA.pause();else if(TUTA.src&&!TUTA.ended)TUTA.play().catch(()=>{});updVcap();}
  if(a==='stop')stopTut();
  if(a==='next'&&V.tut!=null)playTut(V.tut,Math.min(V.step+1,TUTS[V.tut].steps.length-1));
  if(a==='prev'&&V.tut!=null)playTut(V.tut,Math.max(0,V.step-1));
  if(a==='speed'){V.speed=V.speed===1?1.5:(V.speed===1.5?0.75:1);updVcap();renderPanel();}
  if(a==='voice'){V.voice=!V.voice;if(!V.voice){try{speechSynthesis.cancel();}catch(e){}TUTA.pause();}updVcap();renderPanel();}
 }
-function stopTut(){unmark();vcur.style.visibility='hidden';TUTA.pause();V.token++;V.playing=false;V.paused=false;V.tut=null;try{speechSynthesis.cancel();}catch(e){}updVcap();if(ptab==='tut')renderPanel();}
+function stopTut(){try{window.TTSCAP&&window.TTSCAP.stop();}catch(e){}unmark();vcur.style.visibility='hidden';TUTA.pause();V.token++;V.playing=false;V.paused=false;V.tut=null;try{speechSynthesis.cancel();}catch(e){}updVcap();if(ptab==='tut')renderPanel();}
 async function playTut(i,from=0){
  V.token++;try{speechSynthesis.cancel();}catch(e){}TUTA.pause();
  const tk=V.token;V.tut=i;V.step=from;V.playing=true;V.paused=false;V.done=false;
@@ -1692,7 +1756,7 @@ function tutHTML(){
  if(V.tut!=null){const t=TUTS[V.tut];
   h+=`<span class="chip">Läuft · Tutorial ${V.tut+1}</span><h2>${t.title}</h2><div class="btnrow" style="margin-top:4px"><button class="btn" data-v="pause">${V.paused?'▶ Weiter':'⏸ Pause'}</button><button class="btn" data-v="speed">Tempo ${V.speed}×</button><button class="btn" data-v="voice">${V.voice?'🔊 Stimme an':'🔇 Stimme aus'}</button><button class="btn" data-v="stop">✕ Beenden</button></div>
   <ol class="tsteps">${t.steps.map((s,k)=>`<li class="${k===V.step?'cur':''}"><button data-tjump="${k}">${k+1}. ${esc(s.c)}</button></li>`).join('')}</ol><h3>Alle Tutorials</h3>`;}
- else h+=`<h2>Video-Tutorials</h2><p class="muted">Das Gerät bedient sich selbst: Ein Zeiger zeigt, was gedrückt wird, unten läuft der Text mit (auf Wunsch auch vorgelesen). Du kannst jederzeit pausieren, Schritte anklicken oder selbst eingreifen.</p>`;
+ else h+=voiceSel()+`<h2>Video-Tutorials</h2><p class="muted">Das Gerät bedient sich selbst: Ein Zeiger zeigt, was gedrückt wird, unten läuft der Text mit (auf Wunsch auch vorgelesen). Du kannst jederzeit pausieren, Schritte anklicken oder selbst eingreifen.</p>`;
  h+=`<div class="tutlist">${TUTS.map((t,i)=>`<div class="tut"><b>${i+1}. ${t.title}</b><span>${t.sub} · ca. ${tutDur(t)} min</span><button class="btn primary" data-tplay="${i}">▶ Abspielen</button></div>`).join('')}</div>`;
  return h;
 }
@@ -1772,6 +1836,64 @@ function testHTML(){
  else{h+=TS.hint?`<div class="hintbox">💡 ${tk.hint}</div>`:'';h+=`<div class="btnrow">${TS.hint?'':`<button class="btn" data-thint="1">Hinweis zeigen (−1 Punkt)</button>`}<button class="btn" data-tskip="1">Überspringen (0 Punkte)</button><button class="btn" data-tstop="1">Test abbrechen</button></div>`;}
  if(TS.res.length)h+=`<h3>Bisher</h3><table class="res">${TS.res.map((r,i)=>`<tr><td>${i+1}. ${esc(r.t)}</td><td class="${r.pts===2?'ok':(r.pts?'':'bad')}">${r.pts} P</td></tr>`).join('')}</table>`;
  return h;
+}
+
+// ================= Sprachführung =================
+const GUIDE={on:true,muted:false,wrong:0,showHl:false,lastWrong:0,lastId:null,q:0};
+const PRAISE=['Gut gemacht!','Super!','Genau richtig!','Perfekt!','Sehr gut!'];
+const GLINES={start:'Los geht’s. Ich sage dir, was zu tun ist.',done:'Übung geschafft! Toll gemacht.',mark:'Gesucht ist etwas anderes. Ich markiere es dir orange.',look:'Schau auf das orange markierte Element.',next:'Als Nächstes:',again:'Ich wiederhole:',skip:'Gut, wir überspringen das.'};
+function firstSent(t,n){const m=String(t).match(/[^.!?]+[.!?]+/g)||[t];return m.slice(0,n).join(' ').trim();}
+function explainText(id){const k=infoId(id);const I=INFO[k];if(!I)return null;return `Das ist ${I[0]}. ${firstSent(I[2],2)}`;}
+function whyText(st){if(st.why)return st.why;const k=st.hl&&infoId(st.hl);const I=k&&INFO[k];return I?firstSent(I[2],1):null;}
+function guideTexts(){const out=new Set(PRAISE);Object.values(GLINES).forEach(x=>out.add(x));EX.forEach(ex=>ex.steps.forEach(st=>{out.add(st.t);const w=whyText(st);if(w)out.add(w);}));Object.keys(INFO).forEach(k=>{const e=explainText(k);if(e)out.add(e);});return [...out];}
+let SAYTOK=0;
+function voiceClip(t){const V2=window.VOICE_LINES;const c=V2&&V2[capHash(t)];return c||null;}
+window.TTSCAP=null;(async()=>{try{if(window.claude&&window.claude.use){window.TTSCAP=await window.claude.use('tts');if(window.TTSCAP&&(ptab==='tut'||ptab==='ex'))renderPanel();}}catch(e){}})();
+function sayOne(t){
+ return new Promise(res=>{
+  if(GUIDE.muted)return res();
+  if(claudeVoice()){ttsSpeak(t).then(res);return;}
+  const c=voiceClip(t);
+  if(c){playClip(c).then(res);return;}
+  if(window.TTSCAP){window.TTSCAP.speak(t,{language:'de'}).then(res,()=>res());return;}
+  if('speechSynthesis' in window){try{const u=new SpeechSynthesisUtterance(t);u.lang='de-DE';const vo=speechSynthesis.getVoices().find(v=>/^de/i.test(v.lang));if(vo)u.voice=vo;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,t.length*110+4000);}catch(e){res();}return;}
+  res();});
+}
+async function say(list){const tk=++SAYTOK;for(const t of list){if(!t)continue;if(tk!==SAYTOK)return;await sayOne(t);if(tk!==SAYTOK)return;await sleep(250);}}
+function sayStop(){SAYTOK++;try{TUTA.pause();}catch(e){}try{speechSynthesis.cancel();}catch(e){}try{window.TTSCAP&&window.TTSCAP.stop();}catch(e){}}
+function curStep(){return EXS.cur!=null?EX[EXS.cur].steps[EXS.step]:null;}
+function guideStart(){const st=curStep();say([GLINES.start,st&&st.t]);}
+function guideSuccess(prev){
+ const st=curStep();const pr=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+ if(!st)say([pr,whyText(prev),GLINES.done]);else say([pr,whyText(prev),GLINES.next,st.t]);
+}
+function guideWrong(id){
+ const st=curStep();if(!st)return;const now=performance.now();
+ if(st.hl&&infoId(id)===infoId(st.hl))return;
+ if(now-GUIDE.lastWrong<3500)return;GUIDE.lastWrong=now;GUIDE.wrong++;GUIDE.lastId=id;
+ const ex=explainText(id);
+ if(GUIDE.wrong>=2&&!GUIDE.showHl){GUIDE.showHl=true;applyHint();say([ex,GLINES.mark]);}
+ else say([ex]);
+}
+function guideBtn(a){
+ const st=curStep();
+ if(a==='repeat'&&st)say([GLINES.again,st.t]);
+ if(a==='show'&&st){GUIDE.showHl=true;applyHint();say([GLINES.look]);const el=st.hl&&document.querySelector(`[data-id="${CSS.escape(st.hl)}"]`);if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+ if(a==='explain'){const id=GUIDE.lastId||lastInfo||(st&&st.hl);const e=id&&explainText(id);if(e)say([e]);else if(st&&st.hl)say([explainText(st.hl)]);}
+ if(a==='mute'){GUIDE.muted=!GUIDE.muted;if(GUIDE.muted)sayStop();renderPanel();}
+}
+// Frage an Claude
+let SAMPLE=null;(async()=>{try{if(window.claude&&window.claude.use){SAMPLE=await window.claude.use('sample');if(SAMPLE&&ptab==='ex')renderPanel();}}catch(e){}})();
+let ASK={busy:false,a:'',q:''};
+function askHTML(){if(!SAMPLE)return '';return `<h3>Frage an Claude</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><input id="askIn" style="flex:1;min-width:180px;font:15px var(--f-body);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--surface2);color:var(--ink)" placeholder="z. B. Warum wird das Bild bei hoher Frequenz in der Tiefe dunkler?" value="${esc(ASK.q)}"><button class="btn primary" data-ask="1" ${ASK.busy?'disabled':''}>${ASK.busy?'Denkt …':'Fragen'}</button></div>${ASK.a?`<div class="hintbox" style="margin-top:8px;white-space:pre-wrap">${esc(ASK.a)}</div>`:''}`;}
+async function askClaude(){
+ const inp=document.getElementById('askIn');const q=(inp&&inp.value||'').trim();if(!q||!SAMPLE||ASK.busy)return;
+ ASK.q=q;ASK.busy=true;ASK.a='';renderPanel();
+ const st=curStep();const ctx=`Simulator-Zustand: Sonde ${S.probe}, Preset ${S.preset}, Position ${SCENES[S.scene].name}, Modus B${S.color!=='none'?'+'+S.color:''}${S.spec!=='none'?'+'+S.spec:''}, Tiefe ${S.depth} cm, Gain ${S.gainB}, Frequenz ${S.freq} MHz, eingefroren: ${S.freeze?'ja':'nein'}. Aktuelle Übung: ${EXS.cur!=null?EX[EXS.cur].title:'keine'}${st?', Schritt: '+st.t:''}. Zuletzt benutztes Bedienelement: ${INFO[lastInfo]?INFO[lastInfo][0]+' – '+INFO[lastInfo][2]:'–'}.`;
+ const prompt=`Du bist ein freundlicher Ultraschall-Tutor für einen Medizinstudenten, der an einem Simulator eines GE-LOGIQ-Ultraschallgeräts (deutsche Oberfläche) übt. Antworte auf Deutsch, kurz und klar (höchstens 4 Sätze), ohne Markdown. Schreibe „ss“ statt „ß“. Wenn du dir bei gerätespezifischen Details unsicher bist, sag das und verweise auf das Handbuch bzw. MyTrainer am Gerät.\n\n${ctx}\n\nFrage: ${q}`;
+ try{const r=await SAMPLE(prompt,{modelTier:'quick',cache:false,onText:({text})=>{ASK.a=text;const hb=document.querySelector('#pbody .hintbox:last-child');}});ASK.a=(r&&r.text)||ASK.a;}
+ catch(e){ASK.a=e&&e.code==='not_granted'?'Die Frage-Funktion wurde nicht freigegeben.':'Claude konnte gerade nicht antworten. Versuch es gleich nochmal.';}
+ ASK.busy=false;renderPanel();if(ASK.a)say([ASK.a]);
 }
 
 // ================= Zwei Geräte: Monitor (Mac) + Bedienpult (iPad) =================
@@ -1874,6 +1996,57 @@ updPos();syncCase();
 let m0='all';try{m0=localStorage.getItem('logiq-mode')||'all';}catch(e){}
 setMode(['all','monitor','pult'].includes(m0)?m0:'all');
 renderTS();renderPanel();fit();
+// ================= Anki-Karten =================
+// [id, Ziel-Element, Verb, Ausgangslage, Anzahl (Drücke bzw. Drehschritte, Vorzeichen = Richtung)]
+const CARDS=[
+ ['power','power','drücken',{off:true},1],['bknob-press','bknob','drücken',{color:'CF',box:true},1],['bknob-rot','bknob','drehen',null,10],
+ ['x-press','x','drücken',null,1],['x-rot','x','drehen',{color:'CF',box:true},10],['y-press','y','drücken',{color:'CF',box:true},1],['y-rot','y','drehen',{spec:'PW',gate:true,gainPW:25},8],
+ ['z-press','z','drücken',null,1],['pdi','pdi','drücken',null,1],['bflow','bflow','drücken',null,1],['logiqview','logiqview','drücken',null,1],['user1','user1','drücken',null,1],
+ ['abc','abc','drücken',null,1],['clear','clear','drücken',{annot:true,measured:true,body:true},1],['pointer','pointer','drücken',null,1],
+ ['measure','measure','drücken',null,1],['set','setR','drücken',{measuring:true},1],['tbTL','tbTL','drücken',{measuring:true},1],['tbSL','tbSL','drücken',{color:'CF',box:true},1],
+ ['ellipse-press','ellipse','drücken',null,1],['ellipse-rot','ellipse','drehen',{measured:true},6],
+ ['tb-cine','tb','rollen',{freeze:true},1],['tb-box','tb','rollen',{color:'CF'},1],
+ ['depth-up','depth-up','drücken',null,3],['depth-down','depth-down','drücken',null,4],['zoom','depthknob','drehen',null,6],['steer','steer-r','drücken',{color:'CF',box:true},2],
+ ['ao','ao','drücken',{gainB:18,tgcSkew:true},1],['freeze','freeze','drücken',null,1],['p1','p1','drücken',null,1],['usb','usb','drücken',null,1],['markcine','markcine','drücken',{freeze:true},1],
+ ['dualL','dualL','drücken',null,1],['dualR','dualR','drücken',{dual:'L'},1],
+ ['k1','k1','drehen',null,-8],['k2-cf','k2','drehen',{color:'CF',box:true},-8],['k3','k3','drehen',null,-9],['k4','k4','drehen',{depth:8},-3],['k5','k5','drehen',null,-6],['k5-press','k5','drücken',null,1],
+ ['ts-tgc','ts-tgc','tippen',null,1],['ts-invert','ts-invert','tippen',null,1],['ts-reset','ts-reset','tippen',{gainB:85,sri:0,zoom:2},1],['ts-mytrainer','ts-mytrainer','tippen',null,1],
+ ['tab-patient','tab-patient','tippen',null,1],['tab-end','tab-end','tippen',null,1],['probe-C1-6','probe-C1-6','tippen',null,1],
+ ['p-cxb','p-cxb','tippen',null,1],['p-chi','p-chi','tippen',null,1],['p-sri','p-sri','tippen',{sri:5},1],['p-vconvex','p-vconvex','tippen',null,1],['p-colorize','p-colorize','tippen',null,1]
+];
+var CARD={id:null,hl:null};
+function cardSetup(o){
+ resetAll({last:'Muster',first:'Max'});o=o||{};
+ if(o.depth){S.depth=o.depth;buildMap();}
+ if(o.color){S.color=o.color;S.scanSub=o.color;if(o.box){const v=VES()[0];S.box.u=vesselU(v);S.box.d=v.d;}}
+ if(o.spec){S.spec=o.spec;S.scanSub=o.spec;buildMap();if(o.gate){const v=VES()[0];S.gateU=vesselU(v);S.gateD=v.d;}}
+ ['gainB','gainPW','sri','zoom'].forEach(k=>{if(o[k]!=null)S[k]=o[k];});if(o.zoom)buildMap();
+ if(o.tgcSkew)S.tgc=[-8,-6,-4,-2,-6,-9,-10,-10];
+ if(o.freeze||o.measuring||o.measured){S.freeze=true;S.tFreeze=performance.now()/1000;}
+ if(o.measuring)S.measure={pts:[[200,120]],active:0,ell:null};
+ if(o.measured)S.measure={pts:[[180,110],[300,150]],active:null,ell:null};
+ if(o.annot)S.annots=[{x:150,y:40,text:'re. Schulter längs'}];
+ if(o.body)S.bodyPattern=true;
+ if(o.dual){snapC.width=imgC.width;snapC.height=imgC.height;sctx.fillStyle='#000';sctx.fillRect(0,0,snapC.width,snapC.height);S.dual=o.dual;}
+ if(o.off){S.off=true;}
+ renderTS();dirty=true;
+}
+async function cardAct(id){
+ const c=CARDS.find(x=>x[0]===id);if(!c)return;const [,t,verb,,n]=c;
+ if(verb==='drehen'){for(let k=0;k<Math.abs(n);k++){rotate(t,Math.sign(n));await sleep(60);}}
+ else if(verb==='rollen'){for(let k=0;k<20;k++){tbMove(S.freeze?-7:6,S.freeze?0:3);await sleep(30);}}
+ else{for(let k=0;k<n;k++){const el=document.querySelector(`[data-id="${CSS.escape(t)}"]`);if(el&&(el.classList.contains('knob')||el.classList.contains('tb')))press(t);else if(el)el.click();await sleep(250);}}
+ dirty=true;
+}
+function startCard(id){
+ const c=CARDS.find(x=>x[0]===id);if(!c)return;
+ CARD.id=id;CARD.hl=c[1];document.body.classList.add('mode-card');setMode('all');document.body.classList.add('mode-card');
+ cardSetup(c[3]);ptab='info';lastInfo=infoId(c[1]);renderPanel();
+ const name=INFO[infoId(c[1])]?INFO[infoId(c[1])][0]:c[1];
+ document.getElementById('cardbar').textContent=`Probier es aus: ${c[2]==='drehen'?'Drehe':c[2]==='rollen'?'Rolle':c[2]==='tippen'?'Tippe auf':'Drücke'} „${name}“ (orange markiert) und beobachte den Monitor.`;
+ fit();applyHint();
+}
+{const hc=location.hash.match(/^#card-([\w-]+)$/);if(hc)setTimeout(()=>startCard(hc[1]),300);}
 {const h=location.hash.match(/^#rec-(\d)$/);if(h){V.rec=true;V.voice=false;setMode('all');setTimeout(()=>playTut(+h[1],0),1200);}}
 requestAnimationFrame(loop);
 </script>
