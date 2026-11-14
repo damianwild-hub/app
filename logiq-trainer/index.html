@@ -234,6 +234,9 @@ body.mode-pult #annBox{position:fixed;top:12px;z-index:50}
 .score{font:700 30px var(--f-body);font-variant-numeric:tabular-nums}
 .ok{color:var(--ok)}.bad{color:var(--warn)}
 .knob,.tb{touch-action:none}
+.stage,.stage *{touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.stage input,.stage select{touch-action:manipulation;-webkit-user-select:text;user-select:text}
+html,body{overscroll-behavior:none}
 .cc,.ts button,.probe{touch-action:manipulation}
 @media (max-width:1000px){
  .side{display:contents}
@@ -1267,6 +1270,11 @@ stage.addEventListener('pointerup',e=>{
  if(!d.moved){if(d.tb){showInfo('tb');}else{press(d.id);showInfo(infoId(d.id));}}
  else showInfo(infoId(d.id),true);
 });
+// iPad/iPhone: Wischen auf dem Gerät darf die Seite nicht scrollen
+['touchstart','touchmove'].forEach(ev=>stage.addEventListener(ev,e=>{
+ if(e.target.closest('input,select,.thumbs'))return;
+ if(ev==='touchmove'||e.target.closest('.knob,.tb'))e.preventDefault();
+},{passive:false}));
 let wheelAcc=0;
 stage.addEventListener('wheel',e=>{
  const t=e.target.closest('.knob');if(!t)return;e.preventDefault();
