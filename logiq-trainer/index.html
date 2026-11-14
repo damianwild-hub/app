@@ -170,13 +170,83 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .kbd button{background:#33435d;border:0;color:#fff;font:600 13px var(--f-body);min-width:34px;height:32px;border-radius:3px}
 .confirm{background:#16213a;border:1px solid #3b5ea8;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:10px;max-width:440px}
 .ulist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+
+/* Ansicht / Zwei-Geräte-Modus */
+.viewsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;width:100%}
+.viewsel .vlabel{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.viewsel button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font:600 13px var(--f-body);cursor:pointer;touch-action:manipulation}
+.viewsel button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.syncchip{font:600 12px var(--f-mono);padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.syncchip.on{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 50%,transparent)}
+body.mode-monitor .devicecol,body.mode-monitor .posbar,body.mode-monitor .panel,body.mode-monitor .foot,body.mode-monitor header.top p{display:none}
+body.mode-monitor .grid{display:block}
+body.mode-monitor .side{display:block;position:static}
+body.mode-monitor .monitor{max-width:calc((100vh - 110px) * 4 / 3);margin:0 auto}
+body.mode-pult .monitor{position:absolute;left:-99999px;width:640px}
+body.mode-pult .grid{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+body.mode-pult #annBox{position:fixed;top:12px;z-index:50}
+.monitor:fullscreen{display:grid;place-items:center;background:#000;max-width:none}
+.monitor:fullscreen canvas{width:auto;height:100vh;max-width:100vw}
+/* Positions-Leiste, Tutorials, Tests, iPad */
+.posbar{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:12px;align-items:flex-start}
+.posbar svg{width:92px;flex:0 0 auto}
+.posbar svg .dot{fill:var(--surface2);stroke:var(--accent);stroke-width:1.5;cursor:pointer}
+.posbar svg .dot.on{fill:var(--hl);stroke:var(--hl)}
+.posbar svg .body{fill:none;stroke:var(--muted);stroke-width:1.4}
+.posctl{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.poslabel{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.posbtns{display:flex;flex-wrap:wrap;gap:5px}
+.posbtns button{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:6px;padding:5px 9px;font:500 13px var(--f-body);cursor:pointer;touch-action:manipulation}
+.posbtns button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.caserow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.caserow select{font:14px var(--f-body);padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);max-width:100%}
+#vcur{position:fixed;left:-100px;top:-100px;width:34px;height:34px;pointer-events:none;z-index:1000;transition:left .6s cubic-bezier(.4,.1,.2,1),top .6s cubic-bezier(.4,.1,.2,1);transform:translate(-6px,-3px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+#vcur::after{content:"";position:absolute;left:-10px;top:-12px;width:32px;height:32px;border-radius:50%;border:3px solid #ff9f1a;opacity:0;transform:scale(.4)}
+#vcur.clk::after{animation:clk .45s ease-out}
+@keyframes clk{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(1.5)}}
+#vcap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));width:min(920px,calc(100% - 32px));background:rgba(8,14,24,.94);color:#f2f6fb;border:1px solid #3b5ea8;border-radius:12px;padding:12px 16px;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.45);display:grid;gap:6px}
+#vcap .vt{font:600 12px var(--f-mono);color:#9fc2ff;letter-spacing:.03em}
+#vcap .vx{font:500 18px/1.4 var(--f-body);text-wrap:pretty}
+#vcap .vb{display:flex;gap:6px;flex-wrap:wrap}
+#vcap .vb button{background:#22324c;border:1px solid #3b5ea8;color:#fff;border-radius:6px;padding:5px 10px;font:600 13px var(--f-body);cursor:pointer;touch-action:manipulation}
+#vcap .vprog{height:4px;background:#22324c;border-radius:2px;overflow:hidden}#vcap .vprog i{display:block;height:100%;background:#ff9f1a}
+.tutlist{display:grid;gap:8px}
+.tutlist .tut{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.tutlist .tut b{font-size:15px}.tutlist .tut span{font-size:13px;color:var(--muted);grid-column:1}
+.tutlist .tut button{grid-row:1/3;grid-column:2}
+.tsteps{list-style:none;margin:8px 0;padding:0;display:grid;gap:2px;font-size:13.5px}
+.tsteps li button{background:none;border:0;text-align:left;color:var(--muted);font:13.5px var(--f-body);cursor:pointer;padding:3px 4px;border-radius:4px;width:100%}
+.tsteps li.cur button{color:var(--ink);background:var(--surface2);font-weight:600}
+.auftrag{font-size:18px;font-weight:600;line-height:1.4;background:var(--surface2);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;margin:8px 0}
+.choices{display:grid;gap:6px;margin-top:8px}
+.choices button{text-align:left;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:8px;padding:9px 12px;font:15px var(--f-body);cursor:pointer}
+.choices button:hover{border-color:var(--accent)}
+.res{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}.res td{border-bottom:1px solid var(--line);padding:5px 4px;vertical-align:top}.res td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score{font:700 30px var(--f-body);font-variant-numeric:tabular-nums}
+.ok{color:var(--ok)}.bad{color:var(--warn)}
+.knob,.tb{touch-action:none}
+.cc,.ts button,.probe{touch-action:manipulation}
+@media (max-width:1000px){
+ .side{display:contents}
+ .grid{display:flex;flex-direction:column}
+ .monitor{order:1}.posbar{order:2}.devicecol{order:3;width:100%}.panel{order:4}
+}
+@media (hover:none){ .hoveronly{display:none} }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <h1>LOGIQ Bedien-Trainer</h1>
-    <p>Klick dich durch Touchscreen und Bedienpult. Jede Taste wird rechts erklärt, der Monitor reagiert wie ein vereinfachtes Ultraschallbild. Drehknöpfe: <b>klicken = drücken</b>, <b>Mausrad / Zwei-Finger-Scroll oder hoch/runter ziehen = drehen</b>.</p>
+    <p>Klick oder tipp dich durch Touchscreen und Bedienpult. Jede Taste wird erklärt, der Monitor reagiert wie ein vereinfachtes Ultraschallbild. Drehknöpfe: <b>antippen = drücken</b>, <b>nach oben/unten wischen (Maus: Mausrad) = drehen</b>. Trackball: mit dem Finger oder der Maus ziehen.</p>
+    <div class="viewsel" role="group" aria-label="Ansicht">
+      <span class="vlabel">Ansicht</span>
+      <button data-mode="all" aria-pressed="true">Alles</button>
+      <button data-mode="monitor" aria-pressed="false">Nur Monitor (Mac)</button>
+      <button data-mode="pult" aria-pressed="false">Nur Bedienpult (iPad)</button>
+      <span class="syncchip" id="syncChip" hidden></span>
+      <button id="fsBtn" hidden>Vollbild</button>
+    </div>
   </header>
   <div class="grid">
     <section class="devicecol" aria-label="Gerät">
@@ -187,12 +257,36 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
         <canvas id="mon" width="800" height="600" aria-label="Simulierter Hauptmonitor"></canvas>
         <div id="annBox" hidden><span>Kommentar:</span><input id="annIn" autocomplete="off" placeholder="Text, dann Enter"></div>
       </div>
+      <div class="posbar" id="posbar">
+        <svg viewBox="0 0 120 150" aria-label="Schallkopf-Position am Patienten" id="bodysvg">
+          <circle class="body" cx="60" cy="14" r="10"/>
+          <path class="body" d="M40 30 Q60 24 80 30 L86 70 Q84 100 80 128 L40 128 Q36 100 34 70 Z"/>
+          <path class="body" d="M40 30 L26 60 L22 92 M80 30 L94 60 L98 92"/>
+          <path class="body" d="M54 34 L54 30 M66 34 L66 30"/>
+        </svg>
+        <div class="posctl">
+          <div class="poslabel">Schallkopf-Position am Patienten</div>
+          <div class="posbtns" id="posbtns"></div>
+          <div class="caserow"><label for="caseSel">Befund des Patienten:</label>
+            <select id="caseSel" data-id="case-select">
+              <option value="normal">Normalbefund</option>
+              <option value="ff">Freie Flüssigkeit (Morison, Milz, Douglas)</option>
+              <option value="pe">Perikarderguss</option>
+              <option value="ptxR">Pneumothorax rechts</option>
+              <option value="htxL">Hämatothorax links</option>
+              <option value="multi">Polytrauma (Flüssigkeit + Erguss + PTX re.)</option>
+              <option value="hidden" hidden>verdeckt (Test)</option>
+            </select></div>
+        </div>
+      </div>
       <div class="panel">
         <div class="ptabs" role="tablist">
           <button role="tab" data-ptab="info" aria-selected="true" id="pt-info">Erklärung</button>
+          <button role="tab" data-ptab="tut" aria-selected="false" id="pt-tut">Video-Tutorials</button>
           <button role="tab" data-ptab="ex" aria-selected="false" id="pt-ex">Übungen</button>
-          <button role="tab" data-ptab="idx" aria-selected="false" id="pt-idx">Alle Bedienelemente</button>
-          <button role="tab" data-ptab="flow" aria-selected="false" id="pt-flow">Untersuchungsablauf</button>
+          <button role="tab" data-ptab="test" aria-selected="false" id="pt-test">Tests</button>
+          <button role="tab" data-ptab="idx" aria-selected="false" id="pt-idx">Alle Elemente</button>
+          <button role="tab" data-ptab="flow" aria-selected="false" id="pt-flow">Ablauf & eFAST</button>
         </div>
         <div class="pbody" id="pbody"></div>
       </div>
@@ -201,25 +295,39 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
   <p class="foot">Inoffizielles Lernmodell, kein Medizinprodukt und nicht von GE HealthCare. Aufgebaut nach Fotos eures Geräts (LOGIQ-Serie mit Touchscreen, Software auf Deutsch) und der allgemeinen LOGIQ-Bedienlogik. Belegungen mit dem Hinweis „unsicher“ können an eurem Gerät anders konfiguriert sein. Verbindlich ist das Handbuch am Gerät (Hilfe/F1, MyTrainer) bzw. die Einweisung. Das Bild ist eine Simulation, keine echte Anatomie. Tastenkürzel: <kbd>F</kbd> Freeze, <kbd>P</kbd> P1 speichern.</p>
 </div>
 
+<svg id="vcur" viewBox="0 0 24 24" hidden><path d="M4 2l15 11-6.5 1.2 3.8 7.3-2.9 1.5-3.8-7.4L4 20z" fill="#fff" stroke="#111" stroke-width="1.3"/></svg>
+<div id="vcap" hidden></div>
 <script>
 "use strict";
 // ================= Daten: Sonden =================
 const PROBES={
  'L3-12':{type:'linear',W:5,Wtot:15,dmax:10,TW:1200,TH:800,freqs:[6,8,10,12],
-   presets:{'BWA Allg.':4,'Schulter':3.5,'Knie':4,'Hand/Handgelenk':2.5,'Gefässe':3.5,'Schilddrüse':4,'Mamma':4}},
+   presets:{'BWA Allg.':4,'Schulter':3.5,'Knie':4,'Hand/Handgelenk':2.5,'Gefässe':3.5,'Schilddrüse':4,'Mamma':4,'Lunge':5}},
  'C1-6':{type:'convex',theta:1.22,R:4,dmax:30,TW:700,TH:900,freqs:[2,3,4,5.5],
-   presets:{'Abdomen Allg.':16,'Leber':16,'Niere':14,'Aorta':18,'Hüfte (BWA tief)':9}}
+   presets:{'Abdomen Allg.':16,'Leber':16,'Niere':14,'Aorta':18,'Hüfte (BWA tief)':9,'eFAST':16}}
 };
-const VESSELS={
- 'L3-12':[{x:0.6,d:1.55,rx:0.28,ry:0.28,type:'art',vmax:62,name:'Arterie'},{x:-0.9,d:1.7,rx:0.34,ry:0.2,type:'ven',vmax:-12,name:'Vene'}],
- 'C1-6':[{x:2.8,d:10,rx:0.9,ry:0.9,type:'art',vmax:70,name:'grosses Gefäss'},{x:-1,d:11.2,rx:0.45,ry:0.45,type:'ven',vmax:-20},
-         {x:-4,d:5,rx:0.35,ry:0.35,type:'ven',vmax:-18,portal:true},{x:3.6,d:5.5,rx:0.3,ry:0.3,type:'ven',vmax:-16,portal:true}]
+const VES_MSK=[{x:0.6,d:1.55,rx:0.28,ry:0.28,type:'art',vmax:62,name:'Arterie'},{x:-0.9,d:1.7,rx:0.34,ry:0.2,type:'ven',vmax:-12,name:'Vene'}];
+const VES_LIVER=[{x:2.8,d:10,rx:0.9,ry:0.9,type:'art',vmax:70,name:'grosses Gefäss'},{x:-1,d:11.2,rx:0.45,ry:0.45,type:'ven',vmax:-20},
+         {x:-4,d:5,rx:0.35,ry:0.35,type:'ven',vmax:-18,portal:true},{x:3.6,d:5.5,rx:0.3,ry:0.3,type:'ven',vmax:-16,portal:true}];
+const HEART={x:1.6,d:11,rx:5.4,ry:3.9,a:-0.45};HEART.c=Math.cos(HEART.a);HEART.s=Math.sin(HEART.a);
+const SCENES={
+ msk:{name:'Schulter / Muskulatur',short:'Schulter/Muskel',f:fLin,vessels:VES_MSK,dot:[86,36]},
+ liver:{name:'Oberbauch rechts: Leber/Gallenblase',short:'Leber',f:fCon,vessels:VES_LIVER,dot:[48,74]},
+ ruq:{name:'eFAST 1 · rechter Oberbauch (RUQ)',short:'1 RUQ',f:fRUQ,vessels:[],dot:[38,82]},
+ luq:{name:'eFAST 2 · linker Oberbauch (LUQ)',short:'2 LUQ',f:fLUQ,vessels:[],dot:[82,76]},
+ pelvis:{name:'eFAST 3 · Becken quer (suprapubisch)',short:'3 Becken',f:fPelvis,vessels:[],dot:[60,118]},
+ cardiac:{name:'eFAST 4 · subxiphoidal (Herz)',short:'4 Herz',f:fCardiac,vessels:[],warp:'heart',dot:[60,66]},
+ lungR:{name:'eFAST 5 · Thorax rechts anterior',short:'5 Lunge re.',f:fLung,vessels:[],warp:'lung',pleura:1.6,dot:[47,44]},
+ lungL:{name:'eFAST 6 · Thorax links anterior',short:'6 Lunge li.',f:fLung,vessels:[],warp:'lung',pleura:1.6,dot:[73,44]}
 };
+const PRESET_SCENE={'Abdomen Allg.':'liver','Leber':'liver','Niere':'liver','Aorta':'liver','Hüfte (BWA tief)':'liver','eFAST':'ruq','Lunge':'lungR'};
+const CASES={normal:'Normalbefund',ff:'Freie Flüssigkeit intraabdominal',pe:'Perikarderguss',ptxR:'Pneumothorax rechts',htxL:'Hämatothorax links',multi:'Polytrauma'};
+function VES(){return SCENES[S.scene].vessels;}
 const BODY=['Schulter','Ellenbogen','Hand','Hüfte','Knie','Sprunggelenk','Abdomen'];
 
 // ================= Zustand =================
 const S={
- probe:'L3-12',preset:'BWA Allg.',color:'none',spec:'none',
+ probe:'L3-12',preset:'BWA Allg.',scene:'msk',caseKey:'normal',caseHidden:false,off:false,bootUntil:0,booting:false,endCount:0,color:'none',spec:'none',
  gainB:52,gainCF:50,gainPW:50,gainM:50,depth:4,zoom:1,steer:0,freeze:false,tFreeze:0,tNow:0,cine:0,cineMarks:[],
  power:100,dr:63,freq:12,focusPos:1.6,focusNum:1,focusWidth:1,
  sri:4,cxb:true,cxbLevel:'Niedrig',cxbType:'MW',chi:true,reject:1,edge:6,frameAvg:3,rotation:0,
@@ -364,12 +472,14 @@ const INFO={
  'p-pwAngle':['Winkelkorrektur','Doppler-Parameter','Winkel zwischen Schallstrahl und Flussrichtung. Für korrekte Geschwindigkeiten parallel zur Gefässachse ausrichten (≤ 60°).','',''],
  'p-pwInvert':['Invertieren – PW','Doppler-Parameter','Stellt die Spektralkurve auf den Kopf.','',''],
  'p-sweep':['Sweep-Geschwindigkeit','Doppler-Parameter','Wie schnell die Kurve (PW bzw. M-Mode) über den Bildschirm läuft.','',''],
- 'p-gate':['Gate-Grösse','Doppler-Parameter','Grösse des Messfensters im Gefäss.','','']
+ 'p-gate':['Gate-Grösse','Doppler-Parameter','Grösse des Messfensters im Gefäss.','',''],
+ 'posbar':['Schallkopf-Position','Simulator','Am echten Patienten schiebst du die Sonde an die richtige Stelle. Im Simulator wählst du die Position per Klick: Schulter, Leber oder eines der 6 eFAST-Fenster.','Position antippen, das Bild wechselt. Tiefe und Sonde passend wählen (eFAST: C1-6, 14–18 cm; Lunge: L3-12, ca. 5 cm).','Für eFAST zuerst das Preset „eFAST“ (C1-6) bzw. „Lunge“ (L3-12) wählen.'],
+ 'case-select':['Befund des Patienten','Simulator','Legt fest, welcher Befund im simulierten Patienten steckt: normal, freie Flüssigkeit, Perikarderguss, Pneumothorax, Hämatothorax oder Polytrauma.','In den Tests wird der Befund verdeckt zufällig gewählt.','']
 };
-const GROUPS=['Modus-Tasten','Bildoptimierung','Trackball & Messen','Bildbeschriftung','Speichern','System','Touchscreen','B-Parameter','Drehknopf-Parameter','Doppler-Parameter'];
+const GROUPS=['Simulator','Modus-Tasten','Bildoptimierung','Trackball & Messen','Bildbeschriftung','Speichern','System','Touchscreen','B-Parameter','Drehknopf-Parameter','Doppler-Parameter'];
 
 // ================= Übungen =================
-const boxOverVessel=()=>{const v=VESSELS[S.probe][0];const u=vesselU(v);const b=boxGrid();return Math.abs(v.d-S.box.d)<S.box.hd&&Math.abs(u-S.box.u)<b.du;};
+const boxOverVessel=()=>{const v=VES()[0];if(!v)return false;const u=vesselU(v);const b=boxGrid();return Math.abs(v.d-S.box.d)<S.box.hd&&Math.abs(u-S.box.u)<b.du;};
 const gateInVessel=()=>gateVessel()!==null;
 const EX=[
  {title:'Untersuchung starten',steps:[
@@ -413,6 +523,17 @@ const EX=[
   {t:'Klicke auf den B-Knopf, um die Dual-Ansicht zu beenden.',hl:'bknob',ok:e=>e.type==='press'&&e.id==='bknob'},
   {t:'Drücke LOGIQView und warte, bis das Panorama fertig ist (Linearsonde nötig).',hl:'logiqview',ok:e=>e.type==='lv-done'},
   {t:'Klicke auf B, um das Panorama zu verlassen.',hl:'bknob',ok:e=>e.type==='press'&&e.id==='bknob'}]},
+ {title:'eFAST selbst durchführen',steps:[
+  {t:'Wähle die Konvexsonde C1-6 und das Preset „eFAST“.',hl:'probe-C1-6',cond:()=>S.probe==='C1-6'&&S.preset==='eFAST'},
+  {t:'Fenster 1 – RUQ: Tippe unter dem Monitor auf „1 RUQ“. Sieh dir Morison-Pouch, Leberspitze und Zwerchfell an.',hl:'pos-ruq',cond:()=>S.scene==='ruq'},
+  {t:'Stelle die Tiefe auf mindestens 14 cm und speichere das Bild mit P1.',hl:'p1',cond:()=>imgsWith(i=>i.scene==='ruq'&&i.depth>=14)},
+  {t:'Fenster 2 – LUQ: Position „2 LUQ“ wählen und ein Bild speichern.',hl:'pos-luq',cond:()=>imgsWith(i=>i.scene==='luq')},
+  {t:'Fenster 3 – Becken: Position „3 Becken“, Harnblase quer, Bild speichern.',hl:'pos-pelvis',cond:()=>imgsWith(i=>i.scene==='pelvis')},
+  {t:'Fenster 4 – subxiphoidal: Position „4 Herz“, Tiefe ≥ 16 cm, Bild speichern.',hl:'pos-cardiac',cond:()=>imgsWith(i=>i.scene==='cardiac'&&i.depth>=16)},
+  {t:'Lunge: Wechsle zur Linearsonde L3-12 mit dem Preset „Lunge“.',hl:'probe-L3-12',cond:()=>S.probe==='L3-12'&&S.preset==='Lunge'},
+  {t:'Fenster 5 – Thorax rechts: Lungengleiten beobachten, dann Z/M drücken (M-Mode) und speichern.',hl:'z',cond:()=>imgsWith(i=>i.scene==='lungR'&&i.spec==='M')},
+  {t:'Fenster 6 – Thorax links: Position „6 Lunge li.“ und ein Bild speichern.',hl:'pos-lungL',cond:()=>imgsWith(i=>i.scene==='lungL')},
+  {t:'Beende die Untersuchung (UNTERS. BEEN.).',hl:'tab-end',ok:e=>e.type==='end'}]},
  {title:'Bilder prüfen & Untersuchung beenden',steps:[
   {t:'Speichere ein Bild mit P1.',hl:'p1',ok:e=>e.type==='store'},
   {t:'Öffne PATIENT und dort den Reiter „Aktive Bilder“.',hl:'pat-aktiv',cond:()=>S.tab==='patient'&&S.patSub==='aktiv'},
@@ -518,6 +639,7 @@ function pWidget(k){
 function activeSubs(){const a=['B'];if(S.color!=='none')a.push(S.color);if(S.spec!=='none')a.push(S.spec);return a;}
 function renderTS(){
  const ts=document.getElementById('ts');
+ if(isOff()){ts.innerHTML='<div style="grid-row:1/4;display:grid;place-items:center;color:#2a3442;font-size:14px">'+(S.off?'':'Touchscreen startet …')+'</div>';applyHint();return;}
  const subs=activeSubs(); if(!subs.includes(S.scanSub))S.scanSub=subs[subs.length-1];
  let h=`<div class="ts-top">
   <button class="tsb ${S.page==='meine'?'on':''}" data-act="page-meine" data-id="ts-meineseite">Meine Seite</button>
@@ -604,14 +726,14 @@ function boxBlur(a,W,H,rx,ry){
  for(let y=0;y<H;y++){const r=y*W;let s=0;for(let x=-rx;x<=rx;x++)s+=a[r+Math.min(W-1,Math.max(0,x))];for(let x=0;x<W;x++){tmp[r+x]=s;s+=a[r+Math.min(W-1,x+rx+1)]-a[r+Math.max(0,x-rx)];}}
  for(let x=0;x<W;x++){let s=0;for(let y=-ry;y<=ry;y++)s+=tmp[Math.min(H-1,Math.max(0,y))*W+x];for(let y=0;y<H;y++){a[y*W+x]=s;s+=tmp[Math.min(H-1,y+ry+1)*W+x]-tmp[Math.max(0,y-ry)*W+x];}}
 }
-function vesselHit(key,x,d){const V=VESSELS[key];for(let k=0;k<V.length;k++){const v=V[k];const rr=Math.hypot((x-v.x)/v.rx,(d-v.d)/v.ry);if(rr<1.4)return[k,rr];}return null;}
+function vesselHit(V,x,d){for(let k=0;k<V.length;k++){const v=V[k];const rr=Math.hypot((x-v.x)/v.rx,(d-v.d)/v.ry);if(rr<1.4)return[k,rr];}return null;}
 function fLin(x,d){
  FX.sh=1;FX.en=1;
  if(d<0.07)return 1.5;
  const fatEnd=0.5+0.06*Math.sin(x*1.3)+0.03*Math.sin(x*4.1);
  if(d<fatEnd){return Math.abs(Math.sin(d*22+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;}
  if(d<fatEnd+0.05)return 1.25;
- const vh=vesselHit('L3-12',x,d);
+ const vh=vesselHit(VES_MSK,x,d);
  if(vh){if(vh[1]<1){FX.en=1.006;return 0.012;}if(vh[1]<1.16)return 1.05;}
  const m1=2.55+0.18*Math.sin(x*0.6+1);
  if(d<m1){const ph=(d-0.16*x)*7.5+0.4*Math.sin(x*2.3);const fr=ph-Math.floor(ph);return 0.33+(fr<0.13?0.5:0)+0.06*Math.sin(x*9+d*5);}
@@ -629,8 +751,8 @@ function fCon(x,d){
  if(d<fe+0.08)return 1.2;
  if(d<2.5){const ph=(d-0.1*x)*3;return 0.3+((ph-Math.floor(ph))<0.15?0.4:0);}
  if(d<2.6)return 1.3;
- const vh=vesselHit('C1-6',x,d);
- if(vh){const v=VESSELS['C1-6'][vh[0]];if(vh[1]<1){FX.en=1.002;return 0.012;}if(vh[1]<1.22)return v.portal?1.5:0.9;}
+ const vh=vesselHit(VES_LIVER,x,d);
+ if(vh){const v=VES_LIVER[vh[0]];if(vh[1]<1){FX.en=1.002;return 0.012;}if(vh[1]<1.22)return v.portal?1.5:0.9;}
  const ex=(x+2.6)/1.3,ey=(d-7.2)/2.3,e=ex*ex+ey*ey;
  if(e<1){FX.en=1.0042;return 0.01;}
  if(e<1.12)return 1.1;
@@ -639,25 +761,102 @@ function fCon(x,d){
  if(d<dd+0.12)return 2.6;
  return 0.22+0.1*Math.sin(d*3+x);
 }
-function genTissue(key){
+let CF={ff:false,pe:false,htx:false,ptx:false},CUR_T=null;const TIS_ORDER=[];
+function computeCF(){const c=S.caseKey;return{ff:c==='ff'||c==='multi',pe:c==='pe'||c==='multi',htx:S.scene==='luq'&&c==='htxL',ptx:S.scene==='lungR'&&(c==='ptxR'||c==='multi')};}
+function genTissue(){
+ const cf=computeCF();const key=S.scene+'|'+S.probe+'|'+JSON.stringify(cf);
  if(TIS[key])return TIS[key];
- const P=PROBES[key],TW=P.TW,TH=P.TH,N=TW*TH;
+ CF=cf;const P=PROBES[S.probe],SC=SCENES[S.scene],TW=P.TW,TH=P.TH,N=TW*TH,f=SC.f,V=SC.vessels;
  const t=new Float32Array(N),vid=new Int8Array(N),vrr=new Float32Array(N);
- const f=P.type==='linear'?fLin:fCon;
  for(let gu=0;gu<TW;gu++){
   const u=(gu+0.5)/TW;let trans=1;
   for(let gd=0;gd<TH;gd++){
    const d=(gd+0.5)/TH*P.dmax;const x=P.type==='linear'?(u-0.5)*P.Wtot:(u-0.5)*P.theta*(P.R+d);
    const v=f(x,d);const i=gd*TW+gu;t[i]=v*trans;
    if(FX.sh<1)trans=Math.min(trans,FX.sh);if(FX.en!==1)trans*=FX.en;
-   const vh=vesselHit(key,x,d);if(vh){vid[i]=vh[0]+1;vrr[i]=vh[1];}
+   if(V.length){const vh=vesselHit(V,x,d);if(vh){vid[i]=vh[0]+1;vrr[i]=vh[1];}}
   }
  }
  const g1=new Float32Array(N),g2=new Float32Array(N);for(let i=0;i<N;i++){g1[i]=gauss();g2[i]=gauss();}
  const rx=P.type==='linear'?2:1,ry=1;boxBlur(g1,TW,TH,rx,ry);boxBlur(g2,TW,TH,rx,ry);
  const sp=new Float32Array(N);let m=0;for(let i=0;i<N;i++){sp[i]=g1[i]*g1[i]+g2[i]*g2[i];m+=sp[i];}m/=N;for(let i=0;i<N;i++)sp[i]/=m;
- return TIS[key]={t,sp,vid,vrr,TW,TH};
+ TIS[key]={t,sp,vid,vrr,TW,TH,cf};TIS_ORDER.push(key);if(TIS_ORDER.length>4)delete TIS[TIS_ORDER.shift()];
+ return TIS[key];
 }
+// ----- eFAST-Szenen (x = seitlich in cm, d = Tiefe in cm) -----
+function hsh(x,d){const q=Math.sin(x*12.9898+d*78.233)*43758.5453;return q-Math.floor(q);}
+function rotL(x,d,cx,cd,a){const c=Math.cos(a),s=Math.sin(a),dx=x-cx,dd=d-cd;return[dx*c+dd*s,-dx*s+dd*c];}
+function bodyWall(x,d,fat,mus){if(d<0.2)return 1.4;if(d<fat)return Math.abs(Math.sin(d*10+2*Math.sin(x*0.9)+x*0.4))>0.965?0.8:0.15;if(d<fat+0.07)return 1.2;if(d<mus){const ph=(d-0.08*x)*3.2;return 0.3+((ph-Math.floor(ph))<0.15?0.38:0);}if(d<mus+0.07)return 1.2;return null;}
+function rib(x,d,rx,top){if(Math.abs(x-rx)<0.7){const q=top+0.12*((x-rx)/0.7)**2;if(d>=q&&d<q+0.14){FX.sh=0.025;return 2.4;}}return null;}
+function liverTex(x,d){return 0.42+0.05*Math.sin(x*1.7+d*1.1)+0.04*Math.sin(x*4.3-d*2.9);}
+function kidney(x,d,kx,kd,rx,ry,a){const [lx,ld]=rotL(x,d,kx,kd,a);const e=(lx/rx)**2+(ld/ry)**2;let v=null;
+ if(e<1){if(e>0.92)v=1.25;else{const se=(lx/(rx*0.6))**2+(ld/(ry*0.38))**2;if(se<1)v=0.8+0.2*Math.sin(lx*5)*Math.sin(ld*6);else{const ang=Math.atan2(ld/ry,lx/rx);v=(e>0.4&&e<0.8&&Math.sin(ang*9)>0.55)?0.12:0.24;}}}
+ else if(e<1.09)v=1.0;return{v,e,ld,lx};}
+function vesIn(x,d,list,wall){for(const [vx,vd,r] of list){const q=Math.hypot(x-vx,d-vd)/r;if(q<1){FX.en=1.002;return 0.012;}if(q<1.25)return wall;}return null;}
+function thorax(x,d,htx){if(htx){if(d>14.2&&d<14.8){FX.sh=0.05;return 2.0;}return 0.012;}return 0.34+0.05*Math.sin(x*1.7+d*1.3)+0.04*Math.sin(x*4.1-d*2.2);}
+function spine(x,d,lim){if(d>lim){if(d>15.2&&d<15.7){FX.sh=0.05;return 1.9;}return 0.27+0.05*Math.sin(x*3+d*0.7);}return null;}
+function fRUQ(x,d){FX.sh=1;FX.en=1;
+ let r=rib(x,d,-3.1,1.25);if(r!==null)return r;r=rib(x,d,3.3,1.3);if(r!==null)return r;
+ const w=bodyWall(x,d,1.0,1.9);if(w!==null)return w;
+ const xd=-3.0-0.05*(d-9)*(d-9);
+ if(Math.abs(x-xd)<0.18)return 2.4;
+ if(x<xd)return thorax(x,d,CF.htx);
+ const k=kidney(x,d,2.6,9.4,4.6,2.3,-0.3);
+ if(CF.ff&&k.e>=1&&k.e<1.38&&k.ld<0.4){FX.en=1.003;return 0.012;}
+ if(k.v!==null)return k.v;
+ const sp=spine(x,d,12.6+0.12*x);if(sp!==null)return sp;
+ if(x>5.6&&d<8){if(CF.ff&&d<4.2+0.3*(x-5.6)&&d>3.0)return 0.012;return 0.3+(hsh(x,d)>0.985?1.6:0);}
+ const vv=vesIn(x,d,[[-0.8,6,0.42],[1.2,4.6,0.3],[-2,9.5,0.35]],1.2);if(vv!==null)return vv;
+ return liverTex(x,d);}
+function fLUQ(x,d){FX.sh=1;FX.en=1;
+ let r=rib(x,d,-2.8,1.2);if(r!==null)return r;r=rib(x,d,3.4,1.3);if(r!==null)return r;
+ const w=bodyWall(x,d,0.9,1.8);if(w!==null)return w;
+ const xd=-2.2-0.06*(d-7)*(d-7);
+ if(Math.abs(x-xd)<0.18)return 2.4;
+ if(x<xd)return thorax(x,d,CF.htx);
+ const [sx,sd]=rotL(x,d,0.2,6.0,0.35);const se=(sx/3.8)**2+(sd/2.4)**2;
+ if(CF.ff&&se>=1&&se<1.7&&sx<0.6){FX.en=1.003;return 0.012;}
+ if(se<1)return se>0.95?1.2:0.47+0.03*Math.sin(x*2+d);
+ const k=kidney(x,d,3.4,10.2,4.2,2.1,-0.35);
+ if(CF.ff&&k.e>=1&&k.e<1.3&&k.ld<0.3){FX.en=1.003;return 0.012;}
+ if(k.v!==null)return k.v;
+ const sp=spine(x,d,13+0.1*x);if(sp!==null)return sp;
+ return 0.32+(hsh(x,d)>0.98?1.5:0)+0.05*Math.sin(x*2.5+d*1.7);}
+function fPelvis(x,d){FX.sh=1;FX.en=1;
+ if(d<0.2)return 1.4;
+ if(d<1.6)return Math.abs(Math.sin(d*10+2*Math.sin(x*0.9)+x*0.4))>0.965?0.8:0.15;
+ if(d<2.4){if(Math.abs(x)<0.15)return 1.0;const ph=d*3.5+0.1*x;return 0.3+((ph-Math.floor(ph))<0.15?0.38:0);}
+ if(d<2.47)return 1.2;
+ const be=(x/3.7)**4+((d-5.6)/2.5)**4;
+ if(be<1){FX.en=1.0045;return 0.012;}if(be<1.25)return 1.0;
+ const ue=(x/2.6)**2+((d-9.7)/1.6)**2;
+ if(ue<1)return Math.abs(d-9.7)<0.12&&Math.abs(x)<1.8?0.95:0.46+0.04*Math.sin(x*3);
+ if(ue<1.08)return 0.9;
+ if(CF.ff){const fe=(x/3.4)**2+((d-11.1)/0.9)**2;if(fe<1)return 0.012;const l1=((Math.abs(x)-4.5)/0.9)**2+((d-7.4)/1.5)**2;if(l1<1)return 0.012;}
+ if(Math.abs(x)>5.2&&d>8){const q=8+0.6*(Math.abs(x)-5.2);if(d>q&&d<q+0.15){FX.sh=0.04;return 2.2;}}
+ if(d>13)return 0.22;
+ return 0.32+(hsh(x,d)>0.982?1.4:0)+0.05*Math.sin(x*2.2+d*1.9);}
+function fCardiac(x,d){FX.sh=1;FX.en=1;
+ const w=bodyWall(x,d,1.2,2.0);if(w!==null)return w;
+ const le=7.6-0.4*x;
+ if(d<le-0.12){const vv=vesIn(x,d,[[-1.5,5,0.45]],1.1);if(vv!==null)return vv;return liverTex(x,d);}
+ if(d<le+0.05)return 1.1;
+ const [lx,ld]=rotL(x,d,HEART.x,HEART.d,HEART.a);const he=(lx/HEART.rx)**2+(ld/HEART.ry)**2;
+ if(he>=1&&he<1.08)return 1.8;
+ if(he<1){const mi=CF.pe?(0.8-(ld>0?0.12*Math.min(1,ld/3):0)):1;if(he>=mi)return 0.012;
+  for(const [cx,cd,rx,ry] of [[-0.6,-1.9,3.0,1.0],[-3.0,0.9,1.5,1.4],[1.5,0.5,2.4,1.25],[-0.6,2.3,1.8,0.9]]){if(((lx-cx)/rx)**2+((ld-cd)/ry)**2<1){FX.en=1.002;return 0.015;}}
+  return 0.5+0.06*Math.sin(lx*3+ld*2);}
+ const ao=Math.hypot(x-4.2,d-16.8)/0.85;if(ao<1)return 0.012;if(ao<1.2)return 1.0;
+ return 0.26+0.04*Math.sin(x*2+d*1.3);}
+function fLung(x,d){FX.sh=1;FX.en=1;const PL=1.6;
+ if(d<0.08)return 1.5;
+ if(d<0.5)return Math.abs(Math.sin(d*22+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;
+ if(d<1.2){const ph=(d+0.03*x)*6;return 0.3+((ph-Math.floor(ph))<0.13?0.45:0);}
+ for(const rx of [-1.9,1.9]){const r=rib(x,d,rx,1.3);if(r!==null)return r;}
+ if(d<PL-0.05)return 0.3;
+ if(d<PL+0.05)return 1.9;
+ for(let k=2;k<7;k++){if(Math.abs(d-k*PL)<0.05)return(CF.ptx?1.25:0.85)/(k-0.6);}
+ return CF.ptx?0.06:0.2;}
 const RN=new Float32Array(65536);for(let i=0;i<65536;i++)RN[i]=Math.random();
 
 // Geometrie
@@ -666,11 +865,12 @@ const IMGX=150,IMGY=48;
 const imgC=document.createElement('canvas'),ictx=imgC.getContext('2d');
 const snapC=document.createElement('canvas'),sctx=snapC.getContext('2d');
 const stripC=document.createElement('canvas');stripC.width=660;stripC.height=200;const stctx=stripC.getContext('2d');
-let MAP=null,DQ=null,G={},AVG=null,IMG=null,GRAY=null,dirty=true;
+let MAP=null,DQ=null,MU=null,MD=null,G={},AVG=null,IMG=null,GRAY=null,dirty=true;
 function imgSize(){return S.spec!=='none'?[500,295]:[500,520];}
 function buildMap(){
  const [IW,IH]=imgSize();if(imgC.width!==IW||imgC.height!==IH){imgC.width=IW;imgC.height=IH;}
- const P=PROBES[S.probe],T=genTissue(S.probe);const n=IW*IH;
+ const P=PROBES[S.probe],T=genTissue();CUR_T=T;const n=IW*IH;const WRP=!!SCENES[S.scene].warp;
+ MU=WRP?new Float32Array(n):null;MD=WRP?new Float32Array(n):null;
  MAP=new Int32Array(n);DQ=new Uint8Array(n);AVG=new Float32Array(n);IMG=ictx.createImageData(IW,IH);GRAY=new Float32Array(n);
  const cx=IW/2;let ppc,ya=0,viewW=0,tanv=Math.tan(0.35),imgH;
  const lin=P.type==='linear';const pano=S.lv==='done'&&lin;
@@ -684,7 +884,7 @@ function buildMap(){
   if(lin){d=qy/ppc;if(d<0||d>S.depth){MAP[i]=-1;continue;}let x=(qx-cx)/ppc;const half=viewW/2+(S.vconvex&&!pano?d*tanv:0);if(Math.abs(x)>half){MAP[i]=-1;continue;}x=x/half*(viewW/2);if(S.invert)x=-x;u=x/P.Wtot+0.5;}
   else{const rx=(qx-cx)/ppc,ry=(qy-ya)/ppc;const r=Math.hypot(rx,ry);let a=Math.atan2(rx,ry);if(Math.abs(a)>P.theta/2||r<P.R||r>P.R+S.depth){MAP[i]=-1;continue;}d=r-P.R;if(S.invert)a=-a;u=a/P.theta+0.5;}
   const gu=Math.min(TW-1,Math.max(0,u*TW|0)),gd=Math.min(TH-1,Math.max(0,d/P.dmax*TH|0));
-  MAP[i]=gd*TW+gu;DQ[i]=Math.min(255,d/S.depth*255|0);
+  MAP[i]=gd*TW+gu;if(MU){MU[i]=u;MD[i]=d;}DQ[i]=Math.min(255,d/S.depth*255|0);
  }
  dirty=true;
 }
@@ -697,13 +897,13 @@ function toScreen(u,d){
 function spanCm(d){const P=PROBES[S.probe];return P.type==='linear'?P.Wtot:P.theta*(P.R+d);}
 function vesselU(v){const P=PROBES[S.probe];return P.type==='linear'?v.x/P.Wtot+0.5:v.x/(P.theta*(P.R+v.d))+0.5;}
 function boxGrid(){return{du:S.box.hu/spanCm(S.box.d)};}
-function gateVessel(){const P=PROBES[S.probe];const x=P.type==='linear'?(S.gateU-0.5)*P.Wtot:(S.gateU-0.5)*P.theta*(P.R+S.gateD);const h=vesselHit(S.probe,x,S.gateD);return h&&h[1]<1?h:null;}
+function gateVessel(){const P=PROBES[S.probe];const x=P.type==='linear'?(S.gateU-0.5)*P.Wtot:(S.gateU-0.5)*P.theta*(P.R+S.gateD);const h=vesselHit(VES(),x,S.gateD);return h&&h[1]<1?h:null;}
 function pulse(v,t){if(v.type==='ven')return 0.85+0.15*Math.sin(t*1.4);const p=(t*1.15)%1;
  if(p<0.1)return p/0.1;if(p<0.28)return 1-(p-0.1)/0.18*1.15;if(p<0.4)return -0.15+(p-0.28)/0.12*0.27;return 0.12*Math.exp(-(p-0.4)*5);}
 const TINT={'Aus':[1,1,1],'B-Color A':[1,0.9,0.74],'B-Color B':[0.8,0.92,1],'B-Color C':[0.88,1,0.86],'B-Color D':[1,0.95,0.86]};
 const GAMMA={'Grau Skala A':1,'Grau Skala B':0.85,'Grau Skala C':1.2,'Grau Skala D':0.7,'Grau Skala E':1.4,'Grau Skala F':1.05};
 function renderImage(t){
- const P=PROBES[S.probe],T=TIS[S.probe];if(!MAP)buildMap();
+ if(!MAP)buildMap();const P=PROBES[S.probe],T=CUR_T;
  const IW=imgC.width,IH=imgC.height,n=IW*IH,TW=T.TW,TH=T.TH,N=TW*TH;
  const pano=G.pano, rec=S.lv==='rec';
  // Tiefen-LUT
@@ -719,14 +919,22 @@ function renderImage(t){
  const live=!S.freeze;const fa=S.frameAvg,a=live&&fa>0?fa/(fa+1)*0.8:0;
  const data=IMG.data;
  // Farbe
- const col=S.color,V=VESSELS[S.probe];
+ const col=S.color,V=VES();
  let bu0=0,du=0,bd=0,hd=0,stK=0;
  if(col==='CF'||col==='PDI'){bu0=S.box.u;bd=S.box.d;hd=S.box.hd;du=S.box.hu/spanCm(bd);stK=P.type==='linear'?Math.tan(S.steer*Math.PI/180)/P.Wtot:0;}
  const vel=V.map(v=>v.vmax*pulse(v,t));
  const cg=S.gainCF/50;
  const edge=S.edge*0.012;
+ const SC=SCENES[S.scene],WARP=MU?SC.warp:null,lin=P.type==='linear';let wb=0,wsh=0;
+ if(WARP==='heart'){const p=(t*1.2)%1;wb=p<0.35?Math.sin(p/0.35*Math.PI):0;}
+ if(WARP==='lung'&&!T.cf.ptx)wsh=0.22*Math.sin(2*Math.PI*t/4)+0.015*Math.sin(t*11);
  for(let i=0;i<n;i++){
-  const g0=MAP[i];const j=i*4;
+  let g0=MAP[i];const j=i*4;
+  if(WARP&&g0>=0){let u=MU[i],d=MD[i];
+   if(WARP==='lung'){if(wsh&&d>SC.pleura+0.04)u+=wsh/(lin?P.Wtot:P.theta*(P.R+d));}
+   else if(wb>0){const x=(u-0.5)*(lin?P.Wtot:P.theta*(P.R+d)),dx=x-HEART.x,dd=d-HEART.d,lx=dx*HEART.c+dd*HEART.s,ld=-dx*HEART.s+dd*HEART.c,r=Math.sqrt((lx/HEART.rx)**2+(ld/HEART.ry)**2);
+    if(r<1.5){const k=1-0.075*wb*(1-r/1.5);const d2=HEART.d+dd/k;u=(HEART.x+dx/k)/(lin?P.Wtot:P.theta*(P.R+d2))+0.5;d=d2;}}
+   const gu=u*TW|0,gd=d/P.dmax*TH|0;if(gu>=0&&gu<TW&&gd>=0&&gd<TH)g0=gd*TW+gu;}
   if(g0<0){data[j]=data[j+1]=data[j+2]=0;data[j+3]=255;GRAY[i]=0;continue;}
   let g=g0+jit;if(g<0||g>=N)g=g0;
   let tv=T.t[g];tv=S.chi?tv*(0.7+0.3*Math.min(tv,1.5)):tv+0.05;
@@ -809,7 +1017,7 @@ function pushStrip(t,dt){
  stctx.drawImage(stripC,-sp,0);
  const id=stctx.createImageData(sp,H),dd=id.data;
  if(S.spec==='PW'){
-  const gv=gateVessel();const V=VESSELS[S.probe];const base=H*(0.5-S.pwBase*0.08);const sc=S.pwScale;const k=S.gainPW/50;
+  const gv=gateVessel();const V=VES();const base=H*(0.5-S.pwBase*0.08);const sc=S.pwScale;const k=S.gainPW/50;
   const cosA=Math.cos(Math.min(1.2,Math.abs(S.pwAngle)*Math.PI/180));
   for(let x=0;x<sp;x++){
    const tt=t-(sp-x)/(25*sp)*dt*25/25;
@@ -845,8 +1053,13 @@ function drawBody(c,x,y){
  c.restore();
 }
 const reviewImg=new Image();
+function drawToast(c,now){if(S.toast&&now<S.toast.until){c.font='bold 14px IBM Plex Sans, sans-serif';const w=Math.min(760,c.measureText(S.toast.msg).width+30);c.fillStyle='rgba(18,40,80,.92)';c.fillRect(400-w/2,48,w,30);c.strokeStyle='#5ea0ff';c.strokeRect(400-w/2,48,w,30);c.fillStyle='#fff';c.textAlign='center';c.fillText(S.toast.msg,400,68);c.textAlign='left';}}
 function drawMonitor(t,now){
  const c=mctx,P=PROBES[S.probe];
+ if(S.off||now<S.bootUntil){c.fillStyle='#000';c.fillRect(0,0,800,600);c.textAlign='center';
+  if(S.off){c.fillStyle='#3a4452';c.font='16px IBM Plex Sans, sans-serif';c.fillText('System ausgeschaltet – Ein/Aus-Taste drücken',400,300);}
+  else{const p=1-(S.bootUntil-now)/3.5;c.fillStyle='#d0d6de';c.font='300 44px IBM Plex Sans, sans-serif';c.fillText('LOGIQ',400,270);c.font='14px IBM Plex Sans, sans-serif';c.fillStyle='#8ea0b8';c.fillText('System startet … Selbsttest, Sonden werden erkannt',400,305);c.fillStyle='#22324c';c.fillRect(250,330,300,6);c.fillStyle='#5ea0ff';c.fillRect(250,330,300*Math.min(1,p),6);}
+  c.textAlign='left';drawToast(c,now);return;}
  c.fillStyle='#000';c.fillRect(0,0,800,600);
  c.fillStyle='#0d1626';c.fillRect(0,0,800,40);
  c.font='13px IBM Plex Sans, sans-serif';c.fillStyle='#e5edf9';
@@ -854,7 +1067,7 @@ function drawMonitor(t,now){
  c.fillStyle='#8ea0b8';c.font='11px IBM Plex Mono, monospace';c.fillText(S.registered?('ID '+(S.patient.id||'–')):'PATIENT › Registrieren',12,33);
  const dt=new Date();c.fillText(dt.toLocaleDateString('de-CH')+' '+dt.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'}),330,17);
  const mi=(0.3+0.9*S.power/100*(S.probe==='L3-12'?1:1.25)).toFixed(1),ti=(0.1+0.5*S.power/100*(S.spec==='PW'?2:1)).toFixed(1);
- c.fillText(`MI ${mi}  TIs ${ti}`,590,17);c.fillStyle='#cfe0ff';c.fillText(`${S.probe} · ${S.preset}`,590,33);
+ c.fillText(`MI ${mi}  TIs ${ti}`,590,17);c.fillStyle='#cfe0ff';c.fillText(`${S.probe} · ${S.preset}`,590,33);c.fillStyle='#8ea0b8';c.fillText(SCENES[S.scene].short,330,33);
  if(S.review){c.drawImage(reviewImg,80,50,640,480);c.fillStyle='#ffd27a';c.font='bold 14px IBM Plex Sans, sans-serif';c.fillText('Nachbetrachtung – gespeichertes Bild (erneut „Nachbetracht.“ schliesst)',90,560);return;}
  // Bild
  if(S.dual){const w=310,h=w*imgC.height/imgC.width;const pos=[[85,60],[405,60]];const act=S.dual==='L'?0:1;
@@ -888,7 +1101,7 @@ function drawMonitor(t,now){
  // Trackball-Funktion
  c.fillStyle='#6f84a8';c.font='11px IBM Plex Sans, sans-serif';c.fillText('Trackball: '+tbLabel(),10,592);
  // Clipboard
- const thumbs=S.images.slice(-5);thumbs.forEach((im,k)=>{if(!im.el){im.el=new Image();im.el.src=im.src;}if(im.el.complete)c.drawImage(im.el,560+k*46,572,42,26);c.strokeStyle='#33435d';c.strokeRect(560+k*46,572,42,26);});
+ const thumbs=S.images.slice(-5);thumbs.forEach((im,k)=>{if(!im.el&&im.src){im.el=new Image();im.el.src=im.src;}if(im.el&&im.el.complete)c.drawImage(im.el,560+k*46,572,42,26);c.strokeStyle='#33435d';c.strokeRect(560+k*46,572,42,26);});
  // Freeze / Cine
  if(S.freeze){c.fillStyle='#7ee0c0';c.font='bold 13px IBM Plex Sans, sans-serif';c.fillText('❄ Eingefroren',650,585-(S.images.length?30:0));
   const bx=650,by=592-(S.images.length?30:0)-28;c.fillStyle='#22324c';c.fillRect(bx,by,130,6);const f=(S.cine+4)/4;c.fillStyle='#7ee0c0';c.fillRect(bx+f*126,by-3,4,12);
@@ -897,13 +1110,14 @@ function drawMonitor(t,now){
  // LOGIQView Aufnahme
  if(S.lv==='rec'){const p=Math.min(1,(now-S.lvStart)/4);c.fillStyle='rgba(0,0,0,.55)';c.fillRect(IMGX,IMGY+200,500,70);c.fillStyle='#ffd27a';c.font='bold 15px IBM Plex Sans, sans-serif';c.fillText('LOGIQView: Sonde langsam & gleichmässig verschieben …',IMGX+20,IMGY+228);c.fillStyle='#22324c';c.fillRect(IMGX+20,IMGY+244,460,8);c.fillStyle='#ffd27a';c.fillRect(IMGX+20,IMGY+244,460*p,8);}
  // Toast
- if(S.toast&&now<S.toast.until){c.font='bold 14px IBM Plex Sans, sans-serif';const w=Math.min(760,c.measureText(S.toast.msg).width+30);c.fillStyle='rgba(18,40,80,.92)';c.fillRect(400-w/2,48,w,30);c.strokeStyle='#5ea0ff';c.strokeRect(400-w/2,48,w,30);c.fillStyle='#fff';c.textAlign='center';c.fillText(S.toast.msg,400,68);c.textAlign='left';}
+ drawToast(c,now);
 }
 function tbLabel(){if(S.measure&&S.measure.active!=null)return 'Messpunkt '+(S.measure.active+1);if(S.editing)return 'Kommentar-Position';if(S.arrowEdit)return 'Pfeil';if(S.freeze)return 'Cine blättern';if(S.spec==='PW')return 'Doppler-Gate';if(S.spec==='M')return 'M-Linie';if(S.color==='CF'||S.color==='PDI')return 'Farbbox '+(S.tbMode==='size'?'Grösse':'Position');return '–';}
-function toast(msg,ms=2600){S.toast={msg,until:performance.now()/1000+ms/1000};dirty=true;}
+let toastId=0;function toast(msg,ms=2600){S.toast={msg,until:performance.now()/1000+ms/1000,id:++toastId};dirty=true;}
 
 // ================= Aktionen =================
 function emit(type,id,extra){
+ if(TS.set!=null)setTimeout(testCheck,0);
  if(EXS.cur==null)return;const ex=EX[EXS.cur],st=ex.steps[EXS.step];if(!st)return;
  const e={type,id,...extra};let ok=false;
  if(st.ok&&st.ok(e))ok=true;if(st.cond&&st.cond())ok=true;
@@ -916,22 +1130,24 @@ function doFreeze(){
  dirty=true;
 }
 function setProbe(key,preset){
- S.probe=key;S.preset=preset;const P=PROBES[key];
+ S.probe=key;S.preset=preset;const P=PROBES[key];S.scene=PRESET_SCENE[preset]||'msk';
  IMGDEF.forEach(k=>S[k]=DEFAULTS[k]);
  S.depth=P.presets[preset];S.freq=P.freqs[P.freqs.length-1];if(key==='C1-6')S.freq=4;
  S.focusPos=+(S.depth*0.42).toFixed(1);S.color='none';S.spec='none';S.lv=null;S.dual=null;S.measure=null;
  S.box={u:0.5,d:S.depth*0.38,hu:key==='L3-12'?0.8:2.5,hd:key==='L3-12'?0.55:2};S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
  S.tgc=[0,0,0,0,0,0,0,0];
- buildMap();
+ buildMap();updPos();
 }
 function depthChange(dir){
  const P=PROBES[S.probe];const st=P.type==='linear'?0.5:1;const mn=P.type==='linear'?1:4;
  S.depth=Math.max(mn,Math.min(P.dmax,+(S.depth+dir*st).toFixed(1)));S.focusPos=Math.min(S.focusPos,S.depth*0.95);
  if(S.lv==='done')S.lv=null;buildMap();
 }
+function isOff(){return S.off||performance.now()/1000<S.bootUntil;}
 function press(id){
+ if(isOff()&&id!=='power'){toast(S.off?'System ist aus – Ein/Aus-Taste drücken':'System startet noch …');return;}
  switch(id){
-  case 'power':toast('Ein/Aus: Am echten Gerät öffnet sich jetzt der Dialog zum Herunterfahren.');break;
+  case 'power':if(S.off){S.off=false;S.bootUntil=performance.now()/1000+3.5;S.booting=true;}else{if(S.freeze)doFreeze();S.off=true;toast('System heruntergefahren');}break;
   case 'pdi':S.color=S.color==='PDI'?'none':'PDI';if(S.color==='PDI')S.scanSub='PDI';break;
   case 'bflow':S.color=S.color==='BFLOW'?'none':'BFLOW';if(S.color==='BFLOW')S.scanSub='BFLOW';break;
   case 'x':S.color=S.color==='CF'?'none':'CF';if(S.color==='CF'){S.scanSub='CF';S.tbMode='pos';}break;
@@ -957,7 +1173,7 @@ function press(id){
    if(PROBES[S.probe].type!=='linear'||(S.color!=='CF'&&S.color!=='PDI'&&S.spec!=='PW')){toast('Steer wirkt bei Linearsonden auf Farbbox/Doppler-Linie');break;}
    S.steer=Math.max(-20,Math.min(20,S.steer+(id==='steer-l'?-10:10)));toast('Steer '+S.steer+'°');break;
   case 'usb':toast(S.freeze?'Cine-Loop auf USB-Stick exportiert (Simulator)':'Bild auf USB-Stick exportiert (Simulator)');break;
-  case 'ao':S.gainB=50;S.tgc=[0,0,0,0,0,0,0,0];if(S.color!=='none')S.gainCF=55;if(S.spec==='PW'){const gv=gateVessel();if(gv){const vm=Math.abs(VESSELS[S.probe][gv[0]].vmax)*0.8/Math.cos(Math.abs(S.pwAngle)*Math.PI/180);S.pwScale=Math.min(250,Math.ceil(vm*1.4/10)*10);S.pwBase=-2;}}toast('AO: Bild automatisch optimiert');break;
+  case 'ao':S.gainB=50;S.tgc=[0,0,0,0,0,0,0,0];if(S.color!=='none')S.gainCF=55;if(S.spec==='PW'){const gv=gateVessel();if(gv){const vm=Math.abs(VES()[gv[0]].vmax)*0.8/Math.cos(Math.abs(S.pwAngle)*Math.PI/180);S.pwScale=Math.min(250,Math.ceil(vm*1.4/10)*10);S.pwBase=-2;}}toast('AO: Bild automatisch optimiert');break;
   case 'markcine':if(!S.freeze){toast('Mark Cine: erst einfrieren (Freeze)');break;}S.cineMarks.push(S.cine);if(S.cineMarks.length>2)S.cineMarks.shift();toast('Cine-Markierung gesetzt');break;
   case 'freeze':doFreeze();break;
   case 'p1':storeImage();break;
@@ -968,6 +1184,7 @@ function press(id){
  dirty=true;renderTS();emit('press',id);
 }
 function rotate(id,dir){
+ if(isOff())return;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  switch(id){
   case 'bknob':S.gainB=clamp(S.gainB+dir*2,0,100);break;
@@ -1011,8 +1228,8 @@ function tbMove(dx,dy){
 function storeImage(){
  const tc=document.createElement('canvas');tc.width=200;tc.height=150;tc.getContext('2d').drawImage(mon,0,0,200,150);
  const src=tc.toDataURL('image/jpeg',0.8);
- S.images.push({src,sel:false});if(S.images.length>24)S.images.shift();
- toast('Bild '+S.images.length+' gespeichert (P1) – siehe PATIENT › Aktive Bilder');renderTS();emit('store','p1');
+ S.images.push({src,sel:false,scene:S.scene,spec:S.spec,color:S.color,depth:S.depth,probe:S.probe});if(S.images.length>24)S.images.shift();
+ toast('Bild '+S.images.length+' gespeichert (P1) – siehe PATIENT › Aktive Bilder');renderTS();emit('store','p1');syncImage(tc);
 }
 // Kommentar-Eingabe
 const annBox=document.getElementById('annBox'),annIn=document.getElementById('annIn');
@@ -1053,7 +1270,7 @@ stage.addEventListener('keydown',e=>{
  if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();rotate(id,1);}
  if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();rotate(id,-1);}
 });
-function infoId(id){if(/^(depth-|steer-)/.test(id))return 'depthknob';return id;}
+function infoId(id){if(/^pos-/.test(id))return 'posbar';if(/^(depth-|steer-)/.test(id))return 'depthknob';return id;}
 // Klicks: Tasten + Touchscreen
 stage.addEventListener('click',e=>{
  const k=e.target.closest('button.cc');
@@ -1099,7 +1316,7 @@ function tsAction(act,b){
   case 'img-clear':S.images=[];S.review=null;toast('Temporärer Speicher geleert');break;
   case 'img-saveas':toast('Speichern unter: Format wählen, z. B. JPEG/DICOM (Simulator)');break;
   case 'img-props':toast(`Bild-Eigenschaften: ${S.probe}, ${S.preset}, ${S.freq} MHz, Tiefe ${S.depth} cm`);break;
-  case 'end-ok':S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
+  case 'end-ok':S.endCount++;S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
    S.images=[];S.review=null;S.patient={last:'',first:'',id:'',dob:'',sex:''};S.registered=false;S.measure=null;S.annots=[];S.arrows=[];S.bodyPattern=false;if(S.freeze)doFreeze();S.tab='patient';S.patSub='patient';toast('Untersuchung beendet und archiviert – bereit für den nächsten Patienten');renderTS();emit('end','end');return;
   case 'toast':toast(b.dataset.msg);break;
  }
@@ -1125,12 +1342,12 @@ function kbdKey(k){
 // Maus im Monitor (Messpunkte)
 function monPos(e){const r=mon.getBoundingClientRect();return[(e.clientX-r.left)*800/r.width-IMGX,(e.clientY-r.top)*600/r.height-IMGY];}
 mon.addEventListener('mousemove',e=>{
- if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
+ if(SYNC.mode==='monitor')return;if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
  if(S.measure&&S.measure.active!=null){const p=S.measure.pts[S.measure.active];p[0]=Math.max(0,Math.min(imgC.width,x));p[1]=Math.max(0,Math.min(imgC.height,y));dirty=true;}
  else if(S.arrowEdit){S.arrowEdit.x=x;S.arrowEdit.y=y;dirty=true;}
 });
 mon.addEventListener('click',e=>{
- if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
+ if(SYNC.mode==='monitor')return;if(S.dual||S.rotation||S.review)return;const [x,y]=monPos(e);
  if(S.measure&&S.measure.active!=null){doSet();showInfo('setR',true);}
  else if(S.arrowEdit)doSet();
  else if(S.editing){S.editing.x=x;S.editing.y=y;dirty=true;annIn.focus();}
@@ -1148,6 +1365,7 @@ document.querySelectorAll('[data-ptab]').forEach(b=>b.addEventListener('click',(
 function showInfo(id,soft){
  if(!INFO[id])return;lastInfo=id;
  if(EXS.cur!=null&&ptab==='ex'){renderPanel();return;}
+ if(ptab==='tut'||ptab==='test')return;
  if(ptab!=='info'&&soft&&ptab!=='idx')return;
  ptab='info';renderPanel();
 }
@@ -1159,7 +1377,9 @@ function infoHTML(id){
 function renderPanel(){
  document.querySelectorAll('[data-ptab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.ptab===ptab));
  let h='';
- if(ptab==='info'){h=infoHTML(lastInfo)+`<div class="hintbox" style="margin-top:14px">Klicke auf eine beliebige Taste, einen Knopf oder ein Touchscreen-Feld, um hier die Erklärung zu sehen. Unter <b>Übungen</b> führe ich dich Schritt für Schritt durch typische Abläufe.</div>`;}
+ if(ptab==='tut'){h=tutHTML();}
+ else if(ptab==='test'){h=testHTML();}
+ else if(ptab==='info'){h=infoHTML(lastInfo)+`<div class="hintbox" style="margin-top:14px">Klicke auf eine beliebige Taste, einen Knopf oder ein Touchscreen-Feld, um hier die Erklärung zu sehen. Unter <b>Übungen</b> führe ich dich Schritt für Schritt durch typische Abläufe.</div>`;}
  else if(ptab==='ex'){
   if(EXS.cur==null){h=`<h2>Geführte Übungen</h2><p class="muted">Das nächste Bedienelement leuchtet jeweils orange. Die Übungen bauen aufeinander auf, du kannst aber auch einzeln starten.</p><div class="exlist">${EX.map((x,i)=>`<button data-ex="${i}"><span>${i+1}. ${x.title}</span><span class="${EXS.done.has(i)?'done':'muted'}">${EXS.done.has(i)?'✓ erledigt':x.steps.length+' Schritte'}</span></button>`).join('')}</div>`;}
   else{const ex=EX[EXS.cur];const fin=EXS.step>=ex.steps.length;
@@ -1182,7 +1402,7 @@ function renderPanel(){
   <li><b>Abschluss:</b> UNTERS. BEEN. → Bilder werden archiviert/gesendet. Sonde reinigen.</li></ol>
   <h3>Faustregeln</h3><p>Erst die Geometrie (Tiefe, Fokus), dann die Helligkeit (Gain/TGC), dann die Verarbeitung (SRI, Compound). ALARA: Sendeleistung so niedrig wie sinnvoll, nicht unnötig live schallen.</p>
   <h3>Offizielle Quellen</h3><p>Am Gerät: Hilfe (F1) bzw. die Online-Hilfe und <b>MyTrainer</b>. GE stellt die Bedienungsanleitungen (Basic User Manual, „Control Panel Map“) im GE-Dokumentationsportal bzw. über den Service bereit.</p>
-  <button class="btn primary" data-ptabgo="ex">Zu den Übungen</button></div>`;}
+  <button class="btn primary" data-ptabgo="ex">Zu den Übungen</button>${EFAST_HTML}</div>`;}
  pbody.innerHTML=h;
 }
 pbody.addEventListener('click',e=>{
@@ -1192,22 +1412,413 @@ pbody.addEventListener('click',e=>{
  if(d.exlist){EXS.cur=null;renderPanel();applyHint();}
  if(d.goto){lastInfo=d.goto;const t=stage.querySelector(`[data-id="${d.goto}"]`);ptab='info';renderPanel();if(t){t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),2200);t.scrollIntoView({block:'nearest',behavior:'smooth'});}}
  if(d.ptabgo){ptab=d.ptabgo;renderPanel();}
+ if(d.tplay!==undefined)playTut(+d.tplay,0);
+ if(d.tjump!==undefined)playTut(V.tut,+d.tjump);
+ if(d.v)vctl(d.v);
+ if(d.tstart!==undefined)startTest(+d.tstart);
+ if(d.thint){TS.hint=true;renderPanel();applyHint();}
+ if(d.tskip){testNext(0,'übersprungen');}
+ if(d.tstop){TS.set=null;S.caseHidden=false;syncCase();renderPanel();applyHint();}
+ if(d.tchoice!==undefined)testChoice(d.tchoice);
+ if(d.efastcase){startCaseQuiz();}
 });
 function applyHint(){
- stage.querySelectorAll('.hint').forEach(x=>x.classList.remove('hint'));
- if(EXS.cur==null)return;const st=EX[EXS.cur].steps[EXS.step];if(!st||!st.hl)return;
- const t=stage.querySelector(`[data-id="${CSS.escape(st.hl)}"]`);if(t)t.classList.add('hint');
+ document.querySelectorAll('.hint').forEach(x=>x.classList.remove('hint'));
+ let hl=null;
+ if(TS.set!=null){const tk=TESTS[TS.set].tasks[TS.i];if(tk&&TS.hint)hl=tk.hl;}
+ else if(EXS.cur!=null){const st=EX[EXS.cur].steps[EXS.step];if(st)hl=st.hl;}
+ if(!hl)return;
+ const t=document.querySelector(`[data-id="${CSS.escape(hl)}"]`);if(t)t.classList.add('hint');
 }
+
+// ================= Schallkopf-Position & Befund =================
+const posbtns=document.getElementById('posbtns'),caseSel=document.getElementById('caseSel'),bodysvg=document.getElementById('bodysvg');
+function imgsWith(f){return S.images.some(f);}
+function updPos(){
+ posbtns.innerHTML=Object.entries(SCENES).map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${S.scene===k?'on':''}" title="${v.name}">${v.short}</button>`).join('');
+ bodysvg.querySelectorAll('.dot').forEach(d=>d.remove());
+ Object.entries(SCENES).forEach(([k,v])=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',v.dot[0]);c.setAttribute('cy',v.dot[1]);c.setAttribute('r',S.scene===k?6:4.5);c.setAttribute('class','dot'+(S.scene===k?' on':''));c.dataset.pos=k;const ti=document.createElementNS('http://www.w3.org/2000/svg','title');ti.textContent=v.name;c.appendChild(ti);bodysvg.appendChild(c);});
+}
+function setScene(k){
+ if(isOff()){toast('System ist aus');return;}
+ S.scene=k;S.measure=null;S.lv=null;S.box.u=0.5;S.box.d=Math.min(S.depth*0.38,S.depth-0.5);S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
+ buildMap();updPos();dirty=true;
+ if(['ruq','luq','pelvis','cardiac'].includes(k)&&S.depth<12)toast('Tipp: Tiefe erhöhen (▼), für eFAST 14–18 cm');
+ else if(/^lung/.test(k)&&S.depth>8)toast('Tipp: Für die Pleura Tiefe ca. 4–6 cm, ideal mit L3-12');
+ else toast(SCENES[k].name);
+ showInfo('posbar',true);emit('pos',k);
+}
+function syncCase(){caseSel.value=S.caseHidden?'hidden':S.caseKey;caseSel.disabled=S.caseHidden;}
+function setCase(k){S.caseKey=k;buildMap();syncCase();dirty=true;emit('case',k);}
+document.getElementById('posbar').addEventListener('click',e=>{const t=e.target.closest('[data-pos]');if(t)setScene(t.dataset.pos);});
+caseSel.addEventListener('change',()=>{if(caseSel.value!=='hidden'){setCase(caseSel.value);toast('Befund: '+CASES[caseSel.value]);showInfo('case-select',true);}});
+
+// ================= eFAST-Text =================
+const EFAST_HTML=`<h2 style="margin-top:22px">eFAST – extended Focused Assessment with Sonography for Trauma</h2>
+<p>Schnelle Suche nach <b>freier Flüssigkeit</b> (Blut) im Bauch, im Herzbeutel und im Thorax sowie nach <b>Pneumothorax</b>. Ziel: Ja/Nein-Fragen in wenigen Minuten, am liegenden Patienten, ohne das Trauma-Management zu verzögern.</p>
+<h3>Vorbereitung am Gerät</h3><ol><li>Patient anlegen (oder Notfall-/Schnellstart).</li><li>Konvexsonde <b>C1-6</b>, Preset <b>eFAST</b> (bzw. Abdomen), Tiefe 14–18 cm.</li><li>Für die Lunge: Linearsonde <b>L3-12</b>, Preset <b>Lunge</b>, Tiefe 4–6 cm (geht notfalls auch mit C1-6).</li></ol>
+<h3>Die 6 Fenster</h3><ol>
+<li><b>RUQ (rechter Oberbauch):</b> mittlere bis hintere Axillarlinie, 8.–11. ICR, Marker nach kranial. Morison-Pouch (zwischen Leber und Niere), kaudale Leberspitze (hier sammelt sich Flüssigkeit oft zuerst) und das Zwerchfell. Oberhalb des Zwerchfells ist ein Spiegelbild der Leber normal. Schwarzer Raum plus sichtbare Wirbelsäule („Spine sign“) spricht für einen Hämatothorax.</li>
+<li><b>LUQ (linker Oberbauch):</b> weiter hinten und höher als rechts (hintere Axillarlinie, 6.–9. ICR, „Knöchel aufs Bett“). Raum zwischen Milz und Zwerchfell (subphrenisch, oft zuerst betroffen), splenorenal, linke Pleura.</li>
+<li><b>Becken (suprapubisch):</b> quer und längs. Hinter bzw. seitlich der Harnblase: rektovesikal (Mann) bzw. Douglas-Raum (Frau). Mit gefüllter Blase geht es besser. Fallstricke: Samenblasen, Ovarialfollikel.</li>
+<li><b>Subxiphoidal (Herz):</b> Sonde flach unter dem Xiphoid, Richtung linke Schulter, die Leber dient als Schallfenster. Tiefe 16–20 cm. Perikarderguss = schwarzer Saum zwischen Herzmuskel und hellem Perikard (hinten oft breiter). Alternative: parasternal lang.</li>
+<li><b>Thorax rechts</b> und <b>6. Thorax links (anterior):</b> 2.–3. ICR medioklavikulär (am liegenden Patienten steigt Luft nach vorne), längs über zwei Rippen („Bat sign“). <b>Lungengleiten</b> an der Pleuralinie und im M-Mode das <b>Seashore-Zeichen</b> schliessen einen Pneumothorax an dieser Stelle aus. Kein Gleiten und im M-Mode ein <b>Barcode/Stratosphären-Zeichen</b> sprechen für einen Pneumothorax; der „Lung point“ ist beweisend.</li></ol>
+<h3>Merke</h3><p>Ein negativer eFAST schliesst eine Verletzung nicht aus (z. B. retroperitoneal, Hohlorgan, frühe Phase). Bei Instabilität wiederholen. Befund immer als Ja/Nein pro Fenster dokumentieren und die Bilder speichern.</p>
+<div class="btnrow"><button class="btn primary" data-tplay="3">▶ Tutorial: eFAST normal</button><button class="btn" data-tplay="4">▶ Tutorial: eFAST pathologisch</button><button class="btn" data-efastcase="1">Zufälliger Fall (Test)</button></div>`;
+
+// ================= Video-Tutorials =================
+const V={tut:null,step:0,playing:false,paused:false,token:0,speed:1,voice:true,rec:false,done:false};
+const vcur=document.getElementById('vcur'),vcap=document.getElementById('vcap');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function vwait(ms){const tk=V.token;let t=0;while(t<ms){if(tk!==V.token)throw 'abort';if(V.paused){await sleep(100);continue;}await sleep(40);t+=40*V.speed;}if(tk!==V.token)throw 'abort';}
+function tgt(sel){if(!sel)return null;return document.querySelector(/^[#.\[]/.test(sel)?sel:`[data-id="${CSS.escape(sel)}"]`);}
+async function moveTo(sel){const el=tgt(sel);if(!el){await vwait(200);return null;}const r=el.getBoundingClientRect();vcur.hidden=false;vcur.style.left=(r.left+r.width/2)+'px';vcur.style.top=(r.top+r.height/2)+'px';await vwait(750);return el;}
+async function clickFx(){vcur.classList.remove('clk');void vcur.getBoundingClientRect();vcur.classList.add('clk');await vwait(260);}
+async function A_click(sel){const el=await moveTo(sel);await clickFx();if(!el)return;if(el.classList.contains('knob')){press(el.dataset.id);showInfo(infoId(el.dataset.id),true);}else el.click();await vwait(250);}
+async function A_rot(sel,n){const el=await moveTo(sel);if(!el)return;const id=el.dataset.id;for(let k=0;k<Math.abs(n);k++){rotate(id,Math.sign(n));await vwait(130);}await vwait(200);}
+async function A_tb(dx,dy,steps=22){await moveTo('tb');for(let k=0;k<steps;k++){tbMove(dx/steps,dy/steps);await vwait(40);}await vwait(150);}
+async function A_type(sel,text){const el=await moveTo(sel);await clickFx();if(!el)return;el.value='';for(const ch of text){el.value+=ch;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(65);}await vwait(200);}
+async function A_slider(i,v){const el=await moveTo('#tgc'+i);if(!el)return;let c=+el.value;while(c!==v){c+=Math.sign(v-c);el.value=c;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(60);}}
+async function A_select(v){await moveTo('#caseSel');await clickFx();caseSel.value=v;caseSel.dispatchEvent(new Event('change'));await vwait(500);}
+async function A_boxTo(u,d){const k=S.depth/5;await A_tb((u-S.box.u)*spanCm(S.box.d)/(0.02*k),(d-S.box.d)/(0.012*k),24);S.box.u=u;S.box.d=d;dirty=true;}
+async function A_gateTo(u,d){const k=S.depth/5;await A_tb((u-S.gateU)*spanCm(S.gateD)/(0.02*k),(d-S.gateD)/(0.012*k),24);S.gateU=u;S.gateD=d;dirty=true;}
+async function A_mTo(u){const k=S.depth/5;await A_tb((u-S.mU)*spanCm(S.depth/2)/(0.02*k),0,16);S.mU=u;dirty=true;}
+async function A_depthTo(v){while(Math.abs(S.depth-v)>0.01){const before=S.depth;await A_click(S.depth>v?'depth-up':'depth-down');if(S.depth===before)break;}}
+async function A_preset(probe,preset){await A_click('probe-'+probe);await A_click('preset-'+preset);}
+async function A_annot(text){await A_click('abc');await A_type('#annIn',text);commitAnn();await vwait(300);}
+async function A_store(label){await A_click('freeze');if(label)await A_annot(label);await A_click('p1');await vwait(500);await A_click('freeze');}
+function resetAll(o={}){
+ S.off=false;S.bootUntil=0;if(S.freeze)doFreeze();S.review=null;S.measure=null;S.annots=[];S.arrows=[];S.arrowEdit=null;S.editing=null;hideAnn();S.bodyPattern=false;
+ S.images=[];S.tab='scan';S.page=null;S.presetMenu=null;S.tgcOpen=false;S.kbd=false;S.dual=null;
+ S.patient={last:o.last||'',first:o.first||'',id:o.last?'SIM10001':'',dob:'',sex:''};S.registered=!!o.last;
+ S.caseKey=o.case||'normal';S.caseHidden=false;syncCase();
+ setProbe(o.probe||'L3-12',o.preset||'BWA Allg.');renderTS();dirty=true;
+}
+const T=(c,a,w)=>({c,a,w});
+const TUTS=[
+ {title:'Grundlagen: vom Einschalten bis zum archivierten Bild',sub:'Schulter mit der Linearsonde L3-12',setup:()=>{resetAll();S.off=true;renderTS();},steps:[
+  T('Willkommen! Wir untersuchen eine Schulter mit der Linearsonde – vom Einschalten über die Bildeinstellung bis zum archivierten Bild.'),
+  T('Das Gerät ist aus. Zum Starten die Ein/Aus-Taste links oben am Bedienpult drücken. Das System fährt hoch und erkennt die Sonden.',()=>A_click('power'),3600),
+  T('Sonde verbinden: Der Sondenstecker kommt in einen freien Port unten am Gerät und wird mit dem Verriegelungshebel gesichert. Alle angeschlossenen Sonden erscheinen rechts am Touchscreen.',()=>moveTo('probe-L3-12')),
+  T('Zuerst den Patienten anlegen: links am Touchscreen auf PATIENT tippen.',()=>A_click('tab-patient')),
+  T('Nachname und Vorname eintragen. Im Training nur Fantasienamen verwenden.',async()=>{await A_type('#pf-last','Muster');await A_type('#pf-first','Max');}),
+  T('Auf Registrieren tippen. Der Name steht jetzt oben im Monitor, alle Bilder landen in dieser Untersuchung.',()=>A_click('pat-register')),
+  T('Sonde und Preset wählen: Linearsonde L3-12 antippen …',()=>A_click('probe-L3-12')),
+  T('… und das Preset „Schulter“. Ein Preset lädt passende Tiefe, Frequenz und Bildparameter.',()=>A_click('preset-Schulter')),
+  T('Am Patienten: Gel auf die Sonde und aufsetzen. Die Markierung an der Sonde entspricht dem blauen Punkt oben links im Bild.',()=>A_click('pos-msk')),
+  T('Tiefe einstellen: mit ▼ mehr Tiefe, mit ▲ weniger. Die Zielstruktur soll das Bild gut ausfüllen.',async()=>{await A_click('depth-down');await A_click('depth-down');await vwait(500);await A_click('depth-up');await A_click('depth-up');await A_click('depth-up');}),
+  T('Gesamtverstärkung am B-Knopf drehen. Zu wenig Gain: das Bild wird dunkel …',()=>A_rot('bknob',-12)),
+  T('… zu viel Gain: alles wird grau-weiss und überstrahlt. Wir drehen zurück in die Mitte.',async()=>{await A_rot('bknob',22);await A_rot('bknob',-10);}),
+  T('Fokus auf die Zielstruktur legen: Knopf 5 drehen. Der gelbe Pfeil am rechten Bildrand zeigt die Fokuslage.',()=>A_rot('k5',-5)),
+  T('TGC öffnen: Mit den Schiebereglern wird die Helligkeit in jeder Tiefe einzeln angepasst. Wir heben die tiefen Zonen etwas an.',async()=>{await A_click('ts-tgc');await A_slider(5,3);await A_slider(6,4);await A_slider(7,5);await vwait(400);await A_click('.tgcpanel [data-act="tgc"]');}),
+  T('Oder ganz schnell: AO, die automatische Optimierung.',()=>A_click('ao')),
+  T('Gutes Bild gefunden: Freeze drücken, um es einzufrieren.',()=>A_click('freeze')),
+  T('Mit dem Trackball durch die letzten Sekunden blättern (Cine) und das beste Bild auswählen.',async()=>{await A_tb(-140,0);await A_tb(80,0);}),
+  T('Messen: Measure drücken. Der erste Messpunkt erscheint.',()=>A_click('measure')),
+  T('Ersten Punkt mit dem Trackball an den Rand der Struktur setzen und mit Set bestätigen.',async()=>{await A_tb(-40,-70);await A_click('setR');}),
+  T('Zweiten Punkt setzen und wieder Set. Die Distanz steht links im Monitor.',async()=>{await A_tb(60,50);await A_click('setR');}),
+  T('Beschriften: Abc drücken und Seite und Schnittebene eintragen.',()=>A_annot('re. Schulter, SSP längs')),
+  T('Body Pattern einblenden: den Ellipse-Knopf drücken. Das Piktogramm zeigt, wo die Sonde lag.',()=>A_click('ellipse')),
+  T('Speichern mit P1. Das Bild erscheint unten rechts in der Bildleiste.',()=>A_click('p1')),
+  T('Freeze erneut drücken, um weiter live zu schallen.',()=>A_click('freeze')),
+  T('Kontrolle der gespeicherten Bilder: PATIENT, dann Aktive Bilder …',async()=>{await A_click('tab-patient');await A_click('pat-aktiv');}),
+  T('… Bild antippen und auf Nachbetracht. tippen. Ein zweiter Tipp schliesst die Ansicht.',async()=>{await A_click('[data-img="0"]');await A_click('img-review');await vwait(1800);await A_click('img-review');}),
+  T('Zum Schluss UNTERS. BEEN. und bestätigen: Die Bilder werden archiviert, das Gerät ist bereit für den nächsten Patienten.',async()=>{await A_click('tab-end');await A_click('[data-act="end-ok"]');}),
+  T('Danach Gel abwischen und die Sonde nach Hygieneplan reinigen bzw. desinfizieren. Fertig!')]},
+ {title:'Einstellungen verstehen: was jeder Regler bewirkt',sub:'Frequenz, Dynamik, Fokus, SRI, CrossXBeam, CHI, Zoom …',setup:()=>resetAll({last:'Muster',first:'Max'}),steps:[
+  T('In diesem Tutorial siehst du, wie sich jede Einstellung auf das Bild auswirkt. Achte jeweils auf den Monitor.'),
+  T('Für den Vergleich stellen wir die Tiefe auf 8 cm.',()=>A_depthTo(8)),
+  T('Frequenz mit Knopf 4: Bei 6 MHz reicht der Schall tiefer, das Bild wird aber gröber.',()=>A_rot('k4',-3)),
+  T('Bei 12 MHz wird es feiner, dafür nehmen die tiefen Anteile ab. Oberflächlich: hohe Frequenz.',()=>A_rot('k4',3)),
+  T('Tiefe wieder auf 4 cm.',()=>A_depthTo(4)),
+  T('Dynamikbereich mit Knopf 3: Niedrig ist kontrastreich und „hart“ …',()=>A_rot('k3',-8)),
+  T('… hoch ist weich mit vielen Grautönen. Zurück auf 63 dB.',async()=>{await A_rot('k3',14);await A_rot('k3',-6);}),
+  T('Sendeleistung mit Knopf 1. ALARA-Prinzip: so wenig wie möglich, lieber den Gain erhöhen. Achte auf MI und TI oben rechts.',async()=>{await A_rot('k1',-6);await vwait(800);await A_rot('k1',6);}),
+  T('Knopf 5 drücken wechselt zur Fokusanzahl. Mehr Fokuszonen machen das Bild gleichmässiger, die Bildrate FR sinkt.',async()=>{await A_click('k5');await A_rot('k5',2);await vwait(900);await A_rot('k5',-2);await A_click('k5');}),
+  T('SRI HD glättet die Körnung. Stufe 0 zeigt das rohe Speckle-Muster …',async()=>{await A_click('p-sri');await A_click('p-sri');}),
+  T('… Stufe 4 ist deutlich glatter.',async()=>{for(let k=0;k<4;k++)await A_click('p-sri');}),
+  T('CrossXBeam kombiniert mehrere Schallwinkel. Aus: körniger, Schallschatten deutlicher. An: glatter.',async()=>{await A_click('p-cxb');await vwait(1500);await A_click('p-cxb');}),
+  T('CHI, die Harmonische Bildgebung: Aus gibt mehr Grauschleier in dunklen Bereichen, an mehr Kontrast.',async()=>{await A_click('p-chi');await vwait(1500);await A_click('p-chi');}),
+  T('Unterdrückung (Reject) blendet die schwächsten Echos aus.',async()=>{for(let k=0;k<4;k++)await A_click('[data-p="reject"][data-d="1"]');await vwait(900);for(let k=0;k<4;k++)await A_click('[data-p="reject"][data-d="-1"]');}),
+  T('Colorieren legt eine Farbtönung über das Graustufenbild.',async()=>{await A_click('p-colorize');await vwait(900);for(let k=0;k<4;k++)await A_click('p-colorize');}),
+  T('Frame Average: hoch ist ein ruhiges Bild, das bei Bewegung aber nachzieht.',async()=>{for(let k=0;k<4;k++)await A_click('[data-p="frameAvg"][data-d="1"]');await vwait(900);for(let k=0;k<4;k++)await A_click('[data-p="frameAvg"][data-d="-1"]');}),
+  T('Virtuell Konvex erweitert das Bild der Linearsonde trapezförmig in die Tiefe.',async()=>{await A_click('p-vconvex');await vwait(1500);await A_click('p-vconvex');}),
+  T('Zoom: den Depth/Zoom-Knopf drehen. Ein Klick auf den Knopf setzt ihn zurück.',async()=>{await A_rot('depthknob',5);await vwait(900);await A_click('depthknob');}),
+  T('Umkehren spiegelt das Bild links/rechts, der blaue Orientierungspunkt wechselt die Seite.',async()=>{await A_click('ts-invert');await vwait(1300);await A_click('ts-invert');}),
+  T('Dual-Bild für den Seitenvergleich: L und R teilen den Monitor, B beendet die Ansicht.',async()=>{await A_click('dualL');await vwait(700);await A_click('dualR');await vwait(1000);await A_click('bknob');}),
+  T('Etwas verstellt? Rücksetzen lädt die Werte des Presets neu.',()=>A_click('ts-reset')),
+  T('Faustregel: erst Tiefe und Fokus, dann Gain und TGC, dann die Verarbeitung (SRI, CrossXBeam, CHI).')]},
+ {title:'Doppler: Farbe, Power-Doppler und PW',sub:'Gefässe mit L3-12',setup:()=>resetAll({last:'Muster',first:'Max',preset:'Gefässe'}),steps:[
+  T('Wir stellen Blutfluss dar. Im Bild siehst du zwei runde dunkle Gefässe: rechts eine Arterie, links eine Vene.'),
+  T('Farbdoppler einschalten: den X/CF-Knopf drücken. Eine Farbbox erscheint.',()=>A_click('x')),
+  T('Die Farbbox mit dem Trackball über die Arterie schieben. Klein halten, dann bleibt die Bildrate hoch.',()=>A_boxTo(vesselU(VES()[0]),VES()[0].d)),
+  T('Farbverstärkung mit dem X-Knopf: Zu wenig, und das Gefäss füllt sich nicht …',()=>A_rot('x',-9)),
+  T('… zu viel, und Farbrauschen erscheint im Gewebe. Richtig: knapp unter dem Rauschen.',async()=>{await A_rot('x',16);await vwait(900);await A_rot('x',-8);}),
+  T('Rot und Blau zeigen die Richtung (auf die Sonde zu oder weg), nicht Arterie oder Vene! Mit Steer kippt die Box bei der Linearsonde, das verbessert den Dopplerwinkel.',async()=>{await A_click('steer-r');await A_click('steer-r');await vwait(800);await A_click('steer-l');await A_click('steer-l');}),
+  T('Skala (PRF) mit Knopf 2 senken: Schneller Fluss schlägt in der Arterie um (Aliasing) …',()=>A_rot('k2',-8)),
+  T('… Skala wieder erhöhen, das Aliasing verschwindet.',()=>A_rot('k2',8)),
+  T('Wandfilter mit Knopf 3: Zu hoch, und der langsame Venenfluss verschwindet.',async()=>{await A_boxTo(0.5,1.6);await A_rot('k3',4);await vwait(1200);await A_rot('k3',-4);}),
+  T('Power-Doppler: PDI drücken. Fluss erscheint ohne Richtung, ist aber empfindlicher, ideal für Entzündung im Bewegungsapparat.',()=>A_click('pdi')),
+  T('Zurück zum Farbdoppler und dann PW einschalten: den Y/PW-Knopf drücken.',async()=>{await A_click('x');await A_click('y');}),
+  T('Das Gate mit dem Trackball mitten in die Arterie schieben. Unten erscheint das Spektrum: dreiphasig, typisch für periphere Arterien.',()=>A_gateTo(vesselU(VES()[0]),VES()[0].d)),
+  T('Doppler-Verstärkung mit dem Y-Knopf anpassen.',async()=>{await A_rot('y',6);await vwait(600);await A_rot('y',-3);}),
+  T('Winkelkorrektur mit Knopf 4 parallel zur Gefässachse ausrichten (unter 60°).',()=>A_rot('k4',6)),
+  T('Skala und Baseline so wählen, dass die Kurve ganz Platz hat. AO kann das automatisch.',()=>A_click('ao')),
+  T('Freeze und P1: Spektrum speichern, danach Freeze lösen.',async()=>{await A_click('freeze');await A_click('p1');await vwait(600);await A_click('freeze');}),
+  T('B-Knopf drücken: zurück in den reinen B-Mode.',()=>A_click('bknob'))]},
+ {title:'eFAST – Normalbefund Schritt für Schritt',sub:'6 Fenster mit C1-6 und L3-12',setup:()=>resetAll({case:'normal'}),steps:[
+  T('eFAST ist die schnelle Notfall-Sonographie beim Trauma: freie Flüssigkeit im Bauch, im Herzbeutel und im Thorax sowie Pneumothorax. Wir gehen alle 6 Fenster durch.'),
+  T('Patient schnell anlegen: PATIENT, Name „Trauma“, Registrieren.',async()=>{await A_click('tab-patient');await A_type('#pf-last','Trauma');await A_click('pat-register');}),
+  T('Konvexsonde C1-6 mit dem Preset „eFAST“ wählen.',()=>A_preset('C1-6','eFAST')),
+  T('Fenster 1, rechter Oberbauch (RUQ): Sonde in der mittleren bis hinteren Axillarlinie, Marker nach kranial.',()=>A_click('pos-ruq')),
+  T('Links im Bild das helle Zwerchfell, darunter die Leber, rechts die Niere. Die Linie zwischen Leber und Niere ist der Morison-Pouch. Hier ist kein schwarzer Saum, also normal.',()=>A_depthTo(16)),
+  T('Oberhalb des Zwerchfells sieht man ein Spiegelbild der Leber. Das ist normal und spricht gegen einen Hämatothorax.'),
+  T('Bild dokumentieren: Freeze, Beschriftung „RUQ“, P1, weiter.',()=>A_store('RUQ')),
+  T('Fenster 2, linker Oberbauch (LUQ): weiter hinten und höher ansetzen als rechts.',()=>A_click('pos-luq')),
+  T('Die Milz liegt oben links am Zwerchfell, rechts die Niere. Achte besonders auf den Raum zwischen Milz und Zwerchfell. Hier ist keine Flüssigkeit.',()=>A_store('LUQ')),
+  T('Fenster 3, Becken: Sonde suprapubisch, quer.',()=>A_click('pos-pelvis')),
+  T('Die Harnblase ist schwarz, dahinter liegen Uterus bzw. Prostata. Freie Flüssigkeit sammelt sich dahinter bzw. seitlich. Hier ist alles unauffällig.',async()=>{await A_depthTo(14);await A_store('Becken quer');}),
+  T('Fenster 4, subxiphoidal: Sonde flach unter dem Brustbein, Richtung linke Schulter, Tiefe 18 cm.',async()=>{await A_click('pos-cardiac');await A_depthTo(18);}),
+  T('Oben die Leber als Schallfenster, darunter das schlagende Herz mit den vier Höhlen, umgeben von der hellen Perikardlinie. Kein schwarzer Saum, also kein Erguss.',()=>vwait(1500)),
+  T('Dokumentieren.',()=>A_store('subxiphoidal')),
+  T('Für die Lunge wechseln wir auf die Linearsonde L3-12 mit dem Preset „Lunge“.',()=>A_preset('L3-12','Lunge')),
+  T('Fenster 5, Thorax rechts: 2.–3. Interkostalraum medioklavikulär, längs über zwei Rippen. Die Rippen mit Schallschatten bilden das „Bat sign“.',()=>A_click('pos-lungR')),
+  T('Die helle Pleuralinie zwischen den Rippen glitzert und gleitet mit der Atmung: Lungengleiten. Die waagrechten Wiederholungen darunter sind A-Linien.',()=>vwait(2500)),
+  T('M-Mode zur Bestätigung: den Z/M-Knopf drücken und die M-Linie zwischen die Rippen legen.',async()=>{await A_click('z');await A_mTo(0.5);}),
+  T('Oben ruhige Linien, unter der Pleura körnig: das Seashore-Zeichen. Damit ist ein Pneumothorax an dieser Stelle ausgeschlossen.',()=>vwait(2500)),
+  T('Dokumentieren, dann M-Mode wieder aus.',async()=>{await A_store('Thorax re.');await A_click('z');}),
+  T('Fenster 6, Thorax links: gleiches Vorgehen.',async()=>{await A_click('pos-lungL');await A_store('Thorax li.');}),
+  T('Alle 6 Fenster sind unauffällig. Untersuchung beenden, die Bilder werden archiviert.',async()=>{await A_click('tab-end');await A_click('[data-act="end-ok"]');}),
+  T('Wichtig: Ein unauffälliger eFAST schliesst eine Verletzung nicht aus. Bei Verschlechterung wiederholen.')]},
+ {title:'eFAST – pathologische Befunde erkennen',sub:'Freie Flüssigkeit, Perikarderguss, Pneumothorax, Hämatothorax',setup:()=>resetAll({last:'Trauma',probe:'C1-6',preset:'eFAST',case:'normal'}),steps:[
+  T('Jetzt dieselben Fenster mit krankhaften Befunden. Unter dem Monitor stellen wir dafür den Befund des simulierten Patienten um.'),
+  T('Zuerst der Normalbefund im RUQ zum Vergleich.',async()=>{await A_click('pos-ruq');await A_depthTo(16);}),
+  T('Jetzt mit freier Flüssigkeit …',()=>A_select('ff')),
+  T('… ein schwarzer Saum zwischen Leber und Niere im Morison-Pouch, dazu Flüssigkeit an der kaudalen Leberspitze rechts. Das ist ein positiver FAST!',()=>vwait(2500)),
+  T('LUQ: Die Flüssigkeit liegt um die Milz und zwischen Milz und Niere.',()=>A_click('pos-luq')),
+  T('Becken: schwarze Flüssigkeit hinter dem Uterus (Douglas-Raum) und seitlich der Blase.',async()=>{await A_click('pos-pelvis');await A_depthTo(15);}),
+  T('Perikarderguss: Befund umstellen und subxiphoidal schallen.',async()=>{await A_select('pe');await A_click('pos-cardiac');await A_depthTo(18);}),
+  T('Ein schwarzer Saum umgibt das Herz zwischen Herzmuskel und heller Perikardlinie, hinten breiter. Beim Trauma an eine Tamponade denken (z. B. Kollaps des rechten Ventrikels in der Diastole).',()=>vwait(3000)),
+  T('Hämatothorax links: LUQ schallen und über das Zwerchfell schauen.',async()=>{await A_select('htxL');await A_click('pos-luq');}),
+  T('Oberhalb des Zwerchfells ist kein Spiegelbild mehr zu sehen, sondern schwarze Flüssigkeit. In der Tiefe wird die Wirbelsäule sichtbar: das Spine sign.',()=>vwait(3000)),
+  T('Pneumothorax rechts: Befund umstellen, Linearsonde mit Preset Lunge, Thorax rechts.',async()=>{await A_select('ptxR');await A_preset('L3-12','Lunge');await A_click('pos-lungR');}),
+  T('Die Pleuralinie gleitet nicht mehr, das Bild steht still, die A-Linien sind betont.',()=>vwait(2500)),
+  T('Im M-Mode: nur waagrechte Linien, auch unter der Pleura. Das ist das Barcode- oder Stratosphären-Zeichen.',async()=>{await A_click('z');await A_mTo(0.5);await vwait(2500);}),
+  T('Zum Vergleich die gesunde linke Seite: unter der Pleura körnig, also Seashore.',async()=>{await A_click('pos-lungL');await vwait(2500);}),
+  T('Merke: Lungengleiten oder B-Linien schliessen einen Pneumothorax an dieser Stelle aus. Der Übergang von Gleiten zu Nicht-Gleiten, der Lung point, beweist ihn.',async()=>{await A_click('z');await A_select('normal');}),
+  T('Teste dich jetzt selbst: Unter Tests gibt es einen eFAST-Fall mit verdecktem Befund.')]}
+];
+function tutDur(t){return Math.round(t.steps.reduce((a,s)=>a+Math.max(2.4,s.c.length*0.055)+2,0)/60);}
+function speak(text){
+ if(!V.voice||V.rec||!('speechSynthesis' in window))return Promise.resolve();
+ return new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/▲/g,'Pfeil hoch').replace(/▼/g,'Pfeil runter').replace(/≥/g,'mindestens').replace(/°/g,' Grad'));u.lang='de-DE';const vo=speechSynthesis.getVoices().find(v=>/^de/i.test(v.lang));if(vo)u.voice=vo;u.rate=Math.min(1.6,1.02*V.speed);u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,text.length*110+4000);}catch(e){res();}});
+}
+function updVcap(){
+ if(V.tut==null){vcap.hidden=true;vcur.hidden=true;return;}
+ const t=TUTS[V.tut],st=t.steps[V.step]||{c:''};
+ vcap.hidden=false;
+ vcap.innerHTML=`<div class="vt">TUTORIAL ${V.tut+1} · ${esc(t.title)} · Schritt ${Math.min(V.step+1,t.steps.length)}/${t.steps.length}${V.paused?' · PAUSE':''}</div><div class="vx">${esc(st.c)}</div><div class="vprog"><i style="width:${(V.step+1)/t.steps.length*100}%"></i></div>${V.rec?'':`<div class="vb"><button data-v="prev">⏮ Zurück</button><button data-v="pause">${V.paused?'▶ Weiter':'⏸ Pause'}</button><button data-v="next">Weiter ⏭</button><button data-v="speed">Tempo ${V.speed}×</button><button data-v="voice">${V.voice?'🔊 Stimme an':'🔇 Stimme aus'}</button><button data-v="stop">✕ Beenden</button></div>`}`;
+}
+vcap.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)vctl(b.dataset.v);});
+function vctl(a){
+ if(a==='pause'){V.paused=!V.paused;try{V.paused?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}updVcap();}
+ if(a==='stop')stopTut();
+ if(a==='next'&&V.tut!=null)playTut(V.tut,Math.min(V.step+1,TUTS[V.tut].steps.length-1));
+ if(a==='prev'&&V.tut!=null)playTut(V.tut,Math.max(0,V.step-1));
+ if(a==='speed'){V.speed=V.speed===1?1.5:(V.speed===1.5?0.75:1);updVcap();renderPanel();}
+ if(a==='voice'){V.voice=!V.voice;if(!V.voice)try{speechSynthesis.cancel();}catch(e){}updVcap();renderPanel();}
+}
+function stopTut(){V.token++;V.playing=false;V.paused=false;V.tut=null;try{speechSynthesis.cancel();}catch(e){}updVcap();if(ptab==='tut')renderPanel();}
+async function playTut(i,from=0){
+ V.token++;try{speechSynthesis.cancel();}catch(e){}
+ const tk=V.token;V.tut=i;V.step=from;V.playing=true;V.paused=false;V.done=false;
+ TS.set=null;EXS.cur=null;applyHint();ptab='tut';renderPanel();updVcap();
+ const tt=TUTS[i];
+ try{
+  if(from===0&&tt.setup){tt.setup();await vwait(600);}
+  for(let k=from;k<tt.steps.length;k++){
+   if(tk!==V.token)return;
+   V.step=k;updVcap();renderPanel();
+   const st=tt.steps[k];const t0=performance.now();const sp=speak(st.c);
+   if(st.a)await st.a();
+   const read=Math.max(2400,st.c.length*55);const el=(performance.now()-t0)*V.speed;
+   await Promise.all([vwait(Math.max(0,read-el)+(st.w||0)),sp]);
+  }
+  V.playing=false;V.done=true;vcur.hidden=true;toast('Tutorial beendet',2500);
+  if(V.rec){window.__tutDone=true;}
+  setTimeout(()=>{if(tk===V.token&&!V.playing){V.tut=null;updVcap();renderPanel();}},2500);
+ }catch(e){if(e!=='abort')console.error(e);}
+}
+function tutHTML(){
+ let h='';
+ if(V.tut!=null){const t=TUTS[V.tut];
+  h+=`<span class="chip">Läuft · Tutorial ${V.tut+1}</span><h2>${t.title}</h2><div class="btnrow" style="margin-top:4px"><button class="btn" data-v="pause">${V.paused?'▶ Weiter':'⏸ Pause'}</button><button class="btn" data-v="speed">Tempo ${V.speed}×</button><button class="btn" data-v="voice">${V.voice?'🔊 Stimme an':'🔇 Stimme aus'}</button><button class="btn" data-v="stop">✕ Beenden</button></div>
+  <ol class="tsteps">${t.steps.map((s,k)=>`<li class="${k===V.step?'cur':''}"><button data-tjump="${k}">${k+1}. ${esc(s.c)}</button></li>`).join('')}</ol><h3>Alle Tutorials</h3>`;}
+ else h+=`<h2>Video-Tutorials</h2><p class="muted">Das Gerät bedient sich selbst: Ein Zeiger zeigt, was gedrückt wird, unten läuft der Text mit (auf Wunsch auch vorgelesen). Du kannst jederzeit pausieren, Schritte anklicken oder selbst eingreifen.</p>`;
+ h+=`<div class="tutlist">${TUTS.map((t,i)=>`<div class="tut"><b>${i+1}. ${t.title}</b><span>${t.sub} · ca. ${tutDur(t)} min</span><button class="btn primary" data-tplay="${i}">▶ Abspielen</button></div>`).join('')}</div>`;
+ return h;
+}
+
+// ================= Tests =================
+const TS={set:null,i:0,res:[],hint:false,t0:0,taskT0:0,imgStart:0,endStart:0,last:0,feedback:null,done:false};
+function measDist(){const m=S.measure;if(!m||m.pts.length<2||m.active!=null)return null;return Math.hypot(m.pts[1][0]-m.pts[0][0],m.pts[1][1]-m.pts[0][1])/(G.ppc*S.zoom);}
+function newImgs(){return S.images.slice(TS.imgStart);}
+const DIAG=[['normal','Unauffälliger eFAST (kein Nachweis von freier Flüssigkeit oder Pneumothorax)'],['ff','Freie Flüssigkeit intraabdominal'],['pe','Perikarderguss'],['ptxR','Pneumothorax rechts'],['htxL','Hämatothorax links']];
+const TESTS=[
+ {title:'Bedienung Grundlagen',sub:'8 Aufträge rund um Patient, Bild und Speichern',setup:()=>resetAll(),tasks:[
+  {t:'Lege einen Patienten mit dem Nachnamen „Test“ an und registriere ihn.',hint:'PATIENT › Reiter Patient › Nachname › Registrieren.',hl:'tab-patient',ok:()=>S.registered&&S.patient.last.trim().toLowerCase()==='test'},
+  {t:'Wähle die Linearsonde mit dem Preset „Knie“.',hint:'Rechts am Touchscreen L3-12 antippen, dann „Knie“.',hl:'probe-L3-12',ok:()=>S.probe==='L3-12'&&S.preset==='Knie'},
+  {t:'Stelle die Tiefe auf genau 3,0 cm.',hint:'Depth-Pfeile am Knopf rechts (▲ weniger, ▼ mehr). Den Wert siehst du links im Monitor („D“).',hl:'depth-up',ok:()=>Math.abs(S.depth-3)<0.01},
+  {t:'Lege den Fokus auf 1,0 bis 1,5 cm Tiefe.',hint:'Fokusposition: Knopf 5 unter dem Touchscreen drehen.',hl:'k5',ok:()=>S.focusPos>=1&&S.focusPos<=1.5&&S.focusNum===1},
+  {t:'Schalte CrossXBeam aus und stelle SRI HD auf 2.',hint:'Touchscreen SCAN › B: „Cross Beam“ antippen, „SRI HD“ antippen bis 2.',hl:'p-cxb',ok:()=>!S.cxb&&S.sri===2},
+  {t:'Friere das Bild ein und miss eine Strecke zwischen 1,0 und 2,0 cm.',hint:'Freeze › Measure › Punkt 1 › Set › Punkt 2 › Set. Ergebnis links unten im Monitor.',hl:'measure',ok:()=>{const d=measDist();return S.freeze&&d!==null&&d>=1&&d<=2;}},
+  {t:'Beschrifte das Bild mit „Knie“ und speichere es.',hint:'Abc › Text › Enter, dann P1.',hl:'abc',ok:()=>S.annots.some(a=>/knie/i.test(a.text))&&newImgs().length>0},
+  {t:'Beende die Untersuchung.',hint:'Links am Touchscreen UNTERS. BEEN. › bestätigen.',hl:'tab-end',ok:()=>S.endCount>TS.endStart}]},
+ {title:'Doppler',sub:'8 Aufträge: Farbe, Aliasing, PW, Power-Doppler',setup:()=>resetAll({last:'Test'}),tasks:[
+  {t:'Wähle die Linearsonde mit dem Preset „Gefässe“ und schalte den Farbdoppler ein.',hint:'Sonde L3-12 › Gefässe, dann X/CF-Knopf drücken.',hl:'x',ok:()=>S.probe==='L3-12'&&S.preset==='Gefässe'&&S.color==='CF'},
+  {t:'Platziere die Farbbox über der Arterie (rundes Gefäss rechts der Mitte).',hint:'Trackball ziehen, die Box folgt.',hl:'tb',ok:()=>S.color==='CF'&&boxOverVessel()},
+  {t:'Erzeuge Aliasing in der Arterie (Farbskala unter 35 cm/s).',hint:'Knopf 2 (Skala) nach links drehen.',hl:'k2',ok:()=>S.color==='CF'&&S.cfScale<35&&boxOverVessel()},
+  {t:'Stelle die Skala so ein, dass kein Aliasing mehr auftritt (mindestens 65 cm/s).',hint:'Knopf 2 wieder nach rechts.',hl:'k2',ok:()=>S.cfScale>=65},
+  {t:'Leite ein PW-Spektrum aus der Arterie ab.',hint:'Y/PW drücken, Gate mit dem Trackball ins Gefäss schieben.',hl:'y',ok:()=>S.spec==='PW'&&gateInVessel()},
+  {t:'Stelle die Winkelkorrektur auf 60°.',hint:'Im PW-Mode Knopf 4 (Winkelkorr.).',hl:'k4',ok:()=>Math.abs(S.pwAngle)===60},
+  {t:'Wechsle auf Power-Doppler.',hint:'Taste PDI.',hl:'pdi',ok:()=>S.color==='PDI'},
+  {t:'Zurück in den reinen B-Mode.',hint:'B-Knopf drücken.',hl:'bknob',ok:()=>S.color==='none'&&S.spec==='none'&&!S.dual}]},
+ {title:'eFAST: Fenster finden',sub:'7 Aufträge: jedes Fenster korrekt einstellen',setup:()=>resetAll({last:'Trauma'}),tasks:[
+  {t:'Wähle die richtige Sonde und das Preset für den abdominellen eFAST.',hint:'Konvexsonde C1-6, Preset „eFAST“.',hl:'probe-C1-6',ok:()=>S.probe==='C1-6'&&S.preset==='eFAST'},
+  {t:'Stelle den Morison-Pouch dar, mit mindestens 14 cm Tiefe.',hint:'Position „1 RUQ“ unter dem Monitor, Tiefe mit ▼.',hl:'pos-ruq',ok:()=>S.probe==='C1-6'&&S.scene==='ruq'&&S.depth>=14},
+  {t:'Stelle den Raum zwischen Milz und Zwerchfell dar und speichere ein Bild.',hint:'Position „2 LUQ“, dann P1.',hl:'pos-luq',ok:()=>newImgs().some(i=>i.scene==='luq')},
+  {t:'Zeige die Harnblase quer und speichere ein Bild.',hint:'Position „3 Becken“, dann P1.',hl:'pos-pelvis',ok:()=>newImgs().some(i=>i.scene==='pelvis')},
+  {t:'Zeige das Herz subxiphoidal so, dass das ganze Herz im Bild ist (mindestens 16 cm), und speichere.',hint:'Position „4 Herz“, Tiefe ≥ 16 cm, P1.',hl:'pos-cardiac',ok:()=>newImgs().some(i=>i.scene==='cardiac'&&i.depth>=16)},
+  {t:'Stelle die rechte Pleura mit dem passenden Schallkopf und Preset dar (Tiefe höchstens 6 cm).',hint:'L3-12, Preset „Lunge“, Position „5 Lunge re.“.',hl:'probe-L3-12',ok:()=>S.probe==='L3-12'&&S.scene==='lungR'&&S.depth<=6},
+  {t:'Dokumentiere das Lungengleiten im M-Mode (Bild mit M-Mode speichern).',hint:'Z/M drücken, M-Linie zwischen die Rippen, P1.',hl:'z',ok:()=>newImgs().some(i=>/^lung/.test(i.scene)&&i.spec==='M')}]},
+ {title:'eFAST-Fall mit verdecktem Befund',sub:'Untersuchen, dokumentieren, Diagnose stellen',setup:()=>{resetAll({last:'Trauma'});const ks=DIAG.map(d=>d[0]);S.caseKey=ks[Math.floor(Math.random()*ks.length)];S.caseHidden=true;syncCase();buildMap();},tasks:[
+  {t:'Ein Traumapatient wird eingeliefert. Wähle Sonde und Preset für den eFAST.',hint:'C1-6, Preset „eFAST“.',hl:'probe-C1-6',ok:()=>S.probe==='C1-6'&&S.preset==='eFAST'},
+  {t:'Untersuche RUQ, LUQ, Becken und subxiphoidal und speichere von jedem Fenster ein Bild.',hint:'Positionen 1–4 unter dem Monitor, jeweils P1. Tiefe 14–18 cm.',hl:'pos-ruq',ok:()=>['ruq','luq','pelvis','cardiac'].every(k=>newImgs().some(i=>i.scene===k))},
+  {t:'Untersuche beide Lungen (Linearsonde, Preset „Lunge“) und speichere je ein Bild, mindestens eines davon im M-Mode.',hint:'L3-12 › Lunge, Position 5 und 6, Z/M für den M-Mode, P1.',hl:'probe-L3-12',ok:()=>['lungR','lungL'].every(k=>newImgs().some(i=>i.scene===k))&&newImgs().some(i=>/^lung/.test(i.scene)&&i.spec==='M')},
+  {t:'Diagnose: Welcher Befund liegt vor?',choices:DIAG}]}
+];
+function startTest(i){
+ stopTut();EXS.cur=null;TS.set=i;TS.i=0;TS.res=[];TS.hint=false;TS.done=false;TS.feedback=null;TS.t0=performance.now();
+ TESTS[i].setup();initTask();ptab='test';renderPanel();applyHint();
+}
+function startCaseQuiz(){startTest(3);}
+function initTask(){TS.hint=false;TS.taskT0=performance.now();TS.imgStart=S.images.length;TS.endStart=S.endCount;}
+function testNext(pts,label){
+ const tk=TESTS[TS.set].tasks[TS.i];TS.res.push({t:tk.t,pts,label,sec:Math.round((performance.now()-TS.taskT0)/1000)});
+ TS.i++;if(TS.i>=TESTS[TS.set].tasks.length){TS.done=true;TS.total=Math.round((performance.now()-TS.t0)/1000);S.caseHidden=false;syncCase();}
+ else{const keepImgs=TESTS[TS.set].title.startsWith('eFAST-Fall');const st=TS.imgStart;initTask();if(keepImgs)TS.imgStart=0;}
+ renderPanel();applyHint();
+}
+function testCheck(){
+ if(TS.set==null||TS.done)return;const tk=TESTS[TS.set].tasks[TS.i];if(!tk||tk.choices)return;
+ let ok=false;try{ok=tk.ok();}catch(e){}
+ if(ok){const p=TS.hint?1:2;toast(`✓ Auftrag erfüllt (+${p})`,2200);testNext(p,TS.hint?'mit Hinweis':'richtig');}
+}
+function testTick(now){if(now-TS.last>0.5){TS.last=now;testCheck();const el=document.getElementById('ttimer');if(el&&!TS.done){const s=Math.round((performance.now()-TS.t0)/1000);el.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}}}
+function testChoice(k){
+ const right=k===S.caseKey;const p=right?2:0;
+ TS.feedback=right?`✓ Richtig: ${CASES[S.caseKey]}.`:`✗ Leider falsch. Richtig wäre: ${CASES[S.caseKey]}.`;
+ testNext(p,right?'richtig':'falsch');
+}
+function fmtT(s){return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
+function testHTML(){
+ if(TS.set==null){return `<h2>Tests</h2><p class="muted">Du bekommst Aufträge und löst sie selbst am Gerät, ohne Hervorhebung. Erledigst du einen Auftrag, geht es automatisch weiter. Ohne Hinweis gibt es 2 Punkte, mit Hinweis 1.</p><div class="tutlist">${TESTS.map((t,i)=>`<div class="tut"><b>${t.title}</b><span>${t.sub}</span><button class="btn primary" data-tstart="${i}">Test starten</button></div>`).join('')}</div>`;}
+ const set=TESTS[TS.set];
+ if(TS.done){const pts=TS.res.reduce((a,r)=>a+r.pts,0),max=set.tasks.length*2;
+  return `<span class="chip">Ergebnis</span><h2>${set.title}</h2>${TS.feedback?`<div class="hintbox ${TS.feedback.startsWith('✓')?'ok':'bad'}" style="margin:6px 0">${TS.feedback}</div>`:''}<div class="score">${pts} / ${max} Punkte</div><p class="muted">Zeit: ${fmtT(TS.total)} · ${Math.round(pts/max*100)} %</p>
+  <table class="res">${TS.res.map((r,i)=>`<tr><td>${i+1}. ${esc(r.t)}<br><span class="muted" style="font-size:12.5px">${r.label} · ${fmtT(r.sec)}</span></td><td class="${r.pts===2?'ok':(r.pts?'':'bad')}">${r.pts} P</td></tr>`).join('')}</table>
+  <div class="btnrow"><button class="btn primary" data-tstart="${TS.set}">Nochmal</button><button class="btn" data-tstop="1">Zur Testübersicht</button></div>`;}
+ const tk=set.tasks[TS.i];
+ let h=`<span class="chip">${set.title}</span><span class="chip">Auftrag ${TS.i+1} von ${set.tasks.length}</span><span class="chip" id="ttimer">0:00</span><div class="auftrag">${tk.t}</div>`;
+ if(tk.choices){h+=`<div class="choices">${tk.choices.map(([k,l])=>`<button data-tchoice="${k}">${l}</button>`).join('')}</div>`;}
+ else{h+=TS.hint?`<div class="hintbox">💡 ${tk.hint}</div>`:'';h+=`<div class="btnrow">${TS.hint?'':`<button class="btn" data-thint="1">Hinweis zeigen (−1 Punkt)</button>`}<button class="btn" data-tskip="1">Überspringen (0 Punkte)</button><button class="btn" data-tstop="1">Test abbrechen</button></div>`;}
+ if(TS.res.length)h+=`<h3>Bisher</h3><table class="res">${TS.res.map((r,i)=>`<tr><td>${i+1}. ${esc(r.t)}</td><td class="${r.pts===2?'ok':(r.pts?'':'bad')}">${r.pts} P</td></tr>`).join('')}</table>`;
+ return h;
+}
+
+// ================= Zwei Geräte: Monitor (Mac) + Bedienpult (iPad) =================
+const SYNC={mode:'all',room:null,bc:null,lastJson:'',lastSend:0,remoteAt:0,geo:''};
+const SYNC_KEYS=['probe','preset','scene','caseKey','caseHidden','color','spec','gainB','gainCF','gainPW','gainM','depth','zoom','steer','freeze','cine','cineMarks','power','dr','freq','focusPos','focusNum','sri','cxb','cxbLevel','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','tgc','tgcOpen','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate','box','tbMode','gateU','gateD','mU','dual','lv','measure','annots','editing','arrows','arrowEdit','bodyPattern','bpIdx','registered','off'];
+function snapState(now){const o={};SYNC_KEYS.forEach(k=>o[k]=S[k]);o.pn=S.patient.last+(S.patient.first?', '+S.patient.first:'');o.pid=S.patient.id;
+ o.boot=Math.max(0,S.bootUntil-now);o.lvp=S.lv==='rec'?(now-S.lvStart):0;o.ni=S.images.length;o.rv=S.review?1:0;
+ if(S.toast&&now<S.toast.until)o.toast={m:S.toast.msg,l:+(S.toast.until-now).toFixed(1),id:S.toast.id};
+ if(V.tut!=null){const st=TUTS[V.tut].steps[V.step];o.cap={t:TUTS[V.tut].title,n:V.step+1,of:TUTS[V.tut].steps.length,x:st?st.c:''};}
+ return o;}
+function geoSig(){return [S.probe,S.scene,S.caseKey,S.depth,S.zoom,S.vconvex,S.invert,S.spec!=='none',S.lv].join('|');}
+let remoteToastId=-1;
+function applyRemote(o){
+ if(!o||typeof o!=='object')return;const now=performance.now()/1000;
+ const wasFreeze=S.freeze,wasDual=S.dual,wasSpec=S.spec;
+ SYNC_KEYS.forEach(k=>{if(k in o)S[k]=o[k];});
+ const pn=String(o.pn||'').split(', ');S.patient.last=pn[0]||'';S.patient.first=pn[1]||'';S.patient.id=o.pid||'';
+ S.bootUntil=o.boot?now+o.boot:0;if(S.lv==='rec')S.lvStart=now-(o.lvp||0);
+ if(S.freeze&&!wasFreeze)S.tFreeze=S.tNow;
+ if(S.dual!==wasDual){snapC.width=imgC.width;snapC.height=imgC.height;if(!wasDual){sctx.fillStyle='#000';sctx.fillRect(0,0,snapC.width,snapC.height);}else sctx.drawImage(imgC,0,0);}
+ if(S.spec!==wasSpec){stctx.fillStyle='#000';stctx.fillRect(0,0,660,200);}
+ while(S.images.length<(o.ni||0))S.images.push({src:'',sel:false});if(S.images.length>(o.ni||0))S.images.length=o.ni||0;
+ S.review=null;if(o.rv){const last=S.images.filter(i=>i.src).pop();if(last){reviewImg.src=last.src;S.review=last.src;}}
+ if(o.toast&&o.toast.id!==remoteToastId){remoteToastId=o.toast.id;S.toast={msg:o.toast.m,until:now+o.toast.l};}
+ if(o.cap){vcap.hidden=false;vcap.innerHTML=`<div class="vt">TUTORIAL · ${esc(o.cap.t)} · Schritt ${o.cap.n}/${o.cap.of}</div><div class="vx">${esc(o.cap.x)}</div>`;}else if(SYNC.mode==='monitor')vcap.hidden=true;
+ const g=geoSig();if(g!==SYNC.geo){SYNC.geo=g;buildMap();}
+ SYNC.remoteAt=now;dirty=true;updSyncChip();
+}
+function syncImage(tc){
+ if(SYNC.mode!=='pult')return;
+ const sc=document.createElement('canvas');sc.width=120;sc.height=90;sc.getContext('2d').drawImage(tc,0,0,120,90);const src=sc.toDataURL('image/jpeg',0.55);
+ if(SYNC.room)SYNC.room.emit('img',{src,n:S.images.length}).catch(()=>{});
+ if(SYNC.bc)SYNC.bc.postMessage({t:'img',src,n:S.images.length});
+}
+function recvImage(d){if(!d||typeof d.src!=='string'||!d.src.startsWith('data:image/jpeg'))return;const n=d.n|0;while(S.images.length<n)S.images.push({src:'',sel:false});if(n>0)S.images[n-1]={src:d.src,sel:false};dirty=true;}
+function syncTick(now){
+ if(SYNC.mode!=='pult'||now-SYNC.lastSend<0.066)return;
+ const o=snapState(now);const js=JSON.stringify(o);
+ if(js===SYNC.lastJson&&now-SYNC.lastSend<1)return;
+ SYNC.lastJson=js;SYNC.lastSend=now;
+ if(SYNC.room){const lite=js.length>3800?Object.assign({},o,{annots:o.annots.slice(-3),cap:o.cap?{...o.cap,x:o.cap.x.slice(0,300)}:undefined}):o;SYNC.room.presence({role:'pult',st:lite}).catch(()=>{});}
+ if(SYNC.bc)SYNC.bc.postMessage({t:'st',st:o});
+}
+function updSyncChip(){
+ const chip=document.getElementById('syncChip');const fs=document.getElementById('fsBtn');
+ fs.hidden=SYNC.mode!=='monitor';
+ if(SYNC.mode==='all'){chip.hidden=true;return;}
+ chip.hidden=false;const now=performance.now()/1000;
+ if(!SYNC.room&&!SYNC.bc){chip.className='syncchip';chip.textContent='Kopplung nur über den Artifact-Link';return;}
+ if(SYNC.mode==='monitor'){const live=now-SYNC.remoteAt<3;chip.className='syncchip'+(live?' on':'');chip.textContent=live?'● verbunden mit Bedienpult':'○ warte auf Bedienpult …';}
+ else{chip.className='syncchip on';chip.textContent=SYNC.room?'● sendet an Monitor':'● sendet (gleicher Browser)';}
+}
+function setMode(m){
+ SYNC.mode=m;document.body.classList.remove('mode-all','mode-monitor','mode-pult');document.body.classList.add('mode-'+m);
+ document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));
+ try{localStorage.setItem('logiq-mode',m);}catch(e){}
+ if(m!=='monitor'&&V.tut==null)vcap.hidden=true;
+ if(SYNC.room&&m!=='pult')SYNC.room.presence({role:m,st:null}).catch(()=>{});
+ SYNC.lastJson='';fit();updSyncChip();
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+document.getElementById('fsBtn').addEventListener('click',()=>{const m=document.getElementById('monwrap');if(m.requestFullscreen)m.requestFullscreen().catch(()=>toast('Vollbild ist hier nicht verfügbar'));else toast('Vollbild ist hier nicht verfügbar');});
+try{SYNC.bc=new BroadcastChannel('logiq-trainer');SYNC.bc.onmessage=e=>{if(SYNC.mode!=='monitor')return;const d=e.data||{};if(d.t==='st')applyRemote(d.st);if(d.t==='img')recvImage(d);};}catch(e){SYNC.bc=null;}
+(async()=>{
+ try{
+  if(!window.claude||!window.claude.use)return;
+  const room=await window.claude.use('room');if(!room)return;
+  SYNC.room=room;updSyncChip();
+  room.onPeers(ch=>{if(SYNC.mode!=='monitor')return;const p=ch.peers.filter(x=>!x.sameTab&&x.presence&&x.presence.role==='pult'&&x.presence.st).sort((a,b)=>b.updatedAt-a.updatedAt)[0];if(p)applyRemote(p.presence.st);},()=>{});
+  room.on('img',m=>{if(SYNC.mode==='monitor'&&!m.sameTab)recvImage(m.data);},()=>{});
+ }catch(e){}
+})();
+setInterval(updSyncChip,1500);
 
 // ================= Loop =================
 let lastFrame=0;
 function loop(ts){
  requestAnimationFrame(loop);
  const now=ts/1000;
+ if(S.off||now<S.bootUntil){drawMonitor(0,now);if(TS.set!=null)testTick(now);syncTick(now);return;}
+ if(S.booting){S.booting=false;renderTS();dirty=true;emit('boot','boot');}
  if(S.lv==='rec'&&now-S.lvStart>=4){S.lv='done';buildMap();toast('Panorama fertig – B drücken zum Beenden');emit('lv-done','lv');}
  const toastOn=S.toast&&now<S.toast.until+0.1;
  if(!S.freeze){if(now-lastFrame<1/25)return;}
- else if(!dirty&&!toastOn&&S.lv!=='rec')return;
+ else if(!dirty&&!toastOn&&S.lv!=='rec'){if(TS.set!=null)testTick(now);syncTick(now);return;}
  const dt=Math.min(0.2,now-lastFrame||0.04);lastFrame=now;dirty=false;
  if(!S.freeze)S.tNow=now;
  const t=S.freeze?S.tFreeze+S.cine:now;
@@ -1215,11 +1826,17 @@ function loop(ts){
  if(!S.freeze&&S.spec!=='none')pushStrip(t,dt);
  drawMonitor(t,now);
  if(EXS.cur!=null&&!S.freeze&&((now*4)|0)%4===0)emit('tick','tick');
+ if(TS.set!=null)testTick(now);
+ syncTick(now);
 }
 // Start
 setProbe('L3-12','BWA Allg.');
 S.focusPos=1.6;
+updPos();syncCase();
+let m0='all';try{m0=localStorage.getItem('logiq-mode')||'all';}catch(e){}
+setMode(['all','monitor','pult'].includes(m0)?m0:'all');
 renderTS();renderPanel();fit();
+{const h=location.hash.match(/^#rec-(\d)$/);if(h){V.rec=true;V.voice=false;setMode('all');setTimeout(()=>playTut(+h[1],0),1200);}}
 requestAnimationFrame(loop);
 </script>
 </body>
