@@ -200,9 +200,18 @@ body.mode-pult #annBox{position:fixed;top:12px;z-index:50}
 .posbtns button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .caserow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
 .caserow select{font:14px var(--f-body);padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);max-width:100%}
-#vcur{position:fixed;left:-100px;top:-100px;width:34px;height:34px;pointer-events:none;z-index:1000;transition:left .6s cubic-bezier(.4,.1,.2,1),top .6s cubic-bezier(.4,.1,.2,1);transform:translate(-6px,-3px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+#vcur{visibility:hidden;position:fixed;left:-100px;top:-100px;width:40px;height:40px;pointer-events:none;z-index:1000;transition:left .6s cubic-bezier(.4,.1,.2,1),top .6s cubic-bezier(.4,.1,.2,1);transform:translate(-6px,-3px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 #vcur::after{content:"";position:absolute;left:-10px;top:-12px;width:32px;height:32px;border-radius:50%;border:3px solid #ff9f1a;opacity:0;transform:scale(.4)}
 #vcur.clk::after{animation:clk .45s ease-out}
+#vmark{position:fixed;pointer-events:none;z-index:998;border:4px solid #ff9f1a;border-radius:14px;box-shadow:0 0 0 4px rgba(255,159,26,.25),0 0 22px rgba(255,159,26,.6);transition:left .45s,top .45s,width .45s,height .45s,opacity .3s;opacity:0}
+#vmark.on{opacity:1}
+#vmark .vl{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;background:#ff9f1a;color:#1a1204;font:700 15px var(--f-body);padding:4px 10px;border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+#vmark .vl.below{bottom:auto;top:calc(100% + 8px)}
+#vmark .vl b{font-weight:800;letter-spacing:.04em}
+#vmark .spin{position:absolute;right:-30px;top:-30px;font:800 30px var(--f-body);color:#ff9f1a;text-shadow:0 1px 3px rgba(0,0,0,.5);display:none}
+#vmark.rot .spin{display:block;animation:spin 1s linear infinite}
+#vmark.rot.ccw .spin{animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes clk{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:scale(1.5)}}
 #vcap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));width:min(920px,calc(100% - 32px));background:rgba(8,14,24,.94);color:#f2f6fb;border:1px solid #3b5ea8;border-radius:12px;padding:12px 16px;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.45);display:grid;gap:6px}
 #vcap .vt{font:600 12px var(--f-mono);color:#9fc2ff;letter-spacing:.03em}
@@ -295,8 +304,10 @@ body.mode-pult #annBox{position:fixed;top:12px;z-index:50}
   <p class="foot">Inoffizielles Lernmodell, kein Medizinprodukt und nicht von GE HealthCare. Aufgebaut nach Fotos eures Geräts (LOGIQ-Serie mit Touchscreen, Software auf Deutsch) und der allgemeinen LOGIQ-Bedienlogik. Belegungen mit dem Hinweis „unsicher“ können an eurem Gerät anders konfiguriert sein. Verbindlich ist das Handbuch am Gerät (Hilfe/F1, MyTrainer) bzw. die Einweisung. Das Bild ist eine Simulation, keine echte Anatomie. Tastenkürzel: <kbd>F</kbd> Freeze, <kbd>P</kbd> P1 speichern.</p>
 </div>
 
-<svg id="vcur" viewBox="0 0 24 24" hidden><path d="M4 2l15 11-6.5 1.2 3.8 7.3-2.9 1.5-3.8-7.4L4 20z" fill="#fff" stroke="#111" stroke-width="1.3"/></svg>
+<div id="vmark"><span class="spin">↻</span><span class="vl"></span></div>
+<svg id="vcur" viewBox="0 0 24 24"><path d="M4 2l15 11-6.5 1.2 3.8 7.3-2.9 1.5-3.8-7.4L4 20z" fill="#fff" stroke="#111" stroke-width="1.3"/></svg>
 <div id="vcap" hidden></div>
+<script src="tut-audio.js"></script>
 <script>
 "use strict";
 // ================= Daten: Sonden =================
@@ -1412,7 +1423,7 @@ pbody.addEventListener('click',e=>{
  if(d.exlist){EXS.cur=null;renderPanel();applyHint();}
  if(d.goto){lastInfo=d.goto;const t=stage.querySelector(`[data-id="${d.goto}"]`);ptab='info';renderPanel();if(t){t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');setTimeout(()=>t.classList.remove('flash'),2200);t.scrollIntoView({block:'nearest',behavior:'smooth'});}}
  if(d.ptabgo){ptab=d.ptabgo;renderPanel();}
- if(d.tplay!==undefined)playTut(+d.tplay,0);
+ if(d.tplay!==undefined){unlockAudio();playTut(+d.tplay,0);}
  if(d.tjump!==undefined)playTut(V.tut,+d.tjump);
  if(d.v)vctl(d.v);
  if(d.tstart!==undefined)startTest(+d.tstart);
@@ -1472,14 +1483,25 @@ const vcur=document.getElementById('vcur'),vcap=document.getElementById('vcap');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function vwait(ms){const tk=V.token;let t=0;while(t<ms){if(tk!==V.token)throw 'abort';if(V.paused){await sleep(100);continue;}await sleep(40);t+=40*V.speed;}if(tk!==V.token)throw 'abort';}
 function tgt(sel){if(!sel)return null;return document.querySelector(/^[#.\[]/.test(sel)?sel:`[data-id="${CSS.escape(sel)}"]`);}
-async function moveTo(sel){const el=tgt(sel);if(!el){await vwait(200);return null;}const r=el.getBoundingClientRect();vcur.hidden=false;vcur.style.left=(r.left+r.width/2)+'px';vcur.style.top=(r.top+r.height/2)+'px';await vwait(750);return el;}
+const vmark=document.getElementById('vmark');
+function nameOf(el){const id=el&&el.dataset&&el.dataset.id;if(id&&INFO[infoId(id)])return INFO[infoId(id)][0];if(el&&el.id==='caseSel')return 'Befund des Patienten';if(el&&el.id&&el.id.startsWith('tgc'))return 'TGC-Regler Zone '+(+el.id.slice(3)+1);if(el&&el.id==='annIn')return 'Kommentar';if(el&&el.id&&el.id.startsWith('pf-'))return 'Patientendaten';const t=(el&&el.textContent||'').trim();return t.slice(0,40);}
+function mark(el,verb,extra,rot){
+ if(!el){vmark.classList.remove('on');return;}
+ const r=el.getBoundingClientRect(),pad=6;
+ vmark.style.left=(r.left-pad)+'px';vmark.style.top=(r.top-pad)+'px';vmark.style.width=(r.width+2*pad)+'px';vmark.style.height=(r.height+2*pad)+'px';
+ const vl=vmark.querySelector('.vl');vl.innerHTML=`<b>${verb}</b> · ${esc(nameOf(el))}${extra?' '+extra:''}`;
+ vl.classList.toggle('below',r.top<70);
+ vmark.classList.add('on');vmark.classList.toggle('rot',!!rot);vmark.classList.toggle('ccw',rot<0);
+}
+function unmark(){vmark.classList.remove('on','rot','ccw');}
+async function moveTo(sel){const el=tgt(sel);if(!el){await vwait(200);return null;}const r=el.getBoundingClientRect();vcur.style.visibility='visible';vcur.style.left=(r.left+r.width/2)+'px';vcur.style.top=(r.top+r.height/2)+'px';await vwait(750);return el;}
 async function clickFx(){vcur.classList.remove('clk');void vcur.getBoundingClientRect();vcur.classList.add('clk');await vwait(260);}
-async function A_click(sel){const el=await moveTo(sel);await clickFx();if(!el)return;if(el.classList.contains('knob')){press(el.dataset.id);showInfo(infoId(el.dataset.id),true);}else el.click();await vwait(250);}
-async function A_rot(sel,n){const el=await moveTo(sel);if(!el)return;const id=el.dataset.id;for(let k=0;k<Math.abs(n);k++){rotate(id,Math.sign(n));await vwait(130);}await vwait(200);}
-async function A_tb(dx,dy,steps=22){await moveTo('tb');for(let k=0;k<steps;k++){tbMove(dx/steps,dy/steps);await vwait(40);}await vwait(150);}
-async function A_type(sel,text){const el=await moveTo(sel);await clickFx();if(!el)return;el.value='';for(const ch of text){el.value+=ch;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(65);}await vwait(200);}
-async function A_slider(i,v){const el=await moveTo('#tgc'+i);if(!el)return;let c=+el.value;while(c!==v){c+=Math.sign(v-c);el.value=c;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(60);}}
-async function A_select(v){await moveTo('#caseSel');await clickFx();caseSel.value=v;caseSel.dispatchEvent(new Event('change'));await vwait(500);}
+async function A_click(sel){const el=tgt(sel);if(el)mark(el,el.classList.contains('knob')?'DRÜCKEN':(el.closest('#ts,#posbar,#pbody')?'TIPPEN':'DRÜCKEN'));await moveTo(sel);await clickFx();if(!el)return;if(el.classList.contains('knob')){press(el.dataset.id);showInfo(infoId(el.dataset.id),true);}else el.click();await vwait(250);}
+async function A_rot(sel,n){const e0=tgt(sel);if(e0)mark(e0,n>0?'DREHEN ↻':'DREHEN ↺',n>0?'(nach rechts, +)':'(nach links, −)',n>0?1:-1);const el=await moveTo(sel);if(!el)return;const id=el.dataset.id;for(let k=0;k<Math.abs(n);k++){rotate(id,Math.sign(n));await vwait(130);}await vwait(200);}
+async function A_tb(dx,dy,steps=22){const e0=tgt('tb');const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?'→ nach rechts':'← nach links'):(dy>0?'↓ nach unten':'↑ nach oben');mark(e0,'TRACKBALL ROLLEN',dir);await moveTo('tb');for(let k=0;k<steps;k++){tbMove(dx/steps,dy/steps);await vwait(40);}await vwait(150);}
+async function A_type(sel,text){const e0=tgt(sel);if(e0)mark(e0,'EINTIPPEN','„'+esc(text)+'“');const el=await moveTo(sel);await clickFx();if(!el)return;el.value='';for(const ch of text){el.value+=ch;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(65);}await vwait(200);}
+async function A_slider(i,v){const e0=tgt('#tgc'+i);if(e0)mark(e0,'SCHIEBEN',v>0?'→ heller':'← dunkler');const el=await moveTo('#tgc'+i);if(!el)return;let c=+el.value;while(c!==v){c+=Math.sign(v-c);el.value=c;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(60);}}
+async function A_select(v){mark(caseSel,'AUSWÄHLEN','→ '+(CASES[v]||v));await moveTo('#caseSel');await clickFx();caseSel.value=v;caseSel.dispatchEvent(new Event('change'));await vwait(500);}
 async function A_boxTo(u,d){const k=S.depth/5;await A_tb((u-S.box.u)*spanCm(S.box.d)/(0.02*k),(d-S.box.d)/(0.012*k),24);S.box.u=u;S.box.d=d;dirty=true;}
 async function A_gateTo(u,d){const k=S.depth/5;await A_tb((u-S.gateU)*spanCm(S.gateD)/(0.02*k),(d-S.gateD)/(0.012*k),24);S.gateU=u;S.gateD=d;dirty=true;}
 async function A_mTo(u){const k=S.depth/5;await A_tb((u-S.mU)*spanCm(S.depth/2)/(0.02*k),0,16);S.mU=u;dirty=true;}
@@ -1608,29 +1630,36 @@ const TUTS=[
   T('Merke: Lungengleiten oder B-Linien schliessen einen Pneumothorax an dieser Stelle aus. Der Übergang von Gleiten zu Nicht-Gleiten, der Lung point, beweist ihn.',async()=>{await A_click('z');await A_select('normal');}),
   T('Teste dich jetzt selbst: Unter Tests gibt es einen eFAST-Fall mit verdecktem Befund.')]}
 ];
-function tutDur(t){return Math.round(t.steps.reduce((a,s)=>a+Math.max(2.4,s.c.length*0.055)+2,0)/60);}
-function speak(text){
- if(!V.voice||V.rec||!('speechSynthesis' in window))return Promise.resolve();
+function tutDur(t){const i=TUTS.indexOf(t);return Math.max(1,Math.round(t.steps.reduce((a,s,k)=>{const c=clipFor(i,k);return a+Math.max(2.4,s.c.length*0.055,c?c.t+0.6:0)+2;},0)/60));}
+const TUTA=new Audio();TUTA.preload='auto';
+function capHash(t){let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return (h>>>0).toString(36);}
+function clipFor(i,k){const A=window.TUT_AUDIO;const c=A&&A[i]&&A[i][k];if(!c)return null;return c.h===capHash(TUTS[i].steps[k].c)?c:null;}
+function unlockAudio(){try{TUTA.src='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';const p=TUTA.play();if(p)p.catch(()=>{});}catch(e){}}
+function playClip(c){return new Promise(res=>{try{TUTA.pause();TUTA.src=c.d;TUTA.playbackRate=V.speed;TUTA.onended=res;TUTA.onerror=res;const p=TUTA.play();if(p)p.catch(()=>res());setTimeout(res,(c.t/V.speed)*1000+2500);}catch(e){res();}});}
+function speak(text,clip){
+ if(V.rec||!V.voice)return Promise.resolve();
+ if(clip)return playClip(clip);
+ if(!('speechSynthesis' in window))return Promise.resolve();
  return new Promise(res=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/▲/g,'Pfeil hoch').replace(/▼/g,'Pfeil runter').replace(/≥/g,'mindestens').replace(/°/g,' Grad'));u.lang='de-DE';const vo=speechSynthesis.getVoices().find(v=>/^de/i.test(v.lang));if(vo)u.voice=vo;u.rate=Math.min(1.6,1.02*V.speed);u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,text.length*110+4000);}catch(e){res();}});
 }
 function updVcap(){
- if(V.tut==null){vcap.hidden=true;vcur.hidden=true;return;}
+ if(V.tut==null){vcap.hidden=true;vcur.style.visibility='hidden';unmark();return;}
  const t=TUTS[V.tut],st=t.steps[V.step]||{c:''};
  vcap.hidden=false;
  vcap.innerHTML=`<div class="vt">TUTORIAL ${V.tut+1} · ${esc(t.title)} · Schritt ${Math.min(V.step+1,t.steps.length)}/${t.steps.length}${V.paused?' · PAUSE':''}</div><div class="vx">${esc(st.c)}</div><div class="vprog"><i style="width:${(V.step+1)/t.steps.length*100}%"></i></div>${V.rec?'':`<div class="vb"><button data-v="prev">⏮ Zurück</button><button data-v="pause">${V.paused?'▶ Weiter':'⏸ Pause'}</button><button data-v="next">Weiter ⏭</button><button data-v="speed">Tempo ${V.speed}×</button><button data-v="voice">${V.voice?'🔊 Stimme an':'🔇 Stimme aus'}</button><button data-v="stop">✕ Beenden</button></div>`}`;
 }
-vcap.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)vctl(b.dataset.v);});
+vcap.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b){unlockAudio();vctl(b.dataset.v);}});
 function vctl(a){
- if(a==='pause'){V.paused=!V.paused;try{V.paused?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}updVcap();}
+ if(a==='pause'){V.paused=!V.paused;try{V.paused?speechSynthesis.pause():speechSynthesis.resume();}catch(e){}if(V.paused)TUTA.pause();else if(TUTA.src&&!TUTA.ended)TUTA.play().catch(()=>{});updVcap();}
  if(a==='stop')stopTut();
  if(a==='next'&&V.tut!=null)playTut(V.tut,Math.min(V.step+1,TUTS[V.tut].steps.length-1));
  if(a==='prev'&&V.tut!=null)playTut(V.tut,Math.max(0,V.step-1));
  if(a==='speed'){V.speed=V.speed===1?1.5:(V.speed===1.5?0.75:1);updVcap();renderPanel();}
- if(a==='voice'){V.voice=!V.voice;if(!V.voice)try{speechSynthesis.cancel();}catch(e){}updVcap();renderPanel();}
+ if(a==='voice'){V.voice=!V.voice;if(!V.voice){try{speechSynthesis.cancel();}catch(e){}TUTA.pause();}updVcap();renderPanel();}
 }
-function stopTut(){V.token++;V.playing=false;V.paused=false;V.tut=null;try{speechSynthesis.cancel();}catch(e){}updVcap();if(ptab==='tut')renderPanel();}
+function stopTut(){unmark();vcur.style.visibility='hidden';TUTA.pause();V.token++;V.playing=false;V.paused=false;V.tut=null;try{speechSynthesis.cancel();}catch(e){}updVcap();if(ptab==='tut')renderPanel();}
 async function playTut(i,from=0){
- V.token++;try{speechSynthesis.cancel();}catch(e){}
+ V.token++;try{speechSynthesis.cancel();}catch(e){}TUTA.pause();
  const tk=V.token;V.tut=i;V.step=from;V.playing=true;V.paused=false;V.done=false;
  TS.set=null;EXS.cur=null;applyHint();ptab='tut';renderPanel();updVcap();
  const tt=TUTS[i];
@@ -1639,12 +1668,13 @@ async function playTut(i,from=0){
   for(let k=from;k<tt.steps.length;k++){
    if(tk!==V.token)return;
    V.step=k;updVcap();renderPanel();
-   const st=tt.steps[k];const t0=performance.now();const sp=speak(st.c);
+   const st=tt.steps[k];const t0=performance.now();const clip=clipFor(i,k);if(V.rec){window.__marks=window.__marks||{};window.__marks[k]=Date.now();}unmark();const sp=speak(st.c,clip);
    if(st.a)await st.a();
-   const read=Math.max(2400,st.c.length*55);const el=(performance.now()-t0)*V.speed;
+   setTimeout(()=>{if(V.step===k)unmark();},1600);
+   const read=Math.max(2400,st.c.length*55,clip?clip.t*1000+600:0);const el=(performance.now()-t0)*V.speed;
    await Promise.all([vwait(Math.max(0,read-el)+(st.w||0)),sp]);
   }
-  V.playing=false;V.done=true;vcur.hidden=true;toast('Tutorial beendet',2500);
+  V.playing=false;V.done=true;vcur.style.visibility='hidden';unmark();toast('Tutorial beendet',2500);
   if(V.rec){window.__tutDone=true;}
   setTimeout(()=>{if(tk===V.token&&!V.playing){V.tut=null;updVcap();renderPanel();}},2500);
  }catch(e){if(e!=='abort')console.error(e);}
