@@ -103,7 +103,10 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .plabel{position:absolute;transform:translate(-50%,-50%);color:#4a4a4d;font:600 13px var(--f-body);pointer-events:none;white-space:nowrap;text-align:center;line-height:1.15}
 .plabel.small{font-size:11.5px;font-weight:500}
 .tb{border-radius:50%;background:transparent;cursor:grab;touch-action:none}
-.tbsvg{position:absolute;overflow:visible}
+.tbsvg{position:absolute;overflow:visible;z-index:0}
+.tbsvg .plate{pointer-events:none}
+.cc.key,.cc.knob,.ear,.plabel{z-index:2}
+.cc.tb{z-index:1}
 .tbsvg .plate{fill:#e4e4e0;stroke:#c8c8c3;stroke-width:1.4}
 .skey{cursor:pointer;outline:none}
 .skey .kb{fill:url(#tbKey);stroke:#8d8e8b;stroke-width:1.5;stroke-linejoin:round;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.25))}
@@ -692,7 +695,7 @@ function trackballSVG(){
  <defs><radialGradient id="tbBallOn" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d4ddff"/><stop offset=".75" stop-color="#8fa3ef"/><stop offset="1" stop-color="#6378cf"/></radialGradient>
  <radialGradient id="tbBallOff" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#9a9d9e"/><stop offset=".6" stop-color="#6b6f71"/><stop offset="1" stop-color="#4c5052"/></radialGradient>
  <linearGradient id="tbKey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3b4b1"/><stop offset="1" stop-color="#9c9d9a"/></linearGradient></defs>
- <path class="plate" d="M-6,${cy} A146,146 0 0 1 286,${cy} L278,320 L2,320 Z"/>`;
+ <path class="plate" d="M6,${cy} A134,134 0 0 1 274,${cy} L268,320 L12,320 Z"/>`;
  g+=key('tbTL','Trackball-Taste oben links',100,134,198,262,groove(117,212,248));
  g+=key('measure','Measure',100,134,278,342,`<g transform="translate(${cx+117*Math.cos(296*R)},${cy+117*Math.sin(296*R)}) rotate(26)"><path class="kicon" d="M-14,-6 v12 h22 v-12 M-11,6 v-5 M-8,6 v-3 M-5,6 v-5 M-2,6 v-3 M1,6 v-5 M4,6 v-7"/></g><text class="kt" transform="translate(${cx+117*Math.cos(318*R)},${cy+117*Math.sin(318*R)}) rotate(48)" text-anchor="middle" dy="4">Measure</text>`);
  g+=key('tbSL','Kleine Trackball-Taste links',98,132,164,200,dot(182,115));
