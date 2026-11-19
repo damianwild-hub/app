@@ -691,7 +691,7 @@ function trackballSVG(){
  const key=(id,lab,r1,r2,a1,a2,inner)=>`<g class="skey" data-id="${id}" role="button" tabindex="0" aria-label="${lab}"><path class="kb" d="${arcPath(cx,cy,r1,r2,a1,a2)}"/><path class="kl" d="${arcPath(cx,cy,r1+5,r2-5,a1+2.6*120/((r1+r2)/2),a2-2.6*120/((r1+r2)/2))}"/>${inner||''}</g>`;
  const groove=(r,a1,a2)=>`<path class="kg" d="${arcLine(cx,cy,r,a1,a2)}"/><path class="kgh" d="${arcLine(cx,cy,r+1.6,a1,a2)}"/>`;
  const R=Math.PI/180,dot=(a,r)=>`<circle class="kd" cx="${(cx+r*Math.cos(a*R)).toFixed(1)}" cy="${(cy+r*Math.sin(a*R)).toFixed(1)}" r="2.2"/>`;
- let g=`<svg class="tbsvg" viewBox="0 0 280 320" style="left:455px;top:680px;width:280px;height:320px" aria-label="Trackball-Bereich">
+ let g=`<svg class="tbsvg" viewBox="0 0 280 320" style="left:469px;top:680px;width:280px;height:320px" aria-label="Trackball-Bereich">
  <defs><radialGradient id="tbBallOn" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d4ddff"/><stop offset=".75" stop-color="#8fa3ef"/><stop offset="1" stop-color="#6378cf"/></radialGradient>
  <radialGradient id="tbBallOff" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#9a9d9e"/><stop offset=".6" stop-color="#6b6f71"/><stop offset="1" stop-color="#4c5052"/></radialGradient>
  <linearGradient id="tbKey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3b4b1"/><stop offset="1" stop-color="#9c9d9a"/></linearGradient></defs>
@@ -730,29 +730,29 @@ function buildStage(){
  h+=`<button class="cc key round" data-id="pointer" aria-label="Pfeil" style="${pos(445,910,54,54)}">${ICON.pointer}</button>`;
  // Trackball
  h+=trackballSVG();
- h+=`<div class="cc tb" tabindex="0" role="application" aria-label="Trackball" data-id="tb" style="${pos(595,845,134,134)}"></div>`;
+ h+=`<div class="cc tb" tabindex="0" role="application" aria-label="Trackball" data-id="tb" style="${pos(609,845,134,134)}"></div>`;
  // rechte Gruppe
  h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="Ellipse / Body Pattern" data-id="ellipse" style="${pos(792,688,54,54)}"></div>`;
  h+=`<div class="plabel small" style="left:800px;top:742px">◯ Ellipse<br>▣ Body Pattern</div>`;
  h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="B-Mode und Gain" data-id="bknob" style="${pos(808,815,66,66)}"></div>`;
  h+=`<div class="plabel" style="left:808px;top:870px;font-size:17px">B</div>`;
- h+=`<div class="collar" style="left:912px;top:690px"></div>`;
- h+=`<div class="cc knob dknob" tabindex="0" role="slider" aria-label="Zoom" data-id="depthknob" style="${pos(912,690,48,48)}"></div>`;
- h+=`<button class="cc arrow" data-id="depth-up" aria-label="Tiefe verringern" style="left:912px;top:645px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(0 10 10)"/></svg></button>`;
- h+=`<button class="cc arrow" data-id="depth-down" aria-label="Tiefe vergrössern" style="left:905px;top:737px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(180 10 10)"/></svg></button>`;
- h+=`<button class="cc arrow" data-id="steer-l" aria-label="Steer links" style="left:866px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(270 10 10)"/></svg></button>`;
- h+=`<button class="cc arrow" data-id="steer-r" aria-label="Steer rechts" style="left:958px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(90 10 10)"/></svg></button>`;
- h+=`<div class="plabel dl" style="left:842px;top:668px"><svg viewBox="0 0 16 18" width="13" height="15"><path d="M4,1 L12,1 L14,13 L6,13 Z M3,1 L5,13 M2,16 H14" fill="none" stroke="#1d1d1f" stroke-width="1.3" stroke-dasharray="0"/></svg><br>Steer</div>`;
- h+=`<div class="plabel dl" style="left:868px;top:740px"><svg viewBox="0 0 16 16" width="13" height="13" style="vertical-align:-2px"><path d="M8,1 L15,9 L11,9 L11,13 L5,13 L5,9 L1,9 Z" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><path d="M8,6 V15 M6,13 L8,15 L10,13" fill="none" stroke="#1d1d1f" stroke-width="1.2"/></svg>Depth</div>`;
- h+=`<div class="plabel" style="left:944px;top:730px;pointer-events:none"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M5,19 L19,5" stroke="#141414" stroke-width="2.4"/><path d="M19,5 L12,6 L18,12 Z M5,19 L12,18 L6,12 Z" fill="#141414"/></svg></div>`;
- h+=`<div class="plabel dl" style="left:968px;top:742px"><svg viewBox="0 0 16 16" width="13" height="13"><rect x="1" y="1" width="14" height="14" fill="none" stroke="#1d1d1f" stroke-width="1.3"/><rect x="4" y="6" width="6" height="6" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><rect x="7" y="3.5" width="5" height="5" fill="#fff" stroke="#1d1d1f" stroke-width="1.2"/></svg><br>Zoom</div>`;
- h+=`<button class="cc key blue" data-id="usb" style="${pos(995,705,70,36)};font-size:12px">USB</button>`;
- h+=`<button class="cc key round" data-id="ao" style="${pos(918,795,50,50)};font-size:16px">AO</button>`;
- h+=`<button class="cc key blue" data-id="markcine" style="${pos(995,800,74,36)};font-size:11.5px">Mark Cine</button>`;
- h+=`<button class="cc key dark" data-id="freeze" aria-label="Freeze" style="${pos(912,885,116,54)};border-radius:20px">${ICON.freeze}</button>`;
- h+=`<button class="cc key dark round" data-id="p1" style="${pos(1003,885,52,52)};font-size:17px">P1</button>`;
- h+=`<button class="cc key dark round" data-id="dualL" aria-label="Dual links" style="${pos(780,930,44,44)}">${ICON.L}</button>`;
- h+=`<button class="cc key dark round" data-id="dualR" aria-label="Dual rechts" style="${pos(842,930,44,44)}">${ICON.R}</button>`;
+ h+=`<div class="collar" style="left:902px;top:690px"></div>`;
+ h+=`<div class="cc knob dknob" tabindex="0" role="slider" aria-label="Zoom" data-id="depthknob" style="${pos(902,690,48,48)}"></div>`;
+ h+=`<button class="cc arrow" data-id="depth-up" aria-label="Tiefe verringern" style="left:902px;top:645px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(0 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="depth-down" aria-label="Tiefe vergrössern" style="left:895px;top:737px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(180 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="steer-l" aria-label="Steer links" style="left:856px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(270 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="steer-r" aria-label="Steer rechts" style="left:948px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(90 10 10)"/></svg></button>`;
+ h+=`<div class="plabel dl" style="left:840px;top:650px"><svg viewBox="0 0 16 18" width="13" height="15"><path d="M4,1 L12,1 L14,13 L6,13 Z M3,1 L5,13 M2,16 H14" fill="none" stroke="#1d1d1f" stroke-width="1.3" stroke-dasharray="0"/></svg><br>Steer</div>`;
+ h+=`<div class="plabel dl" style="left:860px;top:750px"><svg viewBox="0 0 16 16" width="13" height="13"><path d="M8,1 L15,9 L11,9 L11,13 L5,13 L5,9 L1,9 Z" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><path d="M8,6 V15 M6,13 L8,15 L10,13" fill="none" stroke="#1d1d1f" stroke-width="1.2"/></svg><br>Depth</div>`;
+ h+=`<div class="plabel" style="left:927px;top:728px;pointer-events:none"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M5,19 L19,5" stroke="#141414" stroke-width="2.4"/><path d="M19,5 L12,6 L18,12 Z M5,19 L12,18 L6,12 Z" fill="#141414"/></svg></div>`;
+ h+=`<div class="plabel dl" style="left:956px;top:762px"><svg viewBox="0 0 16 16" width="13" height="13"><rect x="1" y="1" width="14" height="14" fill="none" stroke="#1d1d1f" stroke-width="1.3"/><rect x="4" y="6" width="6" height="6" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><rect x="7" y="3.5" width="5" height="5" fill="#fff" stroke="#1d1d1f" stroke-width="1.2"/></svg><br>Zoom</div>`;
+ h+=`<button class="cc key blue" data-id="usb" style="${pos(994,720,52,34)};font-size:11px">USB</button>`;
+ h+=`<button class="cc key round" data-id="ao" style="${pos(918,808,50,50)};font-size:16px">AO</button>`;
+ h+=`<button class="cc key blue" data-id="markcine" style="${pos(988,800,60,34)};font-size:10px;line-height:1">Mark Cine</button>`;
+ h+=`<button class="cc key dark" data-id="freeze" aria-label="Freeze" style="${pos(904,885,100,52)};border-radius:20px">${ICON.freeze}</button>`;
+ h+=`<button class="cc key dark round" data-id="p1" style="${pos(992,885,50,50)};font-size:17px">P1</button>`;
+ h+=`<button class="cc key dark round" data-id="dualL" aria-label="Dual links" style="${pos(780,940,44,44)}">${ICON.L}</button>`;
+ h+=`<button class="cc key dark round" data-id="dualR" aria-label="Dual rechts" style="${pos(840,940,44,44)}">${ICON.R}</button>`;
  stage.innerHTML=h;
 }
 buildStage();
