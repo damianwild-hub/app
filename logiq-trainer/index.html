@@ -81,7 +81,7 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .bezel{position:absolute;left:111px;top:10px;width:818px;height:528px;background:#111214;border-radius:12px}
 .brand{position:absolute;left:0;right:0;top:-1px;text-align:center;color:#c8c8c8;font:400 15px var(--f-body);letter-spacing:.12em}
 .console{position:absolute;left:18px;top:545px;width:1004px;height:445px;background:linear-gradient(#f1f0ec,#e1e0db);border-radius:26px 26px 120px 120px;box-shadow:0 4px 10px rgba(0,0,0,.25)}
-.console::after{content:"";position:absolute;left:350px;top:105px;width:300px;height:330px;border-radius:150px 150px 40px 40px;background:rgba(0,0,0,.035)}
+.console::after{content:none}
 .cc{position:absolute;transform:translate(-50%,-50%);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cc:focus-visible{outline:3px solid #1c66c9;outline-offset:3px}
 .key{border:2px solid #b6b6b1;background:linear-gradient(#e7e7e4,#d4d4d0);color:#77777a;font:600 14px var(--f-body);border-radius:24px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1),0 2px 3px rgba(0,0,0,.18);display:grid;place-items:center;padding:0}
@@ -102,11 +102,34 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .ear.on{color:#3f63f0;text-shadow:0 0 6px rgba(64,104,255,.8)}
 .plabel{position:absolute;transform:translate(-50%,-50%);color:#4a4a4d;font:600 13px var(--f-body);pointer-events:none;white-space:nowrap;text-align:center;line-height:1.15}
 .plabel.small{font-size:11.5px;font-weight:500}
-.tb{border-radius:50%;background:radial-gradient(circle at 45% 38%,#ffffff,#c9d4ff 45%,#8ea2f0 80%,#6f84d6);box-shadow:0 0 0 8px #d6d6d2,0 0 0 10px #b9b9b4,0 0 22px 6px rgba(120,140,255,.55);cursor:grab;touch-action:none}
+.tb{border-radius:50%;background:transparent;cursor:grab;touch-action:none}
+.tbsvg{position:absolute;overflow:visible}
+.tbsvg .plate{fill:#e4e4e0;stroke:#c8c8c3;stroke-width:1.4}
+.skey{cursor:pointer;outline:none}
+.skey .kb{fill:url(#tbKey);stroke:#8d8e8b;stroke-width:1.5;stroke-linejoin:round;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.25))}
+.skey .kl{fill:none;stroke:#f4f4f2;stroke-width:1.4;stroke-linejoin:round}
+.skey .kg{fill:none;stroke:#7d7e7b;stroke-width:2.4;stroke-linecap:round}
+.skey .kgh{fill:none;stroke:#c9cac7;stroke-width:1;stroke-linecap:round}
+.skey .kd{fill:#5e5f5d}
+.skey .kt{fill:#f4f4f2;font:600 13px var(--f-body);letter-spacing:.02em}
+.skey .kicon{fill:none;stroke:#f4f4f2;stroke-width:1.3}
+.skey:hover .kb{fill:#a6a7a4}.skey:active .kb{fill:#8f908d}
+.skey:focus-visible .kb,.skey.hint .kb,.skey.flash .kb{stroke:#ff9f1a;stroke-width:5}
+.skey.hint{animation:none}.skey.hint .kb{animation:skp 1.2s ease-in-out infinite}
+@keyframes skp{50%{stroke-opacity:.3}}
+.tbsvg .ring1{fill:#bdbdba;stroke:#9e9f9c;stroke-width:1.5}.tbsvg .ring2{fill:#a3a4a1;stroke:#8e8f8c;stroke-width:1}
+.tbsvg .rmk{fill:#6f706d}.tbsvg .rmk2{fill:none;stroke:#6f706d;stroke-width:1.4}
+.tbsvg .ball{fill:url(#tbBallOn)}.tbsvg .ballglow{fill:rgba(120,140,255,.45);filter:blur(5px)}
+.stage.off .tbsvg .ball{fill:url(#tbBallOff)}.stage.off .tbsvg .ballglow{fill:rgba(0,0,0,.18)}
+.collar{position:absolute;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#f1f1ef 60%,#dcdcd8);box-shadow:inset 0 1px 2px rgba(0,0,0,.18),0 0 0 1px #cfcfca;pointer-events:none}
+.knob.dknob{background:radial-gradient(circle at 46% 40%,#d9dad7,#c3c4c1 60%,#aeafac);box-shadow:0 3px 4px rgba(0,0,0,.35),inset 0 -2px 3px rgba(0,0,0,.15)}
+.knob.dknob::after{display:none}
+.plabel.dl{font:700 13px var(--f-body);color:#1d1d1f;line-height:1.05}
 .tb:active{cursor:grabbing}
 .tbk{border:2px solid #c3c3be;background:linear-gradient(#ececea,#dadad6);border-radius:16px;box-shadow:0 0 6px rgba(120,140,255,.35),inset 0 -2px 0 rgba(0,0,0,.08);color:#6a6a6e;font:600 12px var(--f-body);display:grid;place-items:center;padding:0}
 .tbk:active{filter:brightness(.92)}
-.arrow{width:26px;height:26px;border:0;background:none;color:#3b3b3e;font-size:17px;display:grid;place-items:center;padding:0}
+.arrow{width:28px;height:28px;border:0;background:none;display:grid;place-items:center;padding:0}
+.arrow:hover svg path{fill:#1c66c9}
 .arrow:hover{color:#1c66c9}
 .hint{animation:pulse 1.2s ease-in-out infinite;z-index:5}
 @keyframes pulse{0%,100%{outline:4px solid rgba(255,159,26,.95);outline-offset:3px}50%{outline:4px solid rgba(255,159,26,.25);outline-offset:9px}}
@@ -654,6 +677,28 @@ const ICON={
 };
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function pos(x,y,w,h){return `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;}
+function arcPath(cx,cy,r1,r2,a1,a2){const R=Math.PI/180,p=(r,a)=>[(cx+r*Math.cos(a*R)).toFixed(1),(cy+r*Math.sin(a*R)).toFixed(1)];const [x1,y1]=p(r2,a1),[x2,y2]=p(r2,a2),[x3,y3]=p(r1,a2),[x4,y4]=p(r1,a1);const lg=(a2-a1)>180?1:0;return `M${x1},${y1} A${r2},${r2} 0 ${lg} 1 ${x2},${y2} L${x3},${y3} A${r1},${r1} 0 ${lg} 0 ${x4},${y4} Z`;}
+function arcLine(cx,cy,r,a1,a2){const R=Math.PI/180;return `M${(cx+r*Math.cos(a1*R)).toFixed(1)},${(cy+r*Math.sin(a1*R)).toFixed(1)} A${r},${r} 0 0 1 ${(cx+r*Math.cos(a2*R)).toFixed(1)},${(cy+r*Math.sin(a2*R)).toFixed(1)}`;}
+function trackballSVG(){
+ const cx=140,cy=165;
+ const key=(id,lab,r1,r2,a1,a2,inner)=>`<g class="skey" data-id="${id}" role="button" tabindex="0" aria-label="${lab}"><path class="kb" d="${arcPath(cx,cy,r1,r2,a1,a2)}"/><path class="kl" d="${arcPath(cx,cy,r1+5,r2-5,a1+2.6*120/((r1+r2)/2),a2-2.6*120/((r1+r2)/2))}"/>${inner||''}</g>`;
+ const groove=(r,a1,a2)=>`<path class="kg" d="${arcLine(cx,cy,r,a1,a2)}"/><path class="kgh" d="${arcLine(cx,cy,r+1.6,a1,a2)}"/>`;
+ const R=Math.PI/180,dot=(a,r)=>`<circle class="kd" cx="${(cx+r*Math.cos(a*R)).toFixed(1)}" cy="${(cy+r*Math.sin(a*R)).toFixed(1)}" r="2.2"/>`;
+ let g=`<svg class="tbsvg" viewBox="0 0 280 320" style="left:455px;top:680px;width:280px;height:320px" aria-label="Trackball-Bereich">
+ <defs><radialGradient id="tbBallOn" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d4ddff"/><stop offset=".75" stop-color="#8fa3ef"/><stop offset="1" stop-color="#6378cf"/></radialGradient>
+ <radialGradient id="tbBallOff" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#9a9d9e"/><stop offset=".6" stop-color="#6b6f71"/><stop offset="1" stop-color="#4c5052"/></radialGradient>
+ <linearGradient id="tbKey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3b4b1"/><stop offset="1" stop-color="#9c9d9a"/></linearGradient></defs>
+ <path class="plate" d="M-6,${cy} A146,146 0 0 1 286,${cy} L278,320 L2,320 Z"/>`;
+ g+=key('tbTL','Trackball-Taste oben links',100,134,198,262,groove(117,212,248));
+ g+=key('measure','Measure',100,134,278,342,`<g transform="translate(${cx+117*Math.cos(296*R)},${cy+117*Math.sin(296*R)}) rotate(26)"><path class="kicon" d="M-14,-6 v12 h22 v-12 M-11,6 v-5 M-8,6 v-3 M-5,6 v-5 M-2,6 v-3 M1,6 v-5 M4,6 v-7"/></g><text class="kt" transform="translate(${cx+117*Math.cos(318*R)},${cy+117*Math.sin(318*R)}) rotate(48)" text-anchor="middle" dy="4">Measure</text>`);
+ g+=key('tbSL','Kleine Trackball-Taste links',98,132,164,200,dot(182,115));
+ g+=key('tbSR','Kleine Trackball-Taste rechts',98,132,340,376,dot(358,115));
+ g+=key('setL','Set links',100,136,112,162,groove(118,124,152));
+ g+=key('setR','Set rechts',100,136,18,68,groove(118,28,56));
+ g+=`<circle class="ring1" cx="${cx}" cy="${cy}" r="86"/><circle class="ring2" cx="${cx}" cy="${cy}" r="77"/>
+ <path class="rmk" d="M${cx-14},${cy-82} l-6,3.5 l6,3.5 z"/><rect class="rmk2" x="${cx-4}" y="${cy-85}" width="8" height="7" rx="2"/><rect class="rmk2" x="${cx-4}" y="${cy+78}" width="8" height="7" rx="2"/><path class="rmk" d="M${cx+14},${cy+78} l6,3.5 l-6,3.5 z"/>
+ <circle class="ballglow" cx="${cx}" cy="${cy}" r="72"/><circle class="ball" cx="${cx}" cy="${cy}" r="67"/><ellipse cx="${cx+8}" cy="${cy-6}" rx="14" ry="5" fill="#fff" opacity=".55"/><ellipse cx="${cx-26}" cy="${cy-4}" rx="4" ry="3" fill="#fff" opacity=".45"/></svg>`;
+ return g;}
 function buildStage(){
  let h='';
  h+=`<div class="housing"></div><div class="bezel"><div class="brand">LOGIQ</div></div>`;
@@ -677,26 +722,23 @@ function buildStage(){
  h+=`<button class="cc key round" data-id="clear" aria-label="Clear" style="${pos(445,828,54,54)}">${ICON.clear}</button>`;
  h+=`<button class="cc key round" data-id="pointer" aria-label="Pfeil" style="${pos(445,910,54,54)}">${ICON.pointer}</button>`;
  // Trackball
- h+=`<button class="cc tbk" data-id="tbTL" aria-label="Trackball-Taste oben links" style="${pos(522,718,116,34)};transform:translate(-50%,-50%) rotate(-20deg)"></button>`;
- h+=`<button class="cc tbk" data-id="measure" style="${pos(668,718,116,34)};transform:translate(-50%,-50%) rotate(20deg)">▥ Measure</button>`;
- h+=`<button class="cc tbk" data-id="tbSL" aria-label="Kleine Trackball-Taste links" style="${pos(502,790,38,40)};transform:translate(-50%,-50%) rotate(-25deg)"></button>`;
- h+=`<button class="cc tbk" data-id="tbSR" aria-label="Kleine Trackball-Taste rechts" style="${pos(688,790,38,40)};transform:translate(-50%,-50%) rotate(25deg)"></button>`;
- h+=`<button class="cc tbk" data-id="setL" aria-label="Set links" style="${pos(500,908,36,106)};transform:translate(-50%,-50%) rotate(14deg)"></button>`;
- h+=`<button class="cc tbk" data-id="setR" aria-label="Set rechts" style="${pos(690,908,36,106)};transform:translate(-50%,-50%) rotate(-14deg)"></button>`;
- h+=`<div class="cc tb" tabindex="0" role="application" aria-label="Trackball" data-id="tb" style="${pos(595,845,150,150)}"></div>`;
+ h+=trackballSVG();
+ h+=`<div class="cc tb" tabindex="0" role="application" aria-label="Trackball" data-id="tb" style="${pos(595,845,134,134)}"></div>`;
  // rechte Gruppe
  h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="Ellipse / Body Pattern" data-id="ellipse" style="${pos(792,688,54,54)}"></div>`;
  h+=`<div class="plabel small" style="left:800px;top:742px">◯ Ellipse<br>▣ Body Pattern</div>`;
  h+=`<div class="cc knob black" tabindex="0" role="slider" aria-label="B-Mode und Gain" data-id="bknob" style="${pos(808,815,66,66)}"></div>`;
  h+=`<div class="plabel" style="left:808px;top:870px;font-size:17px">B</div>`;
- h+=`<div class="cc knob grey" tabindex="0" role="slider" aria-label="Zoom" data-id="depthknob" style="${pos(912,690,50,50)}"></div>`;
- h+=`<button class="cc arrow" data-id="depth-up" aria-label="Tiefe verringern" style="left:912px;top:648px">▲</button>`;
- h+=`<button class="cc arrow" data-id="depth-down" aria-label="Tiefe vergrössern" style="left:912px;top:733px">▼</button>`;
- h+=`<button class="cc arrow" data-id="steer-l" aria-label="Steer links" style="left:868px;top:690px">◀</button>`;
- h+=`<button class="cc arrow" data-id="steer-r" aria-label="Steer rechts" style="left:956px;top:690px">▶</button>`;
- h+=`<div class="plabel small" style="left:862px;top:650px">Steer</div>`;
- h+=`<div class="plabel small" style="left:870px;top:752px">Depth</div>`;
- h+=`<div class="plabel small" style="left:958px;top:740px">Zoom</div>`;
+ h+=`<div class="collar" style="left:912px;top:690px"></div>`;
+ h+=`<div class="cc knob dknob" tabindex="0" role="slider" aria-label="Zoom" data-id="depthknob" style="${pos(912,690,48,48)}"></div>`;
+ h+=`<button class="cc arrow" data-id="depth-up" aria-label="Tiefe verringern" style="left:912px;top:645px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(0 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="depth-down" aria-label="Tiefe vergrössern" style="left:905px;top:737px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(180 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="steer-l" aria-label="Steer links" style="left:866px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(270 10 10)"/></svg></button>`;
+ h+=`<button class="cc arrow" data-id="steer-r" aria-label="Steer rechts" style="left:958px;top:690px"><svg viewBox="0 0 20 20" width="20" height="20"><path d="M10,2 L18,17 L2,17 Z" fill="#141414" transform="rotate(90 10 10)"/></svg></button>`;
+ h+=`<div class="plabel dl" style="left:842px;top:668px"><svg viewBox="0 0 16 18" width="13" height="15"><path d="M4,1 L12,1 L14,13 L6,13 Z M3,1 L5,13 M2,16 H14" fill="none" stroke="#1d1d1f" stroke-width="1.3" stroke-dasharray="0"/></svg><br>Steer</div>`;
+ h+=`<div class="plabel dl" style="left:868px;top:740px"><svg viewBox="0 0 16 16" width="13" height="13" style="vertical-align:-2px"><path d="M8,1 L15,9 L11,9 L11,13 L5,13 L5,9 L1,9 Z" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><path d="M8,6 V15 M6,13 L8,15 L10,13" fill="none" stroke="#1d1d1f" stroke-width="1.2"/></svg>Depth</div>`;
+ h+=`<div class="plabel" style="left:944px;top:730px;pointer-events:none"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M5,19 L19,5" stroke="#141414" stroke-width="2.4"/><path d="M19,5 L12,6 L18,12 Z M5,19 L12,18 L6,12 Z" fill="#141414"/></svg></div>`;
+ h+=`<div class="plabel dl" style="left:968px;top:742px"><svg viewBox="0 0 16 16" width="13" height="13"><rect x="1" y="1" width="14" height="14" fill="none" stroke="#1d1d1f" stroke-width="1.3"/><rect x="4" y="6" width="6" height="6" fill="none" stroke="#1d1d1f" stroke-width="1.2"/><rect x="7" y="3.5" width="5" height="5" fill="#fff" stroke="#1d1d1f" stroke-width="1.2"/></svg><br>Zoom</div>`;
  h+=`<button class="cc key blue" data-id="usb" style="${pos(995,705,70,36)};font-size:12px">USB</button>`;
  h+=`<button class="cc key round" data-id="ao" style="${pos(918,795,50,50)};font-size:16px">AO</button>`;
  h+=`<button class="cc key blue" data-id="markcine" style="${pos(995,800,74,36)};font-size:11.5px">Mark Cine</button>`;
@@ -738,6 +780,7 @@ function pWidget(k){
 function activeSubs(){const a=['B'];if(S.color!=='none')a.push(S.color);if(S.spec!=='none')a.push(S.spec);return a;}
 function renderTS(){
  const ts=document.getElementById('ts');
+ stage.classList.toggle('off',!!S.off);
  if(isOff()){ts.innerHTML='<div style="grid-row:1/4;display:grid;place-items:center;color:#2a3442;font-size:14px">'+(S.off?'':'Touchscreen startet …')+'</div>';applyHint();return;}
  const subs=activeSubs(); if(!subs.includes(S.scanSub))S.scanSub=subs[subs.length-1];
  let h=`<div class="ts-top">
@@ -1463,6 +1506,7 @@ stage.addEventListener('wheel',e=>{
  showInfo(infoId(t.dataset.id),true);
 },{passive:false});
 stage.addEventListener('keydown',e=>{
+ if(e.target.closest('.skey')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();const id=e.target.closest('.skey').dataset.id;press(id);showInfo(infoId(id));return;}
  const t=e.target.closest('.knob,.tb');if(!t)return;const id=t.dataset.id;
  if(t.classList.contains('tb')){const m={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,-8],ArrowDown:[0,8]}[e.key];if(m){e.preventDefault();tbMove(...m);}return;}
  if(e.key==='Enter'||e.key===' '){e.preventDefault();press(id);showInfo(infoId(id));}
@@ -1472,7 +1516,7 @@ stage.addEventListener('keydown',e=>{
 function infoId(id){if(/^pos-/.test(id))return 'posbar';if(/^(depth-|steer-)/.test(id))return 'depthknob';return id;}
 // Klicks: Tasten + Touchscreen
 stage.addEventListener('click',e=>{
- const k=e.target.closest('button.cc');
+ const k=e.target.closest('button.cc,.skey');
  if(k){press(k.dataset.id);showInfo(infoId(k.dataset.id));return;}
  const b=e.target.closest('#ts button,#ts img');if(!b)return;
  const ds=b.dataset;
@@ -1734,7 +1778,7 @@ function mark(el,verb,extra,rot,nm){
 function unmark(){vmark.classList.remove('on','rot','ccw');}
 async function moveTo(sel){const el=tgt(sel);if(!el){await vwait(200);return null;}const r=el.getBoundingClientRect();vcur.style.visibility='visible';vcur.style.left=(r.left+r.width/2)+'px';vcur.style.top=(r.top+r.height/2)+'px';await vwait(750);return el;}
 async function clickFx(){vcur.classList.remove('clk');void vcur.getBoundingClientRect();vcur.classList.add('clk');await vwait(260);}
-async function A_click(sel){const el=tgt(sel);if(el)mark(el,el.classList.contains('knob')?'DRÜCKEN':(el.closest('#ts,#posbar,#pbody')?'TIPPEN':'DRÜCKEN'));await moveTo(sel);await clickFx();if(!el)return;if(el.classList.contains('knob')){press(el.dataset.id);showInfo(infoId(el.dataset.id),true);}else el.click();await vwait(250);}
+async function A_click(sel){const el=tgt(sel);if(el)mark(el,el.classList.contains('knob')?'DRÜCKEN':(el.closest('#ts,#posbar,#pbody')?'TIPPEN':'DRÜCKEN'));await moveTo(sel);await clickFx();if(!el)return;if(el.classList.contains('knob')||el.classList.contains('skey')){press(el.dataset.id);showInfo(infoId(el.dataset.id),true);}else el.click();await vwait(250);}
 async function A_rot(sel,n){const e0=tgt(sel);if(e0)mark(e0,n>0?'DREHEN ↻':'DREHEN ↺',n>0?'(nach rechts, +)':'(nach links, −)',n>0?1:-1);const el=await moveTo(sel);if(!el)return;const id=el.dataset.id;for(let k=0;k<Math.abs(n);k++){rotate(id,Math.sign(n));await vwait(130);}await vwait(200);}
 async function A_tb(dx,dy,steps=22){const e0=tgt('tb');const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?'→ nach rechts':'← nach links'):(dy>0?'↓ nach unten':'↑ nach oben');mark(e0,'TRACKBALL ROLLEN',dir);await moveTo('tb');for(let k=0;k<steps;k++){tbMove(dx/steps,dy/steps);await vwait(40);}await vwait(150);}
 async function A_type(sel,text){const e0=tgt(sel);if(e0)mark(e0,'EINTIPPEN','„'+esc(text)+'“');const el=await moveTo(sel);await clickFx();if(!el)return;el.value='';for(const ch of text){el.value+=ch;el.dispatchEvent(new Event('input',{bubbles:true}));await vwait(65);}await vwait(200);}
@@ -2277,7 +2321,7 @@ async function cardAct(id){
  const c=CARDS.find(x=>x[0]===id);if(!c)return;const [,t,verb,,n]=c;
  if(verb==='drehen'){for(let k=0;k<Math.abs(n);k++){rotate(t,Math.sign(n));await sleep(60);}}
  else if(verb==='rollen'){for(let k=0;k<20;k++){tbMove(S.freeze?-7:6,S.freeze?0:3);await sleep(30);}}
- else{for(let k=0;k<n;k++){const el=document.querySelector(`[data-id="${CSS.escape(t)}"]`);if(el&&(el.classList.contains('knob')||el.classList.contains('tb')))press(t);else if(el)el.click();await sleep(250);}}
+ else{for(let k=0;k<n;k++){const el=document.querySelector(`[data-id="${CSS.escape(t)}"]`);if(el&&(el.classList.contains('knob')||el.classList.contains('tb')||el.classList.contains('skey')))press(t);else if(el)el.click();await sleep(250);}}
  dirty=true;
 }
 function startCard(id){
