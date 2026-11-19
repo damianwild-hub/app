@@ -317,7 +317,7 @@ html,body{overscroll-behavior:none}
         <div class="posctl">
           <div class="poslabel">Schallkopf-Position am Patienten</div>
           <div class="posbtns" id="posbtns"></div>
-          <div class="caserow"><button id="lblBtn" class="lblbtn" aria-pressed="false">Beschriftung an</button><label for="caseSel">Befund:</label>
+          <div class="caserow"><button id="probeBtn" class="lblbtn hoveronly" aria-pressed="false" title="Sonde mit Trackpad oder Maus über den Körper führen, Esc beendet">🖐 Sonde führen</button><button id="lblBtn" class="lblbtn" aria-pressed="false">Beschriftung an</button><label for="caseSel">Befund:</label>
             <select id="caseSel" data-id="case-select">
               <option value="normal">Normalbefund</option>
               <option value="ff">Freie Flüssigkeit (Morison, Milz, Douglas)</option>
@@ -445,6 +445,10 @@ const PRESET_SCENE={'Abdomen Allg.':'abd_epi','Leber':'liver','Niere':'ruq','Aor
 const CASES={normal:'Normalbefund',ff:'Freie Flüssigkeit intraabdominal',pe:'Perikarderguss',ptxR:'Pneumothorax rechts',htxL:'Hämatothorax links',multi:'Polytrauma'};
 function VES(){return SCENES[S.scene].vessels;}
 const BODY=['Schulter','Ellenbogen','Hand','Hüfte','Knie','Sprunggelenk','Abdomen'];
+const BODY_SPOTS={'Schulter':[62,26],'Ellenbogen':[70,48],'Hand':[74,66],'Hüfte':[52,62],'Knie':[54,80],'Sprunggelenk':[56,96],'Abdomen':[45,45]};
+function bpMarkInit(){if(!S.bpMark){const p=BODY_SPOTS[BODY[S.bpIdx]];S.bpMark={x:p[0],y:p[1],ang:0.52};}}
+function bpCur(){return S.bpMark||{x:BODY_SPOTS[BODY[S.bpIdx]][0],y:BODY_SPOTS[BODY[S.bpIdx]][1],ang:0.52};}
+function bpSvg(){const m=bpCur(),ca=Math.cos(m.ang)*8,sa=Math.sin(m.ang)*8;return `<svg viewBox="-4 -4 98 108" width="118" height="130" style="display:block"><g fill="none" stroke="#8fb4e6" stroke-width="2"><circle cx="45" cy="12" r="8"/><path d="M45 20L45 60M28 26L62 26M28 26L20 52L16 66M62 26L70 52L74 66M45 60L36 80L34 98M45 60L54 80L56 98"/></g><line x1="${m.x-ca}" y1="${m.y-sa}" x2="${m.x+ca}" y2="${m.y+sa}" stroke="#ffd27a" stroke-width="3"/><circle cx="${m.x-ca}" cy="${m.y-sa}" r="2.2" fill="#ffd27a"/></svg>`;}
 
 // ================= Zustand =================
 const S={
@@ -457,7 +461,7 @@ const S={
  tgc:[0,0,0,0,0,0,0,0],tgcOpen:false,
  cfScale:70,cfWF:1,cfBase:0,cfInvert:false,pwScale:100,pwBase:-2,pwAngle:0,pwInvert:false,sweep:3,gate:0.15,
  box:{u:0.5,d:1.4,hu:0.8,hd:0.6},tbMode:'pos',gateU:0.5,gateD:2,mU:0.5,
- dual:null,lv:null,lvStart:0,measure:null,annots:[],editing:null,arrows:[],arrowEdit:null,
+ dual:null,lv:null,lvStart:0,pendingScene:null,bpMark:null,bpEdit:false,probeMode:false,probePos:null,panX:0,noContact:false,measure:null,annots:[],editing:null,arrows:[],arrowEdit:null,
  bodyPattern:false,bpIdx:0,
  tab:'scan',scanSub:'B',patSub:'patient',kbd:false,page:null,presetMenu:null,confirmEnd:false,
  patient:{last:'',first:'',id:'',dob:'',sex:''},registered:false,images:[],history:[],review:null,
@@ -536,13 +540,13 @@ const INFO={
  tbSR:['Kleine Taste rechts am Trackball','Trackball & Messen','Wie links: Trackball-Funktion wechseln bzw. Untermenü.','Wie links.','',true],
  setL:['Set (links unten)','Trackball & Messen','Bestätigt: fixiert Messpunkte, übernimmt Positionen und wählt am Monitor aus.','Fixiert Messpunkte, Kommentare und Pfeile. Bei der Farbbox wechselt es zwischen Position und Grösse.','',true],
  setR:['Set (rechts unten)','Trackball & Messen','Bestätigen, wie links. Auf vielen LOGIQ-Systemen sind beide unteren Tasten Set bzw. Set und eine Zusatzfunktion.','Wie links.','',true],
- ellipse:['Ellipse / Body Pattern','Trackball & Messen','Drehen: Nach einer Distanzmessung wird daraus eine Ellipse mit Fläche und Umfang, Drehen ändert die Breite. Drücken: blendet das Body Pattern ein, ein Körperpiktogramm mit der Sondenposition.','Drücken = Body Pattern an/aus. Drehen ohne Messung = anderes Piktogramm.','Body Pattern hilft später beim Befunden, die Schnittebene zuzuordnen.'],
+ ellipse:['Ellipse / Body Pattern','Trackball & Messen','Drehen: Nach einer Distanzmessung wird daraus eine Ellipse mit Fläche und Umfang, Drehen ändert die Breite. Drücken: blendet das Body Pattern ein, ein Körperpiktogramm mit der Sondenposition.','Drücken = Body Pattern an: Piktogramm am Touchscreen wählen, Sondenmarke antippen oder mit dem Trackball schieben, Ellipse drehen = Winkel der Sonde, Set = fertig. Nochmals drücken = aus.','Body Pattern hilft später beim Befunden, die Schnittebene zuzuordnen.'],
  bknob:['B – B-Mode & Gain','Bildoptimierung','Drücken schaltet zurück in den reinen B-Mode (alle anderen Modi aus). Drehen ändert die Gesamtverstärkung (Gain): Das ganze Bild wird heller oder dunkler.','Klick = zurück zu B, drehen = Gain. Der aktuelle Wert steht links im Monitor („Gn“).','Reihenfolge: Tiefe, dann Fokus, dann Gain, dann TGC für die Feinabstimmung.'],
  depthknob:['Depth / Steer / Zoom','Bildoptimierung','Hoch/runter ändert die Eindringtiefe (Depth). Links/rechts kippt bei Linearsonden Farbbox und Doppler-Linie (Steer). Drehen vergrössert das Bild (Zoom).','Pfeile anklicken für Tiefe und Steer. Mausrad über dem Knopf = Zoom, Klick auf den Knopf = Zoom zurücksetzen.','Die Zielstruktur sollte etwa die mittleren zwei Drittel des Bildes füllen.'],
  usb:['USB','Speichern','Beleuchtete, konfigurierbare Speichertaste. Bei euch steht „USB“ drauf, sie exportiert also vermutlich Bild bzw. Cine direkt auf einen USB-Stick. Die genaue Belegung ist in der Konfiguration hinterlegt.','Zeigt „auf USB exportiert“.','Datenschutz: Patientendaten auf USB nur nach Klinikvorgabe.',true],
  ao:['AO – Auto Optimize','Bildoptimierung','Automatische Bildoptimierung per Knopfdruck. Im B-Mode werden vor allem Helligkeit und Gain ausgeglichen, im Doppler je nach Version auch Skala und Baseline.','Setzt Gain und TGC zurück, im PW-Mode passt es die Skala an.','Guter Startpunkt, danach von Hand nachregeln.'],
  markcine:['Mark Cine','Speichern','Markiert im Cine-Speicher Anfang und Ende einer Sequenz, um nur diesen Ausschnitt als Loop wiederzugeben oder zu speichern.','Bei eingefrorenem Bild wird eine Markierung auf der Cine-Leiste gesetzt.','',true],
- freeze:['Freeze – Einfrieren','Speichern','Friert das Livebild ein bzw. setzt den Scan fort. Eingefroren kannst du mit dem Trackball durch den Cine-Speicher blättern, messen und speichern.','Taste klicken oder F drücken. Rechts unten im Monitor erscheint die Cine-Leiste.','Nicht unnötig lange live schallen (ALARA), Freeze reduziert die Schallexposition.'],
+ freeze:['Freeze – Einfrieren','Speichern','Friert das Livebild ein bzw. setzt den Scan fort. Eingefroren kannst du mit dem Trackball durch den Cine-Speicher blättern, messen und speichern.','Taste klicken oder F drücken. Rechts unten im Monitor erscheint die Cine-Leiste. Eingefroren sind Tiefe, Frequenz, Fokus, Sendeleistung und Steer gesperrt; Gain, Zoom, Messen und Beschriften gehen weiter (Nachbearbeitung). Setzt du die Sonde um, bleibt das alte Bild stehen, bis du Freeze löst.','Nicht unnötig lange live schallen (ALARA), Freeze reduziert die Schallexposition.'],
  p1:['P1 – Speichern/Drucken','Speichern','Konfigurierbare Print-Taste. Meist speichert sie das Bild (oder Cine) in die Untersuchung oder schickt es an Drucker bzw. PACS. Gespeichertes erscheint in der Bildleiste am Monitor und unter PATIENT › Aktive Bilder.','Speichert ein Vorschaubild, unten rechts im Monitor sichtbar.','Am echten Gerät legt Dienstpr. fest, was P1 tut.'],
  dualL:['L – Dual-Bild links','Bildoptimierung','Teilt den Monitor in zwei Bilder und aktiviert das linke. Das andere Bild bleibt eingefroren stehen.','L und R wechseln die aktive Seite, B beendet die Dual-Ansicht.','Ideal für den Seitenvergleich (links/rechts) oder längs/quer.'],
  dualR:['R – Dual-Bild rechts','Bildoptimierung','Aktiviert das rechte Bild der Dual-Ansicht.','Wie L.',''],
@@ -595,7 +599,7 @@ const INFO={
  'p-pwInvert':['Invertieren – PW','Doppler-Parameter','Stellt die Spektralkurve auf den Kopf.','',''],
  'p-sweep':['Sweep-Geschwindigkeit','Doppler-Parameter','Wie schnell die Kurve (PW bzw. M-Mode) über den Bildschirm läuft.','',''],
  'p-gate':['Gate-Grösse','Doppler-Parameter','Grösse des Messfensters im Gefäss.','',''],
- 'posbar':['Schallkopf-Position','Simulator','Am echten Patienten schiebst du die Sonde an die richtige Stelle. Im Simulator wählst du die Position per Klick: Schulter, Leber oder eines der 6 eFAST-Fenster.','Position antippen, das Bild wechselt. Tiefe und Sonde passend wählen (eFAST: C1-6, 14–18 cm; Lunge: L3-12, ca. 5 cm).','Für eFAST zuerst das Preset „eFAST“ (C1-6) bzw. „Lunge“ (L3-12) wählen.'],
+ 'posbar':['Schallkopf-Position','Simulator','Am echten Patienten schiebst du die Sonde an die richtige Stelle. Im Simulator wählst du die Position per Klick: Schulter, Leber oder eines der 6 eFAST-Fenster.','Position antippen, das Bild wechselt. Am Mac geht auch «Sonde führen»: Trackpad oder Maus bewegen die Sonde über den Körper, seitliches Schieben verschiebt das Bild (Linearsonde), Esc beendet. Tiefe und Sonde passend wählen (eFAST: C1-6, 14–18 cm; Lunge: L3-12, ca. 5 cm).','Für eFAST zuerst das Preset „eFAST“ (C1-6) bzw. „Lunge“ (L3-12) wählen.'],
  'case-select':['Befund des Patienten','Simulator','Legt fest, welcher Befund im simulierten Patienten steckt: normal, freie Flüssigkeit, Perikarderguss, Pneumothorax, Hämatothorax oder Polytrauma.','In den Tests wird der Befund verdeckt zufällig gewählt.','']
 };
 const GROUPS=['Simulator','Modus-Tasten','Bildoptimierung','Trackball & Messen','Bildbeschriftung','Speichern','System','Touchscreen','B-Parameter','Drehknopf-Parameter','Doppler-Parameter'];
@@ -818,6 +822,7 @@ function renderTS(){
  applyHint();
 }
 function contentHTML(){
+ if(S.bodyPattern&&S.bpEdit){return `<div class="subtabs"><button class="on">Body Pattern</button></div><div style="display:flex;gap:10px;align-items:flex-start"><button class="tsb" data-act="bp-touch" aria-label="Sondenmarke durch Antippen setzen" style="padding:3px;background:#070b14">${bpSvg()}</button><div style="flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:6px">${BODY.map((b,i)=>`<button class="tsb ${S.bpIdx===i?'on':''}" data-act="bp-pick" data-bp="${i}">${b}</button>`).join('')}<button class="tsb on" data-act="bp-done">Fertig (Set)</button></div></div><p style="font-size:12px;color:#8ea0b8;margin:2px 0 0">Piktogramm wählen · Marke antippen oder mit dem Trackball schieben · Ellipse drehen = Winkel · Set = fertig</p>`;}
  if(S.page==='meine'){return `<div class="subtabs"><button class="on">Meine Seite</button></div><div class="pgrid">${['sri','cxb','chi','frameAvg','vconvex','colorize'].map(pWidget).join('')}</div><p style="font-size:12px;color:#8ea0b8;margin:4px 0 0">Beispiel: Hier legt jeder Nutzer seine Lieblingsparameter ab.</p>`;}
  if(S.page==='trainer'){return `<div class="subtabs"><button class="on">MyTrainer</button></div><div class="ulist">${['Systemüberblick','Bedienpult','Patient anlegen','B-Mode optimieren','Farbdoppler','PW-Doppler','Messen','Speichern & Senden','Sondenpflege'].map(t=>`<button class="tsb" data-act="trainer-item">${t}</button>`).join('')}</div><p style="font-size:12px;color:#8ea0b8;margin:4px 0 0">Am echten Gerät startet hier ein Lernvideo von GE.</p>`;}
  if(S.tab==='scan'){
@@ -850,8 +855,11 @@ function contentHTML(){
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 // ================= Parameter ändern =================
+const FROZEN_LOCK=['power','freq','focusPos','focusNum','focusWidth','cfScale','cfWF','gate','cxb','cxbLevel','cxbType','chi','vconvex'];
+function frozenBlock(what){if(!S.freeze)return false;toast(what+': am eingefrorenen Bild nicht möglich – erst Freeze lösen');return true;}
 function changeParam(k,dir){
  const p=PARAMS[k];
+ if(FROZEN_LOCK.includes(k)&&frozenBlock(p.label))return;
  if(p.kind==='toggle'){S[k]=!S[k];}
  else if(p.list||p.opts){const L=p.list?p.list():p.opts;let i=L.indexOf(S[k]);i=(i+dir+L.length)%L.length;if(p.list){i=Math.max(0,Math.min(L.length-1,L.indexOf(S[k])+dir));}S[k]=L[i];}
  else{const mx=typeof p.max==='function'?p.max():p.max,st=typeof p.step==='function'?p.step():p.step;S[k]=Math.round(Math.max(p.min,Math.min(mx,S[k]+dir*st))*100)/100;}
@@ -1094,7 +1102,7 @@ function buildMap(){
  const TW=T.TW,TH=T.TH;
  for(let py=0;py<IH;py++)for(let px=0;px<IW;px++){
   const i=py*IW+px;const qx=zc.x+(px-zc.x)/S.zoom,qy=zc.y+(py-zc.y)/S.zoom;let u,d;
-  if(lin){d=qy/ppc;if(d<0||d>S.depth){MAP[i]=-1;continue;}let x=(qx-cx)/ppc;const half=viewW/2+(S.vconvex&&!pano?d*tanv:0);if(Math.abs(x)>half){MAP[i]=-1;continue;}x=x/half*(viewW/2);if(S.invert)x=-x;u=x/P.Wtot+0.5;}
+  if(lin){d=qy/ppc;if(d<0||d>S.depth){MAP[i]=-1;continue;}let x=(qx-cx)/ppc;const half=viewW/2+(S.vconvex&&!pano?d*tanv:0);if(Math.abs(x)>half){MAP[i]=-1;continue;}x=x/half*(viewW/2);if(S.invert)x=-x;if(!pano)x+=S.panX;u=x/P.Wtot+0.5;}
   else{const rx=(qx-cx)/ppc,ry=(qy-ya)/ppc;const r=Math.hypot(rx,ry);let a=Math.atan2(rx,ry);if(Math.abs(a)>P.theta/2||r<P.R||r>P.R+S.depth){MAP[i]=-1;continue;}d=r-P.R;if(S.invert)a=-a;u=a/P.theta+0.5;}
   const gu=Math.min(TW-1,Math.max(0,u*TW|0)),gd=Math.min(TH-1,Math.max(0,d/P.dmax*TH|0));
   MAP[i]=gd*TW+gu;if(MU){MU[i]=u;MD[i]=d;}DQ[i]=Math.min(255,d/S.depth*255|0);
@@ -1103,7 +1111,7 @@ function buildMap(){
 }
 function toScreen(u,d){
  const P=PROBES[S.probe];let px,py;
- if(G.lin){let x=(u-0.5)*P.Wtot;if(S.invert)x=-x;const half=G.viewW/2+(S.vconvex&&!G.pano?d*G.tanv:0);px=G.cx+x*(half/(G.viewW/2))*G.ppc;py=d*G.ppc;}
+ if(G.lin){let x=(u-0.5)*P.Wtot;if(!G.pano)x-=S.panX;if(S.invert)x=-x;const half=G.viewW/2+(S.vconvex&&!G.pano?d*G.tanv:0);px=G.cx+x*(half/(G.viewW/2))*G.ppc;py=d*G.ppc;}
  else{let a=(u-0.5)*P.theta;if(S.invert)a=-a;const r=P.R+d;px=G.cx+r*Math.sin(a)*G.ppc;py=G.ya+r*Math.cos(a)*G.ppc;}
  return[G.zc.x+(px-G.zc.x)*S.zoom,G.zc.y+(py-G.zc.y)*S.zoom];
 }
@@ -1216,7 +1224,7 @@ function drawOverlays(t){
  // Fokus
  c.fillStyle='#ffd27a';for(let k=0;k<S.focusNum;k++){const fd=S.focusNum===1?S.focusPos:S.focusPos*(0.55+0.3*k);const y=toScreen(0.5,fd)[1];c.beginPath();c.moveTo(imgC.width-14,y);c.lineTo(imgC.width-6,y-5);c.lineTo(imgC.width-6,y+5);c.fill();}
  // Orientierungsmarke
-const om=G.lin?toScreen(S.invert?0.5+(P.W/2-0.15)/P.Wtot:0.5-(P.W/2-0.15)/P.Wtot,0):toScreen(S.invert?0.97:0.03,0);
+const om=G.lin?toScreen((S.invert?0.5+(P.W/2-0.15)/P.Wtot:0.5-(P.W/2-0.15)/P.Wtot)+(G.pano?0:S.panX/P.Wtot),0):toScreen(S.invert?0.97:0.03,0);
  c.fillStyle='#5ea0ff';c.beginPath();c.arc(Math.max(8,Math.min(imgC.width-8,om[0])),Math.max(8,om[1]+8),5,0,7);c.fill();
  // Farbbox
  if(S.color==='CF'||S.color==='PDI'){
@@ -1283,8 +1291,8 @@ function drawBody(c,x,y){
  c.fillRect(-4,-4,98,108);c.strokeRect(-4,-4,98,108);
  c.beginPath();c.arc(45,12,8,0,7);c.stroke();
  c.beginPath();c.moveTo(45,20);c.lineTo(45,60);c.moveTo(28,26);c.lineTo(62,26);c.moveTo(28,26);c.lineTo(20,52);c.lineTo(16,66);c.moveTo(62,26);c.lineTo(70,52);c.lineTo(74,66);c.moveTo(45,60);c.lineTo(36,80);c.lineTo(34,98);c.moveTo(45,60);c.lineTo(54,80);c.lineTo(56,98);c.stroke();
- const spots={'Schulter':[62,26],'Ellenbogen':[70,48],'Hand':[74,66],'Hüfte':[52,62],'Knie':[54,80],'Sprunggelenk':[56,96],'Abdomen':[45,45]};
- const [sx,sy]=spots[BODY[S.bpIdx]];c.strokeStyle='#ffd27a';c.lineWidth=3;c.beginPath();c.moveTo(sx-7,sy-4);c.lineTo(sx+7,sy+4);c.stroke();
+ const spots=BODY_SPOTS;
+ const m=bpCur(),ca=Math.cos(m.ang)*8,sa=Math.sin(m.ang)*8;c.strokeStyle=S.bpEdit?'#ffffff':'#ffd27a';c.fillStyle=c.strokeStyle;c.lineWidth=3;c.beginPath();c.moveTo(m.x-ca,m.y-sa);c.lineTo(m.x+ca,m.y+sa);c.stroke();c.beginPath();c.arc(m.x-ca,m.y-sa,2.2,0,7);c.fill();
  c.fillStyle='#cfe0ff';c.font='10px IBM Plex Sans, sans-serif';c.fillText(BODY[S.bpIdx],0,104);
  c.restore();
 }
@@ -1311,6 +1319,7 @@ function drawMonitor(t,now){
   c.strokeStyle='#5ea0ff';c.lineWidth=2;c.strokeRect(pos[act][0]-2,pos[act][1]-2,w+4,h+4);c.fillStyle='#8ea0b8';c.font='12px IBM Plex Sans, sans-serif';c.fillText('L',pos[0][0],pos[0][1]+h+16);c.fillText('R',pos[1][0],pos[1][1]+h+16);}
  else if(S.rotation){c.save();const cx=IMGX+imgC.width/2,cy=IMGY+imgC.height/2;c.translate(cx,cy);c.rotate(S.rotation*Math.PI/180);const sc=(S.rotation%180)?Math.min(imgC.height/imgC.width,1):1;c.scale(sc,sc);c.drawImage(imgC,-imgC.width/2,-imgC.height/2);c.restore();}
  else c.drawImage(imgC,IMGX,IMGY);
+ if(S.noContact&&!S.freeze&&!S.dual){c.fillStyle='#000';c.fillRect(IMGX,IMGY,imgC.width,imgC.height);c.fillStyle='#56606b';c.font='14px IBM Plex Sans, sans-serif';c.textAlign='center';c.fillText('Kein Hautkontakt – Sonde zu einer Position führen',IMGX+imgC.width/2,IMGY+imgC.height/2);c.textAlign='left';}
  // Spektrum
  if(S.spec!=='none'&&!S.dual){const y0=360;c.drawImage(stripC,110,y0);c.strokeStyle='#33435d';c.strokeRect(110,y0,660,200);
   c.fillStyle='#8ea0b8';c.font='10px IBM Plex Mono, monospace';
@@ -1348,7 +1357,7 @@ function drawMonitor(t,now){
  // Toast
  drawToast(c,now);
 }
-function tbLabel(){if(S.measure&&S.measure.active!=null)return 'Messpunkt '+(S.measure.active+1);if(S.editing)return 'Kommentar-Position';if(S.arrowEdit)return 'Pfeil';if(S.freeze)return 'Cine blättern';if(S.spec==='PW')return 'Doppler-Gate';if(S.spec==='M')return 'M-Linie';if(S.color==='CF'||S.color==='PDI')return 'Farbbox '+(S.tbMode==='size'?'Grösse':'Position');return '–';}
+function tbLabel(){if(S.measure&&S.measure.active!=null)return 'Messpunkt '+(S.measure.active+1);if(S.editing)return 'Kommentar-Position';if(S.arrowEdit)return 'Pfeil';if(S.bpEdit)return 'Body-Pattern-Sonde';if(S.freeze)return 'Cine blättern';if(S.spec==='PW')return 'Doppler-Gate';if(S.spec==='M')return 'M-Linie';if(S.color==='CF'||S.color==='PDI')return 'Farbbox '+(S.tbMode==='size'?'Grösse':'Position');return '–';}
 let toastId=0;function toast(msg,ms=2600){S.toast={msg,until:performance.now()/1000+ms/1000,id:++toastId};dirty=true;}
 
 // ================= Aktionen =================
@@ -1363,11 +1372,11 @@ function emit(type,id,extra){
 function doFreeze(){
  S.freeze=!S.freeze;
  if(S.freeze){S.tFreeze=S.tNow;S.cine=0;S.cineMarks=[];}
- else{S.measure=null;S.review=null;S.editing=null;hideAnn();}
+ else{S.measure=null;S.review=null;S.editing=null;hideAnn();if(S.pendingScene){const k=S.pendingScene;S.pendingScene=null;setScene(k);}}
  dirty=true;
 }
 function setProbe(key,preset){
- S.probe=key;S.preset=preset;const P=PROBES[key];S.scene=PRESET_SCENE[preset]||'msk';
+ S.probe=key;S.preset=preset;const P=PROBES[key];S.scene=PRESET_SCENE[preset]||'msk';S.pendingScene=null;S.panX=0;
  IMGDEF.forEach(k=>S[k]=DEFAULTS[k]);
  S.depth=P.presets[preset];S.freq=P.freqs[P.freqs.length-1];if(key==='C1-6')S.freq=4;
  S.focusPos=+(S.depth*0.42).toFixed(1);S.color='none';S.spec='none';S.lv=null;S.dual=null;S.measure=null;
@@ -1396,17 +1405,18 @@ function press(id){
    if(S.lv){S.lv=null;buildMap();}else{if(S.freeze)doFreeze();S.lv='rec';S.lvStart=performance.now()/1000;S.color='none';if(S.spec!=='none'){S.spec='none';}buildMap();}break;
   case 'bknob':{const had=S.spec!=='none';S.color='none';S.spec='none';S.dual=null;if(S.lv){S.lv=null;}S.scanSub='B';buildMap();if(had)buildMap();break;}
   case 'abc':if(!S.freeze&&false){}S.editing={x:imgC.width*0.3,y:40,text:''};showAnn();break;
-  case 'clear':S.measure=null;S.annots=[];S.arrows=[];S.arrowEdit=null;S.bodyPattern=false;S.editing=null;hideAnn();toast('Markierungen gelöscht');break;
+  case 'clear':S.bpEdit=false;S.measure=null;S.annots=[];S.arrows=[];S.arrowEdit=null;S.bodyPattern=false;S.editing=null;hideAnn();toast('Markierungen gelöscht');break;
   case 'pointer':S.arrowEdit={x:imgC.width/2,y:imgC.height/2,ang:0.6};break;
   case 'measure':if(!S.freeze){doFreeze();toast('Bild eingefroren – Messpunkt mit Trackball/Maus setzen, dann Set');}S.measure={pts:[[imgC.width/2-30,imgC.height/2]],active:0,ell:null};break;
   case 'tbTL':if(S.measure&&S.measure.active!=null){S.measure=null;toast('Messung abgebrochen');}else if(S.arrowEdit){S.arrowEdit=null;}else toast('Obere linke Taste: Belegung konfigurationsabhängig');break;
   case 'tbSL':case 'tbSR':if(S.color==='CF'||S.color==='PDI'){S.tbMode=S.tbMode==='pos'?'size':'pos';toast('Trackball: Farbbox '+(S.tbMode==='size'?'Grösse':'Position'));}else toast('Trackball-Funktion wechseln (je nach Modus)');break;
   case 'setL':case 'setR':doSet();break;
-  case 'ellipse':S.bodyPattern=!S.bodyPattern;break;
+  case 'ellipse':S.bodyPattern=!S.bodyPattern;S.bpEdit=S.bodyPattern;S.bpMark=null;if(S.bodyPattern)toast('Body Pattern: Piktogramm am Touchscreen, Sondenmarke mit Trackball oder Antippen, Ellipse drehen = Winkel, Set = fertig',4500);break;
   case 'depthknob':S.zoom=1;buildMap();toast('Zoom zurückgesetzt');break;
-  case 'depth-up':depthChange(-1);break;
-  case 'depth-down':depthChange(1);break;
+  case 'depth-up':if(frozenBlock('Tiefe'))break;depthChange(-1);break;
+  case 'depth-down':if(frozenBlock('Tiefe'))break;depthChange(1);break;
   case 'steer-l':case 'steer-r':
+   if(frozenBlock('Steer'))break;
    if(PROBES[S.probe].type!=='linear'||(S.color!=='CF'&&S.color!=='PDI'&&S.spec!=='PW')){toast('Steer wirkt bei Linearsonden auf Farbbox/Doppler-Linie');break;}
    S.steer=Math.max(-20,Math.min(20,S.steer+(id==='steer-l'?-10:10)));toast('Steer '+S.steer+'°');break;
   case 'usb':toast(S.freeze?'Cine-Loop auf USB-Stick exportiert (Simulator)':'Bild auf USB-Stick exportiert (Simulator)');break;
@@ -1432,6 +1442,7 @@ function rotate(id,dir){
   case 'ellipse':
    if(S.measure&&S.measure.pts.length===2&&S.measure.active==null){const m=S.measure;const dcm=Math.hypot(m.pts[1][0]-m.pts[0][0],m.pts[1][1]-m.pts[0][1])/(G.ppc*S.zoom);m.ell=clamp((m.ell||dcm/2)+dir*0.03,0.03,dcm*1.5);}
    else if(S.arrowEdit){S.arrowEdit.ang+=dir*0.2;}
+   else if(S.bodyPattern&&S.bpEdit){bpMarkInit();S.bpMark.ang+=dir*0.2;renderTS();}
    else{S.bpIdx=(S.bpIdx+dir+BODY.length)%BODY.length;S.bodyPattern=true;}
    break;
   default:
@@ -1446,6 +1457,7 @@ function doSet(){
  if(S.arrowEdit){S.arrows.push(S.arrowEdit);S.arrowEdit=null;dirty=true;emit('set','set');return;}
  if(m&&m.active===0){m.pts.push([m.pts[0][0]+60,m.pts[0][1]+20]);m.active=1;dirty=true;emit('set','set');return;}
  if(m&&m.active===1){m.active=null;dirty=true;emit('set','set');emit('measure-done','m');return;}
+ if(S.bpEdit){S.bpEdit=false;toast('Body Pattern fixiert');dirty=true;renderTS();emit('set','set');return;}
  if(S.color==='CF'||S.color==='PDI'){S.tbMode=S.tbMode==='pos'?'size':'pos';toast('Trackball: Farbbox '+(S.tbMode==='size'?'Grösse':'Position'));}
  emit('set','set');
 }
@@ -1454,6 +1466,7 @@ function tbMove(dx,dy){
  if(S.measure&&S.measure.active!=null){const p=S.measure.pts[S.measure.active];p[0]=Math.max(0,Math.min(imgC.width,p[0]+dx*0.7));p[1]=Math.max(0,Math.min(imgC.height,p[1]+dy*0.7));}
  else if(S.editing){S.editing.x+=dx*0.7;S.editing.y+=dy*0.7;}
  else if(S.arrowEdit){S.arrowEdit.x+=dx*0.7;S.arrowEdit.y+=dy*0.7;}
+ else if(S.bpEdit){bpMarkInit();const bm=S.bpMark;bm.x=Math.max(0,Math.min(90,bm.x+dx*0.15));bm.y=Math.max(0,Math.min(100,bm.y+dy*0.15));renderTS();}
  else if(S.freeze){S.cine=Math.max(-4,Math.min(0,S.cine+dx*0.01));}
  else if(S.spec==='PW'){S.gateU=Math.max(0.02,Math.min(0.98,S.gateU+dx*0.02/spanCm(S.gateD)*(S.depth/5)));S.gateD=Math.max(0.1,Math.min(S.depth,S.gateD+dy*0.012*(S.depth/5)));}
  else if(S.spec==='M'){S.mU=Math.max(0.02,Math.min(0.98,S.mU+dx*0.02/spanCm(S.depth/2)*(S.depth/5)));}
@@ -1520,12 +1533,13 @@ stage.addEventListener('click',e=>{
  if(k){press(k.dataset.id);showInfo(infoId(k.dataset.id));return;}
  const b=e.target.closest('#ts button,#ts img');if(!b)return;
  const ds=b.dataset;
+ if(ds.act==='bp-touch'){const sv=b.querySelector('svg');const pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(sv.getScreenCTM().inverse());bpMarkInit();S.bpMark.x=Math.max(0,Math.min(90,q.x));S.bpMark.y=Math.max(0,Math.min(100,q.y));dirty=true;renderTS();showInfo('ellipse',true);return;}
  if(ds.key!==undefined){kbdKey(ds.key);return;}
  if(ds.p){changeParam(ds.p,ds.d?+ds.d:1);renderTS();showInfo('p-'+ds.p,true);emit('touch','p-'+ds.p);return;}
  if(ds.sub){S.scanSub=ds.sub;renderTS();return;}
  if(ds.pat){S.patSub=ds.pat;renderTS();showInfo(ds.pat==='aktiv'?'img-btn':'pat-sub',true);emit('touch','pat-'+ds.pat);return;}
  if(ds.probe){if(ds.probe==='none'){toast('An diesem Anschluss ist keine Sonde angeschlossen');showInfo('probe-port');return;}S.presetMenu=ds.probe;renderTS();showInfo('probe-'+ds.probe);emit('touch','probe-'+ds.probe);return;}
- if(ds.preset){setProbe(S.presetMenu,ds.preset);S.presetMenu=null;toast('Sonde '+S.probe+' · Preset '+S.preset);renderTS();emit('preset',ds.preset);return;}
+ if(ds.preset){if(S.freeze)doFreeze();setProbe(S.presetMenu,ds.preset);S.presetMenu=null;toast('Sonde '+S.probe+' · Preset '+S.preset);renderTS();emit('preset',ds.preset);return;}
  if(ds.img!==undefined){const im=S.images[+ds.img];im.sel=!im.sel;renderTS();showInfo('img-btn',true);return;}
  const act=ds.act;if(!act)return;
  tsAction(act,b);
@@ -1561,6 +1575,8 @@ function tsAction(act,b){
   case 'img-props':toast(`Bild-Eigenschaften: ${S.probe}, ${S.preset}, ${S.freq} MHz, Tiefe ${S.depth} cm`);break;
   case 'end-ok':S.endCount++;S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
    S.images=[];S.review=null;S.patient={last:'',first:'',id:'',dob:'',sex:''};S.registered=false;S.measure=null;S.annots=[];S.arrows=[];S.bodyPattern=false;if(S.freeze)doFreeze();S.tab='patient';S.patSub='patient';toast('Untersuchung beendet und archiviert – bereit für den nächsten Patienten');renderTS();emit('end','end');return;
+  case 'bp-pick':S.bpIdx=+b.dataset.bp;S.bpMark=null;break;
+  case 'bp-done':S.bpEdit=false;toast('Body Pattern fixiert');break;
   case 'toast':toast(b.dataset.msg);break;
  }
  dirty=true;renderTS();emit('touch',b.dataset.id||act);
@@ -1596,7 +1612,8 @@ mon.addEventListener('click',e=>{
  else if(S.editing){S.editing.x=x;S.editing.y=y;dirty=true;annIn.focus();}
 });
 document.addEventListener('keydown',e=>{
- if(e.target.matches('input,select,textarea'))return;
+ if(e.target&&e.target.matches&&e.target.matches('input,select,textarea'))return;
+ if(e.key==='Escape'&&S.probeMode){probeStop();return;}
  if(e.key==='f'||e.key==='F'){press('freeze');showInfo('freeze',true);}
  if(e.key==='p'||e.key==='P'){press('p1');showInfo('p1',true);}
 });
@@ -1724,17 +1741,18 @@ const POSE={sh_ssp:[146,80,70],sh_lbs:[136,100,0],kn_supra:[87,246,90],kn_pat:[8
 function probeSVG(x,y,a){return `<g><circle class="glow" cx="0" cy="0" r="9" fill="#ff9f1a" opacity=".8"/><g transform="translate(0,-2)" filter="url(#fSoft)"><path d="M-5.5,-6 Q-6.5,-20 0,-23 Q6.5,-20 5.5,-6 L6.5,0 L-6.5,0 Z" fill="url(#gProbe)" stroke="#6b737d" stroke-width=".8"/><rect x="-7.5" y="-1" width="15" height="4" rx="1.6" fill="#2b2f35"/><path d="M0,-23 C0,-36 10,-42 16,-58" stroke="#d6d9de" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="-3" cy="-12" r="1.1" fill="#1c66c9"/></g></g>`;}
 function updPos(){
  if(!bodysvg.dataset.built){bodysvg.innerHTML=BODY_SVG+'<g id="dotsG"></g><g id="probeG" style="transition:transform 1.1s cubic-bezier(.4,.1,.2,1)">'+probeSVG(0,0,0)+'</g>';bodysvg.dataset.built='1';}
- const pg=document.getElementById('probeG'),pose=POSE[S.scene]||[100,150,0];
- pg.style.transform=`translate(${pose[0]}px,${pose[1]}px) rotate(${pose[2]}deg)`;
- document.getElementById('dotsG').innerHTML=Object.keys(SCENES).filter(k=>k!==S.scene&&POSE[k]).map(k=>`<circle class="pdot" data-pos="${k}" cx="${POSE[k][0]}" cy="${POSE[k][1]}" r="4.5"><title>${SCENES[k].name}</title></circle>`).join('');
+ const cur=S.pendingScene||S.scene;const pg=document.getElementById('probeG'),pose=POSE[cur]||[100,150,0];
+ if(!(S.probeMode&&S.probePos))pg.style.transform=`translate(${pose[0]}px,${pose[1]}px) rotate(${pose[2]}deg)`;
+ document.getElementById('dotsG').innerHTML=Object.keys(SCENES).filter(k=>k!==cur&&POSE[k]).map(k=>`<circle class="pdot" data-pos="${k}" cx="${POSE[k][0]}" cy="${POSE[k][1]}" r="4.5"><title>${SCENES[k].name}</title></circle>`).join('');
  const groups={};Object.entries(SCENES).forEach(([k,v])=>{(groups[v.grp]=groups[v.grp]||[]).push([k,v]);});
- posbtns.innerHTML=Object.entries(groups).map(([g,list])=>`<div class="pgrp"><span>${g}</span>${list.map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${S.scene===k?'on':''}" title="${v.name}">${v.short}</button>`).join('')}</div>`).join('');
+ posbtns.innerHTML=Object.entries(groups).map(([g,list])=>`<div class="pgrp"><span>${g}</span>${list.map(([k,v])=>`<button data-pos="${k}" data-id="pos-${k}" class="${cur===k?'on':''}" title="${v.name}">${v.short}</button>`).join('')}</div>`).join('');
  const lb=document.getElementById('lblBtn');if(lb){lb.setAttribute('aria-pressed',!!S.labels);lb.textContent=S.labels?'Beschriftung aus':'Beschriftung an';}
 }
 
 function setScene(k){
  if(isOff()){toast('System ist aus');return;}
- S.scene=k;S.labelFocus=-1;S.measure=null;S.lv=null;S.box.u=0.5;S.box.d=Math.min(S.depth*0.38,S.depth-0.5);S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
+ if(S.freeze){S.pendingScene=k===S.scene?null:k;updPos();toast('Sonde umgesetzt – das eingefrorene Bild bleibt, bis du Freeze löst');showInfo('posbar',true);return;}
+ S.scene=k;if(!S.probeMode)S.panX=0;S.labelFocus=-1;S.measure=null;S.lv=null;S.box.u=0.5;S.box.d=Math.min(S.depth*0.38,S.depth-0.5);S.gateU=0.5;S.gateD=S.depth*0.4;S.mU=0.5;
  buildMap();updPos();dirty=true;
  if(['ruq','luq','pelvis','cardiac'].includes(k)&&S.depth<12)toast('Tipp: Tiefe erhöhen (▼), für eFAST 14–18 cm');
  else if(/^lung/.test(k)&&S.depth>8)toast('Tipp: Für die Pleura Tiefe ca. 4–6 cm, ideal mit L3-12');
@@ -1745,6 +1763,43 @@ function syncCase(){caseSel.value=S.caseHidden?'hidden':S.caseKey;caseSel.disabl
 function setCase(k){S.caseKey=k;buildMap();syncCase();dirty=true;emit('case',k);}
 document.getElementById('posbar').addEventListener('click',e=>{if(e.target.closest('#lblBtn')){S.labels=!S.labels;S.labelFocus=-1;updPos();dirty=true;emit('touch','labels');return;}const t=e.target.closest('[data-pos]');if(t)setScene(t.dataset.pos);});
 caseSel.addEventListener('change',()=>{if(caseSel.value!=='hidden'){setCase(caseSel.value);toast('Befund: '+CASES[caseSel.value]);showInfo('case-select',true);}});
+
+// ================= Sonde mit Trackpad/Maus führen =================
+const probeBtn=document.getElementById('probeBtn');let probeLocked=false,probeGeoT=0,probeRaf=0;
+function nearestScene(x,y){let best=null,bd=1e9;Object.keys(SCENES).forEach(k=>{const p=POSE[k];if(!p)return;const d=Math.hypot(p[0]-x,p[1]-y);if(d<bd){bd=d;best=k;}});return[best,bd];}
+function probeStart(){
+ if(isOff()){toast('System ist aus');return;}
+ const p=POSE[S.pendingScene||S.scene]||[100,150,0];S.probePos={x:p[0],y:p[1]};S.probeMode=true;
+ const pg=document.getElementById('probeG');if(pg)pg.style.transition='none';
+ try{const r=bodysvg.requestPointerLock&&bodysvg.requestPointerLock();if(r&&r.catch)r.catch(()=>{});}catch(e){}
+ probeBtn.setAttribute('aria-pressed','true');probeBtn.textContent='Sonde führen an · Esc = Ende';
+ toast('Sonde führen: Trackpad bewegt die Sonde · F = Freeze · P = speichern · Esc = Ende',5000);probeApply();showInfo('posbar',true);
+}
+function probeStop(){
+ if(!S.probeMode)return;S.probeMode=false;probeLocked=false;try{if(document.pointerLockElement)document.exitPointerLock();}catch(e){}
+ const pg=document.getElementById('probeG');if(pg)pg.style.transition='';
+ probeBtn.setAttribute('aria-pressed','false');probeBtn.textContent='🖐 Sonde führen';
+ if(S.noContact){S.noContact=false;dirty=true;}S.probePos=null;updPos();toast('Sonde führen beendet');
+}
+function probeApply(){
+ const pp=S.probePos;const cur=S.pendingScene||S.scene;let [k,dist]=nearestScene(pp.x,pp.y);const pc=POSE[cur];if(pc){const dc=Math.hypot(pc[0]-pp.x,pc[1]-pp.y);if(dc<12){k=cur;dist=dc;}}const contact=dist<16;
+ const pg=document.getElementById('probeG');if(pg)pg.style.transform=`translate(${pp.x}px,${pp.y}px) rotate(${(POSE[k]||[0,0,0])[2]}deg)`;
+ if(S.freeze){if(contact){S.noContact=false;if(k!==cur)setScene(k);}return;}
+ if(!contact){if(!S.noContact){S.noContact=true;dirty=true;}return;}
+ if(S.noContact){S.noContact=false;dirty=true;}
+ if(k!==cur)setScene(k);
+ if(PROBES[S.probe].type==='linear'){const p=POSE[k],a=p[2]*Math.PI/180;const lat=(pp.x-p[0])*Math.cos(a)+(pp.y-p[1])*Math.sin(a);const nx=Math.max(-4,Math.min(4,Math.round(lat*0.45*20)/20));if(nx!==S.panX){S.panX=nx;probeGeoT=1;}}
+}
+function probeGeo(){if(probeRaf)return;probeRaf=requestAnimationFrame(()=>{probeRaf=0;if(probeGeoT){probeGeoT=0;buildMap();}});}
+probeBtn.addEventListener('click',e=>{e.stopPropagation();if(S.probeMode)probeStop();else probeStart();});
+document.addEventListener('mousemove',e=>{
+ if(!S.probeMode||!S.probePos)return;
+ if(document.pointerLockElement===bodysvg){S.probePos.x=Math.max(8,Math.min(192,S.probePos.x+e.movementX*0.12));S.probePos.y=Math.max(4,Math.min(341,S.probePos.y+e.movementY*0.12));}
+ else{if(!bodysvg.contains(e.target))return;const pt=bodysvg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(bodysvg.getScreenCTM().inverse());S.probePos.x=q.x;S.probePos.y=q.y;}
+ probeApply();probeGeo();
+});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement===bodysvg){probeLocked=true;return;}if(S.probeMode&&probeLocked)probeStop();});
+document.addEventListener('pointerlockerror',()=>{if(S.probeMode)toast('Zeiger-Sperre hier nicht verfügbar – fahr mit dem Zeiger über das Körperbild, Esc beendet',5000);});
 
 // ================= eFAST-Text =================
 const EFAST_HTML=`<h2 style="margin-top:22px">eFAST – extended Focused Assessment with Sonography for Trauma</h2>
@@ -2184,13 +2239,13 @@ async function askClaude(){
 
 // ================= Zwei Geräte: Monitor (Mac) + Bedienpult (iPad) =================
 const SYNC={mode:'all',room:null,bc:null,lastJson:'',lastSend:0,remoteAt:0,geo:''};
-const SYNC_KEYS=['probe','preset','scene','caseKey','caseHidden','color','spec','gainB','gainCF','gainPW','gainM','depth','zoom','steer','freeze','cine','cineMarks','power','dr','freq','focusPos','focusNum','sri','cxb','cxbLevel','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','tgc','tgcOpen','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate','box','tbMode','gateU','gateD','mU','dual','lv','measure','annots','editing','arrows','arrowEdit','bodyPattern','bpIdx','registered','off','labels','labelFocus'];
+const SYNC_KEYS=['probe','preset','scene','caseKey','caseHidden','color','spec','gainB','gainCF','gainPW','gainM','depth','zoom','steer','freeze','cine','cineMarks','power','dr','freq','focusPos','focusNum','sri','cxb','cxbLevel','chi','reject','edge','frameAvg','rotation','colorize','gray','vconvex','invert','tgc','tgcOpen','cfScale','cfWF','cfBase','cfInvert','pwScale','pwBase','pwAngle','pwInvert','sweep','gate','box','tbMode','gateU','gateD','mU','dual','lv','measure','annots','editing','arrows','arrowEdit','bodyPattern','bpIdx','registered','off','labels','labelFocus','bpMark','bpEdit','panX','noContact'];
 function snapState(now){const o={};SYNC_KEYS.forEach(k=>o[k]=S[k]);o.pn=S.patient.last+(S.patient.first?', '+S.patient.first:'');o.pid=S.patient.id;
  o.boot=Math.max(0,S.bootUntil-now);o.lvp=S.lv==='rec'?(now-S.lvStart):0;o.ni=S.images.length;o.rv=S.review?1:0;
  if(S.toast&&now<S.toast.until)o.toast={m:S.toast.msg,l:+(S.toast.until-now).toFixed(1),id:S.toast.id};
  if(V.tut!=null){const st=TUTS[V.tut].steps[V.step];o.cap={t:TUTS[V.tut].title,n:V.step+1,of:TUTS[V.tut].steps.length,x:st?st.c:''};}
  return o;}
-function geoSig(){return [S.probe,S.scene,S.caseKey,S.depth,S.zoom,S.vconvex,S.invert,S.spec!=='none',S.lv].join('|');}
+function geoSig(){return [S.probe,S.scene,S.caseKey,S.depth,S.zoom,S.vconvex,S.invert,S.spec!=='none',S.lv,S.panX].join('|');}
 let remoteToastId=-1;
 function applyRemote(o){
  if(!o||typeof o!=='object')return;const now=performance.now()/1000;
