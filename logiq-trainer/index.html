@@ -63,6 +63,7 @@ header.top p{margin:0;color:var(--muted);font-size:13.5px;max-width:80ch}
 .steps li.cur .dot{border-color:var(--hl);color:var(--hl)}
 .steps li.ok .dot{background:var(--ok);border-color:var(--ok);color:#fff}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hint-box{background:rgba(31,124,240,.1);border-left:3px solid #1f7cf0;padding:8px 10px;border-radius:4px;font-size:14px}
 .btn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:7px 12px;border-radius:7px;font:600 13.5px var(--f-body);cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -191,9 +192,13 @@ kbd{font:12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px
 .tgcpanel{position:absolute;inset:4px 6px;background:#101a2b;border:1px solid #3b5ea8;border-radius:4px;padding:8px 12px;display:flex;flex-direction:column;gap:3px;z-index:4}
 .tgcrow{display:grid;grid-template-columns:60px 1fr 34px;gap:8px;align-items:center;font-size:12px;color:#9fb0c8}
 .tgcrow input{width:100%}
-.kbd{position:absolute;left:6px;right:6px;bottom:4px;background:#101a2b;border:1px solid #3b5ea8;border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:4px;z-index:4}
-.kbd div{display:flex;gap:4px;justify-content:center}
-.kbd button{background:#33435d;border:0;color:#fff;font:600 13px var(--f-body);min-width:34px;height:32px;border-radius:3px}
+.kbd{position:absolute;inset:0;padding:10px 12px;gap:7px;z-index:6;background:#0d1626;background:#101a2b;border:1px solid #3b5ea8;border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:4px;z-index:4}
+.kbd div.krow{display:flex;gap:6px;justify-content:center;flex:1}
+.kbd .khead{display:flex;gap:8px;align-items:center}
+.kbd .kprev{flex:1;background:#05080f;border:1px solid #33435d;border-radius:4px;color:#fff;font:500 18px var(--f-body);padding:8px 10px;min-height:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbd button{background:#33435d;border:0;color:#fff;font:600 19px var(--f-body);flex:1;min-width:0;border-radius:5px}
+.kbd button:active{background:#1f7cf0}
+.kbd .khead button{flex:0 0 auto;font-size:15px;padding:8px 14px}
 .confirm{background:#16213a;border:1px solid #3b5ea8;border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:10px;max-width:440px}
 .ulist{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 
@@ -327,6 +332,13 @@ html,body{overscroll-behavior:none}
               <option value="pe">Perikarderguss</option>
               <option value="ptxR">Pneumothorax rechts</option>
               <option value="htxL">Hämatothorax links</option>
+              <option value="ffSmall">Wenig Flüssigkeit (nur kaudale Leberspitze)</option>
+              <option value="tamp">Perikardtamponade</option>
+              <option value="fatpad">Epikardialer Fettkörper (Fallstrick, kein Erguss)</option>
+              <option value="ptxL">Pneumothorax links</option>
+              <option value="lpoint">Pneumothorax rechts mit Lung point</option>
+              <option value="htxR">Hämatothorax rechts</option>
+              <option value="blines">B-Linien (Kontusion/Ödem)</option>
               <option value="multi">Polytrauma (Flüssigkeit + Erguss + PTX re.)</option>
               <option value="hidden" hidden>verdeckt (Test)</option>
             </select></div>
@@ -442,10 +454,12 @@ const SCENES={
  lungR:{grp:'eFAST',name:'eFAST 5 · Thorax rechts anterior',short:'5 Lunge re.',f:fLung,vessels:[],warp:'lung',pleura:1.6,labels:[
   ['M. pectoralis',0,0.9,'Brustmuskel über den Rippen.'],['Rippe',-1.9,1.36,'Knochen mit Schallschatten (Bat sign).'],['Pleuralinie',0,1.6,'Helle Linie zwischen den Rippen – hier gleitet die Lunge.'],['A-Linie',0,3.2,'Wiederholungsartefakt der Pleura im gleichen Abstand.']]},
  lungL:{grp:'eFAST',name:'eFAST 6 · Thorax links anterior',short:'6 Lunge li.',f:fLung,vessels:[],warp:'lung',pleura:1.6,labels:[
-  ['Rippe',1.9,1.36,'Knochen mit Schallschatten.'],['Pleuralinie',0,1.6,'Lungengleiten sichtbar.'],['A-Linie',0,3.2,'Wiederholungsartefakt.']]}
+  ['Rippe',1.9,1.36,'Knochen mit Schallschatten.'],['Pleuralinie',0,1.6,'Lungengleiten sichtbar.'],['A-Linie',0,3.2,'Wiederholungsartefakt.']]},
+ lungLmed:{grp:'eFAST',name:'Thorax links – zu medial: Herz im Bild',short:'6b Lunge li. zu medial',f:fLungMed,vessels:[],warp:'lung',pleura:1.6,medHeart:true,labels:[
+  ['Rippe',-1.9,1.36,'Knochen mit Schallschatten.'],['Pleuralinie (Lunge)',-0.9,1.6,'Hier ist Lunge, hier gleitet es.'],['Perikard',1.3,1.68,'Helle Linie: Hier liegt das Herz direkt an der Brustwand (Incisura cardiaca), dort gibt es keine Lunge und kein Gleiten.'],['Rechter Ventrikel',1.25,3.6,'Herzhöhle, pulsiert – kein Pneumothorax-Zeichen.'],['Lungenrand',0.25,1.9,'Übergang Lunge/Herz: Wechsel zwischen Lunge und Herz bei der Atmung – kein echter Lung point.']]}
 };
 const PRESET_SCENE={'Abdomen Allg.':'abd_epi','Leber':'liver','Niere':'ruq','Aorta':'abd_epi','Hüfte (BWA tief)':'liver','eFAST':'ruq','Lunge':'lungR','Schulter':'sh_ssp','Knie':'kn_supra','Schilddrüse':'neck'};
-const CASES={normal:'Normalbefund',ff:'Freie Flüssigkeit intraabdominal',pe:'Perikarderguss',ptxR:'Pneumothorax rechts',htxL:'Hämatothorax links',multi:'Polytrauma'};
+const CASES={normal:'Normalbefund',ff:'Freie Flüssigkeit intraabdominal',ffSmall:'Wenig freie Flüssigkeit (Leberspitze)',pe:'Perikarderguss',tamp:'Perikardtamponade',fatpad:'Epikardialer Fettkörper (kein Erguss)',ptxR:'Pneumothorax rechts',ptxL:'Pneumothorax links',lpoint:'Pneumothorax rechts mit Lung point',htxL:'Hämatothorax links',htxR:'Hämatothorax rechts',blines:'B-Linien',multi:'Polytrauma'};
 function VES(){return SCENES[S.scene].vessels;}
 const BODY=['Schulter','Ellenbogen','Hand','Hüfte','Knie','Sprunggelenk','Abdomen'];
 const BODY_SPOTS={'Schulter':[62,26],'Ellenbogen':[70,48],'Hand':[74,66],'Hüfte':[52,62],'Knie':[54,80],'Sprunggelenk':[56,96],'Abdomen':[45,45]};
@@ -465,7 +479,7 @@ const S={
  cfScale:70,cfWF:1,cfBase:0,cfInvert:false,pwScale:100,pwBase:-2,pwAngle:0,pwInvert:false,sweep:3,gate:0.15,
  box:{u:0.5,d:1.4,hu:0.8,hd:0.6},tbMode:'pos',gateU:0.5,gateD:2,mU:0.5,
  dual:null,lv:null,lvStart:0,pendingScene:null,bpMark:null,bpEdit:false,probeMode:false,probePos:null,panX:0,noContact:false,measure:null,annots:[],editing:null,arrows:[],arrowEdit:null,
- bodyPattern:false,bpIdx:0,
+ bodyPattern:false,bpIdx:0,endStep:null,
  tab:'scan',scanSub:'B',patSub:'patient',kbd:false,page:null,presetMenu:null,confirmEnd:false,
  patient:{last:'',first:'',id:'',dob:'',sex:''},registered:false,images:[],history:[],review:null,
  knobAlt:[false,false,false,false,false],toast:null,userMsg:null
@@ -566,7 +580,8 @@ const INFO={
  'ts-collapse':['Touchscreen verkleinern','Touchscreen','Symbol oben rechts: blendet den Touchscreen ein bzw. aus oder minimiert die Ansicht.','Zeigt nur einen Hinweis.','',true],
  'tab-patient':['PATIENT','Touchscreen','Patientendaten eingeben, neue Untersuchung anlegen, gespeicherte Bilder (Aktive Bilder), frühere Untersuchungen (Bild-Hist.) und Datentransfer zu USB/PACS.','Reiter „Patient“: Daten eingeben und Registrieren. „Aktive Bilder“: deine gespeicherten Bilder.','Vor dem ersten Bild den Patienten anlegen, sonst landen die Bilder in einer Untersuchung ohne Namen.'],
  'tab-scan':['SCAN','Touchscreen','Die Bildparameter des aktuellen Modus (B, CF, PW …). Oben lässt sich zwischen den aktiven Modi wechseln.','Jedes Feld lässt sich antippen und ändert das Bild.',''],
- 'tab-end':['UNTERS. BEEN. – Untersuchung beenden','Touchscreen','Schliesst die Untersuchung ab. Bilder werden archiviert bzw. an die Ziele gesendet, danach ist das System bereit für den nächsten Patienten.','Fragt nach und leert dann Patient und Bilder.','Immer beenden, bevor der nächste Patient kommt.'],
+ 'tab-end':['UNTERS. BEEN. – Untersuchung beenden','Touchscreen','Öffnet vier Fenster: Patient, Bild-Hist., Aktive Bilder und Datentransfer. Abgeschlossen wird über „Datentransfer“: Dort werden die Bilder an die Ziele (z. B. PACS) gesendet, danach ist das System bereit für den nächsten Patienten.','UNTERS. BEEN. › Datentransfer › Senden & Untersuchung beenden.','Vorher in „Aktive Bilder“ prüfen, ob alle nötigen Bilder gespeichert sind.'],
+ 'end-transfer':['Datentransfer','Touchscreen','Sendet die Bilder der Untersuchung an die eingestellten Ziele (z. B. PACS/Archiv, USB) und schliesst die Untersuchung ab.','Zeigt die Ziele und „Senden & Untersuchung beenden“.',''],
  'tab-kbd':['KBD – Tastatur','Touchscreen','Bildschirmtastatur zur Texteingabe (Patientendaten, Kommentare).','Blendet eine Tastatur ein, die in das zuletzt aktive Feld bzw. in den Kommentar tippt.',''],
  'tab-util':['DIENSTPR. – Dienstprogramme','Touchscreen','Systemeinstellungen (Utility): Presets, Tastenbelegung (P1, USB), Messpakete, Drucker, DICOM/PACS, Benutzer, Service.','Zeigt die Kategorien.','Änderungen hier betreffen alle Nutzer, also nur nach Absprache.'],
  'probe-L3-12':['Sonde L3-12 (linear)','Touchscreen','Linearsonde mit 3–12 MHz. Hohe Auflösung für oberflächliche Strukturen: Muskeln, Sehnen, Gelenke, Nerven, Gefässe, Schilddrüse. „BWA Allg.“ ist das Preset Bewegungsapparat allgemein.','Antippen öffnet die Presetauswahl.','Ein Preset lädt passende Tiefe, Frequenz, Messpakete und Bildparameter.'],
@@ -662,12 +677,12 @@ const EX=[
   {t:'Lunge: Wechsle zur Linearsonde L3-12 mit dem Preset „Lunge“.',hl:'probe-L3-12',cond:()=>S.probe==='L3-12'&&S.preset==='Lunge'},
   {t:'Fenster 5 – Thorax rechts: Lungengleiten beobachten, dann Z/M drücken (M-Mode) und speichern.',hl:'z',cond:()=>imgsWith(i=>i.scene==='lungR'&&i.spec==='M')},
   {t:'Fenster 6 – Thorax links: Position „6 Lunge li.“ und ein Bild speichern.',hl:'pos-lungL',cond:()=>imgsWith(i=>i.scene==='lungL')},
-  {t:'Beende die Untersuchung (UNTERS. BEEN.).',hl:'tab-end',ok:e=>e.type==='end'}]},
+  {t:'Beende die Untersuchung: UNTERS. BEEN., dann „Datentransfer“ und senden.',hl:'tab-end',ok:e=>e.type==='end'}]},
  {title:'Bilder prüfen & Untersuchung beenden',steps:[
   {t:'Speichere ein Bild mit P1.',hl:'p1',ok:e=>e.type==='store'},
   {t:'Öffne PATIENT und dort den Reiter „Aktive Bilder“.',hl:'pat-aktiv',cond:()=>S.tab==='patient'&&S.patSub==='aktiv'},
   {t:'Tippe ein Vorschaubild an und dann auf „Nachbetracht.“.',hl:'img-review',ok:e=>e.type==='review'},
-  {t:'Tippe links auf UNTERS. BEEN. und bestätige mit „Beenden & archivieren“.',hl:'tab-end',ok:e=>e.type==='end'}]}
+  {t:'Tippe links auf UNTERS. BEEN., dann auf „Datentransfer“ und auf „Senden & Untersuchung beenden“.',hl:'tab-end',ok:e=>e.type==='end'}]}
 ];
 const EXS={cur:null,step:0,done:new Set()};
 
@@ -804,8 +819,7 @@ function renderTS(){
  if(S.tgcOpen){h+=`<div class="tgcpanel"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">TGC – Tiefenausgleich (oben = nah)</b><button class="tsb" data-act="tgc" style="min-height:28px">Schliessen</button></div>`;
   S.tgc.forEach((v,i)=>{h+=`<div class="tgcrow"><span>Zone ${i+1}</span><input type="range" min="-10" max="10" step="1" value="${v}" data-tgc="${i}" id="tgc${i}" aria-label="TGC Zone ${i+1}"><span id="tgcv${i}">${v>0?'+':''}${v}</span></div>`;});
   h+=`<button class="tsb" data-act="tgc-reset" style="min-height:28px">Alle auf Mitte</button></div>`;}
- if(S.kbd){const rows=['QWERTZUIOPÜ','ASDFGHJKLÖÄ','YXCVBNM.,-'];h+=`<div class="kbd">`;rows.forEach(r=>{h+='<div>'+[...r].map(c=>`<button data-key="${c}">${c}</button>`).join('')+'</div>';});
-  h+=`<div><button data-key="⇧" style="min-width:60px">⇧ klein</button><button data-key=" " style="min-width:240px">Leerzeichen</button><button data-key="⌫" style="min-width:60px">⌫</button><button data-key="⏎" style="min-width:70px">Enter</button><button data-act="tab-kbd" style="min-width:60px">✕</button></div></div>`;}
+
  if(S.presetMenu){const P=PROBES[S.presetMenu];h+=`<div class="menu"><div class="mt">Preset für ${S.presetMenu} wählen</div>`;
   Object.keys(P.presets).forEach(pr=>{h+=`<button class="tsb ${S.probe===S.presetMenu&&S.preset===pr?'on':''}" data-preset="${pr}" data-id="preset-${pr}">${pr}</button>`;});
   h+=`<button class="tsb dim" data-act="close-menu">Abbrechen</button></div>`;}
@@ -821,9 +835,14 @@ function renderTS(){
   if(k[1])h+=`<span class="alt ${alt?'act':''}">${PARAMS[k[1]].label}: ${fmtParam(k[1])} ↻</span>`;
   h+=`</div>`;});
  h+=`</div>`;
+ if(S.kbd){const rows=['1234567890','QWERTZUIOPÜ','ASDFGHJKLÖÄ','YXCVBNM.,-'];
+  h+=`<div class="kbd"><div class="khead"><span style="font:600 13px var(--f-body);color:#9fb0c8">${S.editing?'Kommentar':'Eingabe'}</span><div class="kprev" id="kbdPrev">${esc(kbdTargetText())}</div><button data-act="tab-kbd">✕ Schliessen</button></div>`;
+  rows.forEach(r=>{h+='<div class="krow">'+[...r].map(c=>`<button data-key="${c}">${kbdShift?c:c.toLowerCase()}</button>`).join('')+'</div>';});
+  h+=`<div class="krow"><button data-key="⇧" style="flex:1.4">${kbdShift?'⇧ klein':'⇧ GROSS'}</button><button data-key=" " style="flex:5">Leerzeichen</button><button data-key="⌫" style="flex:1.4">⌫</button><button data-key="⏎" style="flex:1.6;background:#1f7cf0">Enter</button></div></div>`;}
  ts.innerHTML=h;
  applyHint();
 }
+function kbdTargetText(){try{if(S.editing)return annIn.value||'';if(lastInput&&document.body.contains(lastInput))return lastInput.value||'';}catch(e){}return '';}
 function contentHTML(){
  if(S.bodyPattern&&S.bpEdit){return `<div class="subtabs"><button class="on">Body Pattern</button></div><div style="display:flex;gap:10px;align-items:flex-start"><button class="tsb" data-act="bp-touch" aria-label="Sondenmarke durch Antippen setzen" style="padding:3px;background:#070b14">${bpSvg()}</button><div style="flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:6px">${BODY.map((b,i)=>`<button class="tsb ${S.bpIdx===i?'on':''}" data-act="bp-pick" data-bp="${i}">${b}</button>`).join('')}<button class="tsb on" data-act="bp-done">Fertig (Set)</button></div></div><p style="font-size:12px;color:#8ea0b8;margin:2px 0 0">Piktogramm wählen · Marke antippen oder mit dem Trackball schieben · Ellipse drehen = Winkel · Set = fertig</p>`;}
  if(S.page==='meine'){return `<div class="subtabs"><button class="on">Meine Seite</button></div><div class="pgrid">${['sri','cxb','chi','frameAvg','vconvex','colorize'].map(pWidget).join('')}</div><p style="font-size:12px;color:#8ea0b8;margin:4px 0 0">Beispiel: Hier legt jeder Nutzer seine Lieblingsparameter ab.</p>`;}
@@ -851,7 +870,11 @@ function contentHTML(){
   else if(S.patSub==='hist'){h+=`<div style="font-size:13px;color:#b8c6da">${S.history.length?S.history.map(x=>`<div>• ${esc(x)}</div>`).join(''):'Keine früheren Untersuchungen in dieser Sitzung.'}</div><p style="font-size:12px;color:#8ea0b8">Hier findest du am Gerät die früheren Untersuchungen des Patienten.</p>`;}
   else {h+=`<div class="ulist"><button class="tsb" data-act="toast" data-msg="USB-Stick: nicht verbunden (Simulator)">USB-Stick</button><button class="tsb" data-act="toast" data-msg="PACS: im Simulator nicht verbunden">PACS / DICOM</button><button class="tsb" data-act="toast" data-msg="Import: im Simulator nicht verfügbar">Importieren</button></div><p style="font-size:12px;color:#8ea0b8">Daten exportieren oder importieren (USB, Netzwerk/PACS). Datenschutzregeln der Klinik beachten.</p>`;}
   return h;}
- if(S.tab==='end'){return `<div class="confirm"><b>Untersuchung beenden?</b><span style="font-size:13px;color:#b8c6da">${S.images.length} Bild(er) werden archiviert. Danach ist das System bereit für den nächsten Patienten.</span><div style="display:flex;gap:8px"><button class="tsb on" data-act="end-ok">Beenden & archivieren</button><button class="tsb" data-act="tab-scan">Abbrechen</button></div></div>`;}
+ if(S.tab==='end'){
+  if(S.endStep==='transfer')return `<div class="subtabs"><button class="on">Datentransfer</button></div><div class="confirm" style="max-width:none"><b>Bilder senden und Untersuchung abschliessen</b><span style="font-size:13px;color:#b8c6da">${S.images.length} Bild(er) von ${S.registered?esc(S.patient.last):'unbenanntem Patienten'}</span>
+   <div style="display:flex;gap:14px;font-size:14px"><label><input type="checkbox" checked disabled> PACS (Archiv)</label><label><input type="checkbox" disabled> USB-Stick</label><label><input type="checkbox" disabled> Drucker</label></div>
+   <div style="display:flex;gap:8px"><button class="tsb on" data-act="end-ok" data-id="end-ok">Senden & Untersuchung beenden</button><button class="tsb" data-act="tab-end">Zurück</button></div></div>`;
+  return `<div class="subtabs"><button class="on">Untersuchung beenden</button></div><p style="margin:0;font-size:13px;color:#b8c6da">Zum Abschliessen „Datentransfer“ wählen – dort werden die Bilder gesendet.</p><div class="abtns" style="grid-template-columns:repeat(2,1fr);gap:10px;flex:1"><button class="tsb" style="min-height:70px" data-act="tab-patient">Patient</button><button class="tsb" style="min-height:70px" data-act="end-hist">Bild-Hist.</button><button class="tsb" style="min-height:70px" data-act="end-aktiv">Aktive Bilder</button><button class="tsb on" style="min-height:70px" data-act="end-transfer" data-id="end-transfer">Datentransfer</button></div>`;}
  if(S.tab==='util'){return `<div class="subtabs"><button class="on">Dienstprogramme</button></div><div class="ulist">${['System','Bildgebung / Presets','Messen & Analyse','Kommentare','Body Patterns','Konnektivität (DICOM)','Tasten-Belegung (P1, USB)','Admin / Benutzer','Service'].map(t=>`<button class="tsb" data-act="toast" data-msg="${t}: Einstellungen nur nach Absprache ändern (Simulator)">${t}</button>`).join('')}</div>`;}
  return '';
 }
@@ -915,7 +938,7 @@ function fCon(x,d){
  return 0.22+0.1*Math.sin(d*3+x);
 }
 let CF={ff:false,pe:false,htx:false,ptx:false},CUR_T=null;const TIS_ORDER=[];
-function computeCF(){const c=S.caseKey;return{ff:c==='ff'||c==='multi',pe:c==='pe'||c==='multi',htx:S.scene==='luq'&&c==='htxL',ptx:S.scene==='lungR'&&(c==='ptxR'||c==='multi')};}
+function computeCF(){const c=S.caseKey,sc=S.scene;return{ff:c==='ff'||c==='multi',ffs:c==='ffSmall',pe:c==='pe'||c==='multi'||c==='tamp',tamp:c==='tamp',fat:c==='fatpad'&&sc==='cardiac',htx:(sc==='luq'&&c==='htxL')||(sc==='ruq'&&c==='htxR'),ptx:(sc==='lungR'&&(c==='ptxR'||c==='multi'))||((sc==='lungL'||sc==='lungLmed')&&c==='ptxL'),lp:sc==='lungR'&&c==='lpoint',bl:(sc==='lungR'||sc==='lungL')&&c==='blines'};}
 function genTissue(){
  const cf=computeCF();const key=S.scene+'|'+S.probe+'|'+JSON.stringify(cf);
  if(TIS[key])return TIS[key];
@@ -956,9 +979,10 @@ function fRUQ(x,d){FX.sh=1;FX.en=1;
  if(x<xd)return thorax(x,d,CF.htx);
  const k=kidney(x,d,2.6,9.4,4.6,2.3,-0.3);
  if(CF.ff&&k.e>=1&&k.e<1.38&&k.ld<0.4){FX.en=1.003;return 0.012;}
+ if(CF.ffs&&k.e>=1&&k.e<1.22&&x>3.7&&k.ld<0.3){FX.en=1.003;return 0.012;}
  if(k.v!==null)return k.v;
  const sp=spine(x,d,12.6+0.12*x);if(sp!==null)return sp;
- if(x>5.6&&d<8){if(CF.ff&&d<4.2+0.3*(x-5.6)&&d>3.0)return 0.012;return 0.3+(hsh(x,d)>0.985?1.6:0);}
+ if(x>5.6&&d<8){if((CF.ff||CF.ffs)&&d<4.2+0.3*(x-5.6)&&d>3.0)return 0.012;return 0.3+(hsh(x,d)>0.985?1.6:0);}
  const vv=vesIn(x,d,[[-0.8,6,0.42],[1.2,4.6,0.3],[-2,9.5,0.35]],1.2);if(vv!==null)return vv;
  return liverTex(x,d);}
 function fLUQ(x,d){FX.sh=1;FX.en=1;
@@ -996,8 +1020,9 @@ function fCardiac(x,d){FX.sh=1;FX.en=1;
  if(d<le+0.05)return 1.1;
  const [lx,ld]=rotL(x,d,HEART.x,HEART.d,HEART.a);const he=(lx/HEART.rx)**2+(ld/HEART.ry)**2;
  if(he>=1&&he<1.08)return 1.8;
- if(he<1){const mi=CF.pe?(0.8-(ld>0?0.12*Math.min(1,ld/3):0)):1;if(he>=mi)return 0.012;
-  for(const [cx,cd,rx,ry] of [[-0.6,-1.9,3.0,1.0],[-3.0,0.9,1.5,1.4],[1.5,0.5,2.4,1.25],[-0.6,2.3,1.8,0.9]]){if(((lx-cx)/rx)**2+((ld-cd)/ry)**2<1){FX.en=1.002;return 0.015;}}
+ if(he<1){const mi=CF.pe?((CF.tamp?0.66:0.8)-(ld>0?0.12*Math.min(1,ld/3):0)):1;if(he>=mi)return 0.012;
+  if(CF.fat&&he>=0.42&&d<HEART.d-1.8)return 0.2+(hsh(x,d)>0.8?0.55:0);
+  for(const [cx,cd,rx,ry] of [[-0.6,-1.9,3.0,CF.tamp?0.35:1.0],[-3.0,0.9,1.5,CF.tamp?0.7:1.4],[1.5,0.5,2.4,1.25],[-0.6,2.3,1.8,0.9]]){if(((lx-cx)/rx)**2+((ld-cd)/ry)**2<1){FX.en=1.002;return 0.015;}}
   return 0.5+0.06*Math.sin(lx*3+ld*2);}
  const ao=Math.hypot(x-4.2,d-16.8)/0.85;if(ao<1)return 0.012;if(ao<1.2)return 1.0;
  return 0.26+0.04*Math.sin(x*2+d*1.3);}
@@ -1079,8 +1104,21 @@ function fLung(x,d){FX.sh=1;FX.en=1;const PL=1.6;
  for(const rx of [-1.9,1.9]){const r=rib(x,d,rx,1.3);if(r!==null)return r;}
  if(d<PL-0.05)return 0.3;
  if(d<PL+0.05)return 1.9;
- for(let k=2;k<7;k++){if(Math.abs(d-k*PL)<0.05)return(CF.ptx?1.25:0.85)/(k-0.6);}
- return CF.ptx?0.06:0.2;}
+ const px=CF.ptx||(CF.lp&&x<0);
+ if(CF.bl&&!px){for(const xb of [-1.0,-0.35,0.45,1.05]){if(Math.abs(x-xb)<0.055)return 1.25;}}
+ for(let k=2;k<7;k++){if(Math.abs(d-k*PL)<0.05)return(px?1.25:0.85)/(k-0.6);}
+ return px?0.06:0.2;}
+function fLungMed(x,d){FX.sh=1;FX.en=1;const PL=1.6;
+ if(d<0.08)return 1.5;
+ if(d<0.5)return Math.abs(Math.sin(d*22+3*Math.sin(x*1.9)+x*0.7))>0.965?0.85:0.15;
+ if(d<1.2){const ph=(d+0.03*x)*6;return 0.3+((ph-Math.floor(ph))<0.13?0.45:0);}
+ const r=rib(x,d,-1.9,1.3);if(r!==null)return r;
+ const xe=0.15+0.25*Math.sin(d*0.8);
+ if(x<xe){if(d<PL-0.05)return 0.3;if(d<PL+0.05)return 1.9;for(let k=2;k<7;k++){if(Math.abs(d-k*PL)<0.05)return(CF.ptx?1.25:0.85)/(k-0.6);}return CF.ptx?0.06:0.2;}
+ if(d<1.62)return 0.3;
+ if(d<1.74)return 1.7;
+ const ch=((x-1.25)/0.7)**2+((d-3.6)/0.6)**2;if(ch<1){FX.en=1.002;return 0.015;}
+ return 0.46+0.06*Math.sin(x*4+d*3);}
 const RN=new Float32Array(65536);for(let i=0;i<65536;i++)RN[i]=Math.random();
 
 // Geometrie
@@ -1155,7 +1193,7 @@ function renderImage(t){
  for(let i=0;i<n;i++){
   let g0=MAP[i];const j=i*4;
   if(WARP&&g0>=0){let u=MU[i],d=MD[i];
-   if(WARP==='lung'){if(wsh&&d>SC.pleura+0.04)u+=wsh/(lin?P.Wtot:P.theta*(P.R+d));}
+   if(WARP==='lung'){if(wsh&&d>SC.pleura+0.04){const xx=(u-0.5)*(lin?P.Wtot:P.theta*(P.R+d));if(!((T.cf.lp&&xx<0)||(SC.medHeart&&xx>0.2)))u+=wsh/(lin?P.Wtot:P.theta*(P.R+d));}}
    else if(wb>0){const x=(u-0.5)*(lin?P.Wtot:P.theta*(P.R+d)),dx=x-HEART.x,dd=d-HEART.d,lx=dx*HEART.c+dd*HEART.s,ld=-dx*HEART.s+dd*HEART.c,r=Math.sqrt((lx/HEART.rx)**2+(ld/HEART.ry)**2);
     if(r<1.5){const k=1-0.075*wb*(1-r/1.5);const d2=HEART.d+dd/k;u=(HEART.x+dx/k)/(lin?P.Wtot:P.theta*(P.R+d2))+0.5;d=d2;}}
    const gu=u*TW|0,gd=d/P.dmax*TH|0;if(gu>=0&&gu<TW&&gd>=0&&gd<TH)g0=gd*TW+gu;}
@@ -1560,7 +1598,10 @@ function tsAction(act,b){
   case 'collapse':toast('Touchscreen minimieren (im Simulator ohne Funktion)');break;
   case 'tab-patient':S.tab='patient';S.page=null;S.presetMenu=null;break;
   case 'tab-scan':S.tab='scan';S.page=null;break;
-  case 'tab-end':S.tab='end';S.page=null;break;
+  case 'tab-end':S.tab='end';S.endStep=null;S.page=null;break;
+  case 'end-transfer':S.endStep='transfer';break;
+  case 'end-hist':S.tab='patient';S.patSub='hist';break;
+  case 'end-aktiv':S.tab='patient';S.patSub='aktiv';break;
   case 'tab-kbd':S.kbd=!S.kbd;S.tgcOpen=false;break;
   case 'tab-util':S.tab='util';S.page=null;break;
   case 'close-menu':S.presetMenu=null;break;
@@ -1576,7 +1617,7 @@ function tsAction(act,b){
   case 'img-clear':S.images=[];S.review=null;toast('Temporärer Speicher geleert');break;
   case 'img-saveas':toast('Speichern unter: Format wählen, z. B. JPEG/DICOM (Simulator)');break;
   case 'img-props':toast(`Bild-Eigenschaften: ${S.probe}, ${S.preset}, ${S.freq} MHz, Tiefe ${S.depth} cm`);break;
-  case 'end-ok':S.endCount++;S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
+  case 'end-ok':S.endStep=null;S.endCount++;S.history.unshift(`${new Date().toLocaleDateString('de-CH')} – ${S.registered?S.patient.last:'ohne Namen'} – ${S.images.length} Bilder – ${S.preset}`);
    S.images=[];S.review=null;S.patient={last:'',first:'',id:'',dob:'',sex:''};S.registered=false;S.measure=null;S.annots=[];S.arrows=[];S.bodyPattern=false;if(S.freeze)doFreeze();S.tab='patient';S.patSub='patient';toast('Untersuchung beendet und archiviert – bereit für den nächsten Patienten');renderTS();emit('end','end');return;
   case 'bp-pick':S.bpIdx=+b.dataset.bp;S.bpMark=null;break;
   case 'bp-done':S.bpEdit=false;toast('Body Pattern fixiert');break;
@@ -1595,11 +1636,12 @@ stage.addEventListener('focusin',e=>{if(e.target.matches('#ts input[data-pf]'))l
 let kbdShift=true;
 function kbdKey(k){
  const target=S.editing?annIn:(lastInput&&document.body.contains(lastInput)?lastInput:null);
- if(k==='⇧'){kbdShift=!kbdShift;return;}
+ if(k==='⇧'){kbdShift=!kbdShift;renderTS();return;}
  if(!target){toast('Erst ein Textfeld antippen oder Abc drücken');return;}
- if(k==='⏎'){if(S.editing)commitAnn();return;}
+ if(k==='⏎'){if(S.editing)commitAnn();S.kbd=false;renderTS();return;}
  if(k==='⌫')target.value=target.value.slice(0,-1);else target.value+=kbdShift?k:k.toLowerCase();
  target.dispatchEvent(new Event('input',{bubbles:true}));
+ const pv=document.getElementById('kbdPrev');if(pv)pv.textContent=target.value;
 }
 // Maus im Monitor (Messpunkte)
 function monPos(e){const r=mon.getBoundingClientRect();return[(e.clientX-r.left)*800/r.width-IMGX,(e.clientY-r.top)*600/r.height-IMGY];}
@@ -1740,7 +1782,7 @@ const BODY_SVG=`<defs>
 <path d="M84,276 Q83,295 85,315 M116,276 Q117,295 115,315"/><path d="M95,56 Q100,60 105,56"/>
 </g>
 <ellipse cx="94" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><ellipse cx="106" cy="30" rx="2" ry="1.2" fill="#3a2a20"/><path d="M95,41 Q100,44 105,41" stroke="#8a4f36" stroke-width="1.2" fill="none"/>`;
-const POSE={sh_ssp:[146,80,70],sh_lbs:[136,100,0],kn_supra:[87,246,90],kn_pat:[87,278,90],neck:[93,63,0],abd_epi:[100,136,0],msk:[144,84,62],liver:[80,150,-25],ruq:[60,150,90],luq:[140,138,-90],pelvis:[100,190,0],cardiac:[100,126,0],lungR:[82,96,90],lungL:[118,96,-90],shoulder:[146,84,62],knee:[87,262,0],neck:[100,62,0],abdomen:[100,150,0]};
+const POSE={lungLmed:[110,113,-90],sh_ssp:[146,80,70],sh_lbs:[136,100,0],kn_supra:[87,246,90],kn_pat:[87,278,90],neck:[93,63,0],abd_epi:[100,136,0],msk:[144,84,62],liver:[80,150,-25],ruq:[60,150,90],luq:[140,138,-90],pelvis:[100,190,0],cardiac:[100,126,0],lungR:[82,96,90],lungL:[118,96,-90],shoulder:[146,84,62],knee:[87,262,0],neck:[100,62,0],abdomen:[100,150,0]};
 function probeSVG(x,y,a){return `<g><circle class="glow" cx="0" cy="0" r="9" fill="#ff9f1a" opacity=".8"/><g transform="translate(0,-2)" filter="url(#fSoft)"><path d="M-5.5,-6 Q-6.5,-20 0,-23 Q6.5,-20 5.5,-6 L6.5,0 L-6.5,0 Z" fill="url(#gProbe)" stroke="#6b737d" stroke-width=".8"/><rect x="-7.5" y="-1" width="15" height="4" rx="1.6" fill="#2b2f35"/><path d="M0,-23 C0,-36 10,-42 16,-58" stroke="#d6d9de" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="-3" cy="-12" r="1.1" fill="#1c66c9"/></g></g>`;}
 function updPos(){
  if(!bodysvg.dataset.built){bodysvg.innerHTML=BODY_SVG+'<g id="dotsG"></g><g id="probeG" style="transition:transform 1.1s cubic-bezier(.4,.1,.2,1)">'+probeSVG(0,0,0)+'</g>';bodysvg.dataset.built='1';}
@@ -1814,7 +1856,90 @@ const EFAST_HTML=`<h2 style="margin-top:22px">eFAST – extended Focused Assessm
 <li><b>Becken (suprapubisch):</b> quer und längs. Hinter bzw. seitlich der Harnblase: rektovesikal (Mann) bzw. Douglas-Raum (Frau). Mit gefüllter Blase geht es besser. Fallstricke: Samenblasen, Ovarialfollikel.</li>
 <li><b>Subxiphoidal (Herz):</b> Sonde flach unter dem Xiphoid, Richtung linke Schulter, die Leber dient als Schallfenster. Tiefe 16–20 cm. Perikarderguss = schwarzer Saum zwischen Herzmuskel und hellem Perikard (hinten oft breiter). Alternative: parasternal lang.</li>
 <li><b>Thorax rechts</b> und <b>6. Thorax links (anterior):</b> 2.–3. ICR medioklavikulär (am liegenden Patienten steigt Luft nach vorne), längs über zwei Rippen („Bat sign“). <b>Lungengleiten</b> an der Pleuralinie und im M-Mode das <b>Seashore-Zeichen</b> schliessen einen Pneumothorax an dieser Stelle aus. Kein Gleiten und im M-Mode ein <b>Barcode/Stratosphären-Zeichen</b> sprechen für einen Pneumothorax; der „Lung point“ ist beweisend.</li></ol>
-<h3>Merke</h3><p>Ein negativer eFAST schliesst eine Verletzung nicht aus (z. B. retroperitoneal, Hohlorgan, frühe Phase). Bei Instabilität wiederholen. Befund immer als Ja/Nein pro Fenster dokumentieren und die Bilder speichern.</p>
+<h3>Ausführliche Anleitung pro Fenster</h3>
+<h3>Allgemeine Tipps</h3><ul>
+<li><b>Reihenfolge an die Frage anpassen:</b> Bei Hypotonie nach Thoraxtrauma zuerst Herz und Lunge, sonst klassisch RUQ → LUQ → Becken → Herz → Lunge re./li.</li>
+<li><b>Jedes Fenster fächern</b> (Sonde kippen bzw. durchschwenken), nicht nur ein Standbild anschauen. Kleine Flüssigkeitssäume sieht man oft nur am Rand des Organs.</li>
+<li><b>Tiefe erst gross, dann anpassen:</b> Erst so tief, dass man hinter das Organ sieht (14–18 cm), danach verkleinern, damit die interessante Region gross ist.</li>
+<li><b>Rippenschatten:</b> Sonde ins Rippenfeld drehen (Marker leicht schräg Richtung Rücken bzw. Achsel), Patient tief einatmen und halten lassen, falls möglich.</li>
+<li><b>„Nicht beurteilbar“ ist nicht „negativ“.</b> Ein Fenster, das man nicht sauber sieht, wird so dokumentiert und später wiederholt.</li>
+<li><b>Serielle Untersuchung:</b> Bei unklarem Verlauf oder Verschlechterung eFAST wiederholen. Blut braucht Zeit, um sich zu sammeln.</li>
+<li><b>Grenzen:</b> Retroperitoneum (Nieren, Pankreas, grosse Gefässe), Hohlorganverletzungen, Zwerchfellriss und solide Organverletzungen ohne freie Flüssigkeit werden oft verpasst. Sensitivität für freie Flüssigkeit etwa 60–80 %, Spezifität &gt;95 %.</li>
+</ul>
+
+<h3>Fenster 1 · RUQ (rechter Oberbauch, Morison-Pouch)</h3>
+<p><b>Position:</b> Konvexsonde in der mittleren bis hinteren Axillarlinie, 8.–11. ICR, Marker nach kranial (Kopf). Im Simulator: Position „1 RUQ“.</p>
+<p><b>Ablauf:</b> Erst Zwerchfell mit Leber oben, dann Morison-Pouch (Leber/Niere), dann nach kaudal bis zur <b>kaudalen Leberspitze</b> und zum unteren Nierenpol durchschwenken.</p>
+<p><b>Normal:</b> Leber liegt der Niere direkt an, helle Linie (Gerota-Faszie) ohne schwarzen Spalt. Über dem Zwerchfell ein „Spiegelbild“ der Leber (Mirror-Artefakt) = normal, keine Flüssigkeit.</p>
+<p><b>Pathologisch:</b> Schwarzer (echofreier) Streifen zwischen Leber und Niere, oft <b>zuerst an der kaudalen Leberspitze</b> (sensitivste Stelle). Schwarz über dem Zwerchfell und sichtbare Wirbelsäule oberhalb davon („Spine sign“) = Hämatothorax.</p>
+<p><b>Schwierigkeiten und Lösungen:</b></p><ul>
+<li><i>Rippenschatten verdecken die Niere:</i> Sonde zwischen den Rippen leicht gegen den Uhrzeigersinn drehen (schräg, parallel zu den Rippen), einen ICR höher oder tiefer gehen, tief einatmen lassen.</li>
+<li><i>Nur Darmgas sichtbar:</i> Zu weit vorne – weiter nach hinten (posterior) gehen, Sonde Richtung Bett drücken und nach oben kippen.</li>
+<li><i>Leberspitze nicht gesehen:</i> Sonde nach kaudal schieben, bis die Leber endet. Kleine Mengen liegen nur dort.</li>
+<li><i>Fallstricke:</i> Gallenblase, Duodenum (flüssigkeitsgefüllt), perirenales Fett und die V. cava können wie Flüssigkeit aussehen. Flüssigkeit hat spitze Winkel und folgt den Organkonturen, Organe haben eine Wand.</li>
+<li>Wenn möglich leichte <b>Trendelenburg-Lage</b> (Kopf tiefer): Flüssigkeit läuft in den Morison-Pouch.</li></ul>
+<p class="hint-box">Im Simulator: Befund „Wenig Flüssigkeit (nur kaudale Leberspitze)“ wählen – im oberen Morison-Pouch ist alles normal, nur ganz kaudal (rechts im Bild, an Leberspitze und unterem Nierenpol) liegt ein schmaler schwarzer Saum. Genau hinschauen!</p>
+
+<h3>Fenster 2 · LUQ (linker Oberbauch, perisplenisch)</h3>
+<p><b>Position:</b> <b>weiter hinten und höher</b> als rechts: hintere Axillarlinie, 6.–9. ICR. Merksatz: „<b>Knöchel aufs Bett</b>“ – die Hand mit der Sonde liegt fast auf der Liege. Marker nach kranial.</p>
+<p><b>Ablauf:</b> Zuerst den Raum <b>zwischen Milz und Zwerchfell</b> (subphrenisch), dann splenorenal, dann den unteren Milzpol durchschwenken. Oberhalb des Zwerchfells die linke Pleura anschauen.</p>
+<p><b>Pathologisch:</b> Links sammelt sich Blut eher <b>subphrenisch um die Milz</b> als zwischen Milz und Niere (das phrenikokolische Band bremst den Abfluss nach unten).</p>
+<p><b>Schwierigkeiten und Lösungen:</b></p><ul>
+<li><i>Milz nicht gefunden:</i> Fast immer zu weit vorne und zu tief. Weiter nach hinten und nach oben gehen, die Milz ist klein und liegt hoch.</li>
+<li><i>Magen-/Darmgas:</i> posteriorer und kranialer ansetzen.</li>
+<li><i>Rippenschatten:</i> Sonde schräg in den Zwischenrippenraum drehen (im Uhrzeigersinn), tief einatmen lassen.</li>
+<li><i>Fallstricke:</i> Magen mit Flüssigkeit, Nierenzysten, Pleuraerguss (über dem Zwerchfell!) nicht mit subphrenischer Flüssigkeit verwechseln.</li></ul>
+
+<h3>Fenster 3 · Becken (suprapubisch)</h3>
+<p><b>Position:</b> Direkt über der Symphyse, Sonde nach kaudal ins Becken kippen. Erst <b>quer</b> (Marker nach rechts), dann <b>längs</b> (Marker nach kranial).</p>
+<p><b>Ablauf:</b> Die Blase vollständig von oben bis unten bzw. von rechts nach links durchfächern. Möglichst <b>vor dem Blasenkatheter</b> untersuchen, eine volle Blase ist das Schallfenster.</p>
+<p><b>Pathologisch:</b> Schwarzer Raum <b>hinter der Blase</b> (Mann: rektovesikal) bzw. <b>hinter dem Uterus</b> (Frau: Douglas-Raum), oft spitz zulaufend.</p>
+<p><b>Schwierigkeiten und Lösungen:</b></p><ul>
+<li><i>Hinter der Blase wirkt alles hell (Schallverstärkung):</i> Die Verstärkung (Gain) im Fernbereich mit den unteren <b>TGC-Reglern</b> reduzieren – sonst überstrahlt man kleine Flüssigkeitssäume.</li>
+<li><i>Blase leer oder Katheter liegt:</i> Sehr schwierig. Sonde tiefer und steiler kippen, beide Ebenen anschauen; ggf. „nicht beurteilbar“ dokumentieren.</li>
+<li><i>Fallstricke:</i> Samenblasen, Darmschlingen mit Flüssigkeit, Ovarialzysten/Follikel, physiologisch wenig Flüssigkeit im Douglas bei Frauen. Darm bewegt sich (Peristaltik), freie Flüssigkeit nicht.</li>
+<li><i>Beckenfraktur:</i> Blut liegt oft extraperitoneal und wird vom FAST schlecht erfasst.</li></ul>
+
+<h3>Fenster 4 · Subxiphoidal (Herz)</h3>
+<p><b>Position:</b> Sonde <b>flach</b> (fast parallel zur Haut) direkt unter dem Xiphoid, Schallrichtung zur linken Schulter, Marker nach rechts des Patienten. Kräftig von oben drücken. Tiefe 16–20 cm.</p>
+<p><b>Ablauf:</b> Leber als Schallfenster benutzen, das Herz liegt darunter. Rechten Ventrikel (vorne, nah an der Leber) und linken Ventrikel finden, dann leicht fächern.</p>
+<p><b>Pathologisch:</b> Schwarzer Saum zwischen Myokard und hellem Perikard, typisch <b>rundherum</b> bzw. auch <b>hinten</b>. <b>Tamponade</b>: grosser Erguss und der rechte Ventrikel/Vorhof kollabiert in der Diastole, das Herz „schwimmt“.</p>
+<p><b>Schwierigkeiten und Lösungen:</b></p><ul>
+<li><i>Herz nicht sichtbar:</i> Sonde noch flacher halten und mehr nach links (Richtung Herzspitze) schieben; tief einatmen lassen, damit das Herz nach unten kommt; Tiefe erhöhen.</li>
+<li><i>Magen-/Darmgas, Adipositas, Abwehrspannung, Schmerzen:</i> Etwas nach rechts gehen, um mehr Leber als Fenster zu haben – oder auf <b>parasternal lang</b> wechseln (links neben dem Sternum, 3.–4. ICR, Marker zur rechten Schulter).</li>
+<li><i>Fallstrick epikardiales Fett:</i> liegt <b>nur vorne</b>, ist nicht ganz schwarz (leicht körnig) und <b>bewegt sich mit dem Herzen mit</b>. Echter Erguss ist schwarz, oft hinten am breitesten bzw. rundherum.</li>
+<li><i>Fallstrick Pleuraerguss:</i> Im parasternalen Langachsenschnitt liegt Perikarderguss <b>vor</b> der Aorta descendens, Pleuraerguss <b>dahinter</b>.</li></ul>
+<p class="hint-box">Im Simulator: Befund „Epikardialer Fettkörper“ (nur vorne, grau) mit „Perikarderguss“ bzw. „Perikardtamponade“ (schwarz rundherum, rechte Herzhöhlen eingedrückt) vergleichen.</p>
+
+<h3>Fenster 5 und 6 · Thorax rechts/links anterior (Pneumothorax)</h3>
+<p><b>Position:</b> Linearsonde L3-12, Preset „Lunge“, Tiefe 4–6 cm. Am liegenden Patienten steigt Luft nach vorne: <b>2.–3. ICR medioklavikulär</b>, Sonde <b>längs</b> (Marker nach kranial) über zwei Rippen – das „<b>Bat sign</b>“ (zwei Rippenschatten = Flügel, Pleuralinie = Körper).</p>
+<p><b>Ablauf:</b> Pleuralinie zwischen den Rippen fokussieren und mindestens einige Atemzüge beobachten. Dann <b>M-Mode</b> durch die Pleuralinie legen. Zusätzlich 1–2 ICR tiefer und weiter lateral prüfen.</p>
+<p><b>Normal:</b> Lungengleiten („ameisenartiges“ Flimmern an der Pleuralinie), im M-Mode <b>Seashore-Zeichen</b> (Wellen oben, Sand unten). Einzelne B-Linien sind ebenfalls ein Zeichen, dass die Pleura anliegt.</p>
+<p><b>Pathologisch:</b> Kein Gleiten, nur A-Linien, im M-Mode <b>Barcode/Stratosphären-Zeichen</b>. Der <b>Lung point</b> (Stelle, an der Gleiten und Nicht-Gleiten wechseln) ist zu 100 % spezifisch für einen Pneumothorax.</p>
+<p><b>Schwierigkeiten und Lösungen:</b></p><ul>
+<li><b><i>Links ist immer das Herz im Bild (Pulsation, Herzhöhle):</i></b> Die Sonde liegt <b>zu medial und/oder zu tief</b> – über der <b>Incisura cardiaca</b>, wo das Herz direkt an der Brustwand liegt. Lösung: <b>Sonde nach lateral</b> Richtung Medioklavikularlinie bzw. vordere Axillarlinie schieben und/oder <b>einen bis zwei ICR höher</b> (2. ICR) gehen, bis zwischen den Rippen nur noch Pleuralinie und A-Linien zu sehen sind. Der Übergang Lunge/Herz bei der Atmung ist <b>kein Lung point</b>.</li>
+<li><i>„Lung pulse“ statt Gleiten:</i> Ein rhythmisches Pulsieren der Pleuralinie im Herzrhythmus (ohne Gleiten) zeigt auch, dass die Pleura anliegt – also kein Pneumothorax an dieser Stelle, z. B. bei Atemstillstand oder Intubation in den rechten Hauptbronchus.</li>
+<li><i>Gleiten schwer erkennbar:</i> Tiefe auf 3–5 cm reduzieren, Fokus auf die Pleuralinie, Sonde ganz ruhig halten (Hand am Thorax abstützen), lieber Tiefe reduzieren als zoomen; M-Mode verwenden.</li>
+<li><i>Fehlendes Gleiten ohne Pneumothorax:</i> Apnoe, einseitige Intubation, Pleuraverklebungen (frühere Pleurodese, Entzündung), schweres ARDS, sehr flache Atmung. Darum nach Lung point suchen und klinisch einordnen.</li>
+<li><i>Fallstrick Muskelbewegung:</i> Die Interkostalmuskeln über der Pleuralinie bewegen sich auch bei der Atmung. Entscheidend ist die Bewegung <b>an</b> der Pleuralinie und das M-Mode-Muster darunter.</li>
+<li><i>Hautemphysem:</i> Luft im Unterhautgewebe verdeckt alles (helle Linien, keine Rippen). Dann ist die Lunge nicht beurteilbar – andere Stellen suchen oder Röntgen/CT.</li>
+<li><i>Hämatothorax:</i> Mit der Konvexsonde in RUQ/LUQ (über dem Zwerchfell) suchen, nicht mit der Linearsonde vorne.</li></ul>
+<p class="hint-box">Im Simulator: Position <b>„6b Lunge li. zu medial“</b> zeigt genau dieses Problem (rechts im Bild das Herz). Dann auf „6 Lunge li.“ wechseln – so sieht das richtige Fenster aus. Befunde „Pneumothorax links“, „Pneumothorax rechts mit Lung point“ und „B-Linien“ zum Üben.</p>
+
+<h3>Beispielbilder (echte Ultraschallbilder, externe Seiten)</h3>
+<p style="font-size:13px">Die Bilder sind urheberrechtlich geschützt bzw. extern gehostet und werden deshalb verlinkt statt eingebettet. Links öffnen in einem neuen Tab.</p>
+<ul>
+<li><a href="https://radiopaedia.org/articles/focused-assessment-with-sonography-for-trauma-fast-scan" target="_blank" rel="noopener">Radiopaedia: FAST-Untersuchung (Artikel mit Fallbildern)</a></li>
+<li><a href="https://radiopaedia.org/search?q=morison+pouch+free+fluid&scope=cases" target="_blank" rel="noopener">Radiopaedia-Fälle: freie Flüssigkeit im Morison-Pouch</a></li>
+<li><a href="https://radiopaedia.org/search?q=pericardial+effusion+ultrasound&scope=cases" target="_blank" rel="noopener">Radiopaedia-Fälle: Perikarderguss im Ultraschall</a></li>
+<li><a href="https://radiopaedia.org/articles/lung-point-sign" target="_blank" rel="noopener">Radiopaedia: Lung point</a> · <a href="https://radiopaedia.org/articles/barcode-sign-lungs" target="_blank" rel="noopener">Barcode-Zeichen</a> · <a href="https://radiopaedia.org/articles/seashore-sign" target="_blank" rel="noopener">Seashore-Zeichen</a></li>
+<li><a href="https://commons.wikimedia.org/w/index.php?search=FAST+ultrasound&title=Special:MediaSearch&type=image" target="_blank" rel="noopener">Wikimedia Commons: frei lizenzierte FAST-Bilder</a></li>
+<li><a href="https://www.pocus101.com/efast-ultrasound-exam-made-easy-step-by-step-guide/" target="_blank" rel="noopener">POCUS 101: eFAST Schritt für Schritt (mit Videos)</a></li>
+<li><a href="https://www.youtube.com/results?search_query=eFAST+ultrasound+pneumothorax+lung+point" target="_blank" rel="noopener">YouTube: echte Clips Lungengleiten / Lung point</a></li>
+</ul>
+
+<h3>Merke</h3><p>Ein negativer eFAST schliesst eine Verletzung nicht aus (z. B. retroperitoneal, Hohlorgan, frühe Phase). Bei Instabilität wiederholen. Befund immer als Ja/Nein/nicht beurteilbar pro Fenster dokumentieren und die Bilder speichern.</p>
+
 <div class="btnrow"><button class="btn primary" data-tplay="3">▶ Tutorial: eFAST normal</button><button class="btn" data-tplay="4">▶ Tutorial: eFAST pathologisch</button><button class="btn" data-efastcase="1">Zufälliger Fall (Test)</button></div>`;
 
 // ================= Video-Tutorials =================
@@ -1887,7 +2012,7 @@ const TUTS=[
   T('Freeze erneut drücken, um weiter live zu schallen.',()=>A_click('freeze')),
   T('Kontrolle der gespeicherten Bilder: PATIENT, dann Aktive Bilder …',async()=>{await A_click('tab-patient');await A_click('pat-aktiv');}),
   T('… Bild antippen und auf Nachbetracht. tippen. Ein zweiter Tipp schliesst die Ansicht.',async()=>{await A_click('[data-img="0"]');await A_click('img-review');await vwait(1800);await A_click('img-review');}),
-  T('Zum Schluss UNTERS. BEEN. und bestätigen: Die Bilder werden archiviert, das Gerät ist bereit für den nächsten Patienten.',async()=>{await A_click('tab-end');await A_click('[data-act="end-ok"]');}),
+  T('Zum Schluss UNTERS. BEEN. und bestätigen: Die Bilder werden archiviert, das Gerät ist bereit für den nächsten Patienten.',async()=>{await A_click('tab-end');await A_click('[data-act="end-transfer"]');await A_click('[data-act="end-ok"]');}),
   T('Danach Gel abwischen und die Sonde nach Hygieneplan reinigen bzw. desinfizieren. Fertig!')]},
  {title:'Einstellungen verstehen: was jeder Regler bewirkt',sub:'Frequenz, Dynamik, Fokus, SRI, CrossXBeam, CHI, Zoom …',setup:()=>resetAll({last:'Muster',first:'Max'}),steps:[
   T('In diesem Tutorial siehst du, wie sich jede Einstellung auf das Bild auswirkt. Achte jeweils auf den Monitor.'),
@@ -1952,7 +2077,7 @@ const TUTS=[
   T('Oben ruhige Linien, unter der Pleura körnig: das Seashore-Zeichen. Damit ist ein Pneumothorax an dieser Stelle ausgeschlossen.',()=>vwait(2500)),
   T('Dokumentieren, dann M-Mode wieder aus.',async()=>{await A_store('Thorax re.');await A_click('z');}),
   T('Fenster 6, Thorax links: gleiches Vorgehen.',async()=>{await A_click('pos-lungL');await A_store('Thorax li.');}),
-  T('Alle 6 Fenster sind unauffällig. Untersuchung beenden, die Bilder werden archiviert.',async()=>{await A_click('tab-end');await A_click('[data-act="end-ok"]');}),
+  T('Alle 6 Fenster sind unauffällig. Untersuchung beenden, die Bilder werden archiviert.',async()=>{await A_click('tab-end');await A_click('[data-act="end-transfer"]');await A_click('[data-act="end-ok"]');}),
   T('Wichtig: Ein unauffälliger eFAST schliesst eine Verletzung nicht aus. Bei Verschlechterung wiederholen.')]},
  {title:'eFAST – pathologische Befunde erkennen',sub:'Freie Flüssigkeit, Perikarderguss, Pneumothorax, Hämatothorax',setup:()=>resetAll({last:'Trauma',probe:'C1-6',preset:'eFAST',case:'normal'}),steps:[
   T('Jetzt dieselben Fenster mit krankhaften Befunden. Unter dem Monitor stellen wir dafür den Befund des simulierten Patienten um.'),
@@ -2109,7 +2234,7 @@ function tutHTML(){
 const TS={set:null,i:0,res:[],hint:false,t0:0,taskT0:0,imgStart:0,endStart:0,last:0,feedback:null,done:false};
 function measDist(){const m=S.measure;if(!m||m.pts.length<2||m.active!=null)return null;return Math.hypot(m.pts[1][0]-m.pts[0][0],m.pts[1][1]-m.pts[0][1])/(G.ppc*S.zoom);}
 function newImgs(){return S.images.slice(TS.imgStart);}
-const DIAG=[['normal','Unauffälliger eFAST (kein Nachweis von freier Flüssigkeit oder Pneumothorax)'],['ff','Freie Flüssigkeit intraabdominal'],['pe','Perikarderguss'],['ptxR','Pneumothorax rechts'],['htxL','Hämatothorax links']];
+const DIAG=[['normal','Unauffälliger eFAST (kein Nachweis von freier Flüssigkeit oder Pneumothorax)'],['ff','Freie Flüssigkeit intraabdominal'],['pe','Perikarderguss'],['tamp','Perikardtamponade'],['ptxL','Pneumothorax links'],['htxR','Hämatothorax rechts'],['ptxR','Pneumothorax rechts'],['htxL','Hämatothorax links']];
 const TESTS=[
  {title:'Bedienung Grundlagen',sub:'8 Aufträge rund um Patient, Bild und Speichern',setup:()=>resetAll(),tasks:[
   {t:'Lege einen Patienten mit dem Nachnamen „Test“ an und registriere ihn.',hint:'PATIENT › Reiter Patient › Nachname › Registrieren.',hl:'tab-patient',ok:()=>S.registered&&S.patient.last.trim().toLowerCase()==='test'},
@@ -2119,7 +2244,7 @@ const TESTS=[
   {t:'Schalte CrossXBeam aus und stelle SRI HD auf 2.',hint:'Touchscreen SCAN › B: „Cross Beam“ antippen, „SRI HD“ antippen bis 2.',hl:'p-cxb',ok:()=>!S.cxb&&S.sri===2},
   {t:'Friere das Bild ein und miss eine Strecke zwischen 1,0 und 2,0 cm.',hint:'Freeze › Measure › Punkt 1 › Set › Punkt 2 › Set. Ergebnis links unten im Monitor.',hl:'measure',ok:()=>{const d=measDist();return S.freeze&&d!==null&&d>=1&&d<=2;}},
   {t:'Beschrifte das Bild mit „Knie“ und speichere es.',hint:'Abc › Text › Enter, dann P1.',hl:'abc',ok:()=>S.annots.some(a=>/knie/i.test(a.text))&&newImgs().length>0},
-  {t:'Beende die Untersuchung.',hint:'Links am Touchscreen UNTERS. BEEN. › bestätigen.',hl:'tab-end',ok:()=>S.endCount>TS.endStart}]},
+  {t:'Beende die Untersuchung.',hint:'Links am Touchscreen UNTERS. BEEN. › Datentransfer › Senden & Untersuchung beenden.',hl:'tab-end',ok:()=>S.endCount>TS.endStart}]},
  {title:'Doppler',sub:'8 Aufträge: Farbe, Aliasing, PW, Power-Doppler',setup:()=>resetAll({last:'Test'}),tasks:[
   {t:'Wähle die Linearsonde mit dem Preset „Gefässe“ und schalte den Farbdoppler ein.',hint:'Sonde L3-12 › Gefässe, dann X/CF-Knopf drücken.',hl:'x',ok:()=>S.probe==='L3-12'&&S.preset==='Gefässe'&&S.color==='CF'},
   {t:'Platziere die Farbbox über der Arterie (rundes Gefäss rechts der Mitte).',hint:'Trackball ziehen, die Box folgt.',hl:'tb',ok:()=>S.color==='CF'&&boxOverVessel()},
